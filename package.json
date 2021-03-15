@@ -4,6 +4,7 @@
   "description": "My personal Discord/Twitch bot",
   "main": "main.js",
   "scripts": {
+    "run": "node main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/cjs8487/Ceejus/issues"
   },
-  "homepage": "https://github.com/cjs8487/Ceejus#readme"
+  "homepage": "https://github.com/cjs8487/Ceejus#readme",
+  "dependencies": {
+    "tmi.js": "^1.7.5"
+  }
 }
