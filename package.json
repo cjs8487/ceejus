@@ -4,7 +4,8 @@
   "description": "My personal Discord/Twitch bot",
   "main": "main.js",
   "scripts": {
-    "run": "node main.js",
+    "run": "node src/main.js",
+    "twitch": "node src/twitch/TwitchBot.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --max-warnings 0 \"src/**/*.js\" \"*.js\""
   },
@@ -19,6 +20,7 @@
   },
   "homepage": "https://github.com/cjs8487/Ceejus#readme",
   "dependencies": {
+    "dotenv": "^8.2.0",
     "tmi.js": "^1.7.5"
   },
   "devDependencies": {
