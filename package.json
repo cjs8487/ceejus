@@ -1,0 +1,19 @@
+{
+  "name": "ceejus",
+  "version": "0.1.0",
+  "description": "My personal Discord/Twitch bot",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cjs8487/Ceejus.git"
+  },
+  "author": "CJ Schaefer (cjs8487)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cjs8487/Ceejus/issues"
+  },
+  "homepage": "https://github.com/cjs8487/Ceejus#readme"
+}
