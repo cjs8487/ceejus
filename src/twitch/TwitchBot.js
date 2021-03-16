@@ -16,6 +16,8 @@ class TwitchBot {
         this.client.on('connected', this.onConnectedHandler);
 
         this.client.connect();
+
+        this.commands = {};
     }
 
     onMessageHandler(target, context, msg, self) {
@@ -59,7 +61,9 @@ class TwitchBot {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    setupDb() {
+    setupDb(db) {
+        const commandsFromDb = db.prepare('select * from commands').all();
+        console.log(commandsFromDb);
     }
 }
 

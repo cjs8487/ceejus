@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/cjs8487/Ceejus#readme",
   "dependencies": {
+    "better-sqlite3": "^7.1.2",
     "dotenv": "^8.2.0",
     "tmi.js": "^1.7.5"
   },
