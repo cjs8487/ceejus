@@ -8,7 +8,7 @@
             ],
             "rules": {
                 "indent": ["error", 4],
-                "max-len": ["error", 80],
+                "max-len": ["error", 120],
                 "no-plusplus": ["off"],
                 "operator-linebreak": ["error", "after", {
                     "overrides": {
@@ -23,7 +23,8 @@
                 "no-param-reassign": ["error", {
                     "props": false
                 }],
-                "no-mixed-operators": ["off"]
+                "no-mixed-operators": ["off"],
+                "prefer-destructuring": ["off"]
             }
         }
     ]
