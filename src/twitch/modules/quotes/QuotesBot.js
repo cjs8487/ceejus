@@ -1,3 +1,7 @@
+const TwitchHelper = require('./TwitchHelper');
+
+const isUserMod = TwitchHelper.isUserMod;
+
 class QuotesBot {
     constructor(client) {
         this.client = client;
@@ -14,6 +18,7 @@ class QuotesBot {
                 `@${context.username} successfully added quote #${addData.lastInsertRowid}`,
             );
         } else if (quoteCommand === 'delete') {
+            if (!isUserMod(context, target)) return;
             if (messageParts.length < 2) {
                 this.client.say(
                     target,
@@ -36,6 +41,7 @@ class QuotesBot {
                 `@${context.username} #${quoteNumber} deleted`,
             );
         } else if (quoteCommand === 'edit') {
+            if (!isUserMod(context, target)) return;
             const quoteNumber = parseInt(messageParts[1], 10);
             const newQuote = messageParts.slice(2).join(' ');
             this.db.prepare('update quotes set quote=? where id=?').run(newQuote, quoteNumber);

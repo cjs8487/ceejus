@@ -1,6 +1,9 @@
 const tmi = require('tmi.js');
 const fs = require('fs');
 const QuotesBot = require('./modules/quotes/QuotesBot');
+const TwitchHelper = require('./TwitchHelper');
+
+const isUserMod = TwitchHelper.isUserMod;
 
 class TwitchBot {
     constructor() {
@@ -52,7 +55,7 @@ class TwitchBot {
                 `@${context.username} has returned from the shadows`,
             );
         } else if (commandName === 'addcomm') {
-            if (!TwitchBot.isUserMod(context, target)) return;
+            if (!isUserMod(context, target)) return;
             const newCommand = commandParts[1];
             const output = commandParts.slice(2).join(' ');
             this.db.prepare('insert into commands (command_string, output) values (?, ?)').run(newCommand, output);
@@ -61,7 +64,7 @@ class TwitchBot {
                 `@${context.username} command !${newCommand} successfully created`,
             );
         } else if (commandName === 'editcomm') {
-            if (!TwitchBot.isUserMod(context, target)) return;
+            if (!isUserMod(context, target)) return;
             const editCommand = commandParts[1];
             const output = commandParts.slice(2).join(' ');
             this.db.prepare('update commands set output=? where command_string=?').run(output, editCommand);
@@ -70,7 +73,7 @@ class TwitchBot {
                 `@${context.username} command !${editCommand} editted successfully`,
             );
         } else if (commandName === 'deletecomm') {
-            if (!TwitchBot.isUserMod(context, target)) return;
+            if (!isUserMod(context, target)) return;
             const deleteCommand = commandParts[1];
             this.db.prepare('delete from commands where command_string=?').run(deleteCommand);
             this.client.say(
@@ -102,12 +105,6 @@ class TwitchBot {
             db.exec(setupScript);
         }
         this.quotesBot.setupDb(db);
-    }
-
-    static isUserMod(user, channel) {
-        const mod = user.mod || user['user-type'] === 'mod';
-        const me = channel.slice(1) === user.username;
-        return mod || me;
     }
 }
 
