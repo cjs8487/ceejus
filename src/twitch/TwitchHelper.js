@@ -6,4 +6,4 @@ class TwitchHelper {
     }
 }
 
-module.exports.isUserMod = this.isUserMod;
+module.exports.isUserMod = TwitchHelper.isUserMod;

@@ -1,9 +1,7 @@
 const tmi = require('tmi.js');
 const fs = require('fs');
-const QuotesBot = require('./modules/quotes/QuotesBot');
-const TwitchHelper = require('./TwitchHelper');
-
-const isUserMod = TwitchHelper.isUserMod;
+const QuotesBot = require('../modules/quotes/QuotesBot');
+const { isUserMod } = require('./TwitchHelper');
 
 class TwitchBot {
     constructor() {
@@ -83,7 +81,11 @@ class TwitchBot {
         } else if (commandName === 'cjquote') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
-            this.quotesBot.handleMessage(target, context, commandParts.slice(1));
+            const mod = isUserMod(context, target);
+            this.client.say(
+                target,
+                `@${context.username} ${this.quotesBot.handleMessage(commandParts.slice(1), mod)}`,
+            );
         } else {
             // standard text commands
             const response = this.db.prepare('select output from commands where command_string=?').get(commandName);
