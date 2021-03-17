@@ -1,5 +1,6 @@
 const tmi = require('tmi.js');
 const fs = require('fs');
+const QuotesBot = require('./modules/quotes/QuotesBot');
 
 class TwitchBot {
     constructor() {
@@ -19,7 +20,7 @@ class TwitchBot {
 
         this.client.connect();
 
-        this.commands = {};
+        this.quotesBot = new QuotesBot.QuotesBot(this.client);
     }
 
     onMessageHandler(target, context, msg, self) {
@@ -76,6 +77,10 @@ class TwitchBot {
                 target,
                 `@${context.username} command !${deleteCommand} deleted sucessfully`,
             );
+        } else if (commandName === 'cjquote') {
+            // pass the message on to the quotes bot to handle
+            // we remove the !quote because the bot assumes that the message has already been parsed
+            this.quotesBot.handleMessage(target, context, commandParts.slice(1));
         } else {
             // standard text commands
             const response = this.db.prepare('select output from commands where command_string=?').get(commandName);
@@ -90,17 +95,13 @@ class TwitchBot {
     }
 
     setupDb(db) {
-        let commandsFromDb = db.prepare('select * from commands').all();
-        if (commandsFromDb.length === 0) {
-            // run the command set up script
-            console.log('No commands found. Re-initializing database commands');
-            const initialSetup = fs.readFileSync('./src/twitch/initalCommandSetup.sql', 'utf-8');
-            db.exec(initialSetup);
-            commandsFromDb = db.prepare('select * from commands').all();
-        }
-        console.log(commandsFromDb);
-        this.commands = commandsFromDb;
         this.db = db;
+        const commands = this.db.prepare('select * from commands');
+        if (commands === undefined) {
+            const setupScript = fs.readFileSync('src/twitch/initalCommandSetup.sql', 'utf-8');
+            db.exec(setupScript);
+        }
+        this.quotesBot.setupDb(db);
     }
 
     static isUserMod(user, channel) {
