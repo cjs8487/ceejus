@@ -4,7 +4,10 @@ const QuotesBot = require('../modules/quotes/QuotesBot');
 const { isUserMod } = require('./TwitchHelper');
 
 class TwitchBot {
-    constructor() {
+    constructor(db) {
+        this.db = db;
+        this.quotesBot = new QuotesBot.QuotesBot(db);
+
         const opts = {
             identity: {
                 username: process.env.BOT_USERNAME,
@@ -20,8 +23,6 @@ class TwitchBot {
         this.client.on('connected', this.onConnectedHandler);
 
         this.client.connect();
-
-        this.quotesBot = new QuotesBot.QuotesBot(this.client);
     }
 
     onMessageHandler(target, context, msg, self) {
@@ -99,14 +100,12 @@ class TwitchBot {
         console.log(`* Connected to ${addr}:${port}`);
     }
 
-    setupDb(db) {
-        this.db = db;
+    setupDb() {
         const commands = this.db.prepare('select * from commands');
         if (commands === undefined) {
             const setupScript = fs.readFileSync('src/twitch/initalCommandSetup.sql', 'utf-8');
-            db.exec(setupScript);
+            this.db.exec(setupScript);
         }
-        this.quotesBot.setupDb(db);
     }
 }
 

@@ -1,4 +1,8 @@
 class QuotesBot {
+    constructor(db) {
+        this.db = db;
+    }
+
     handleMessage(messageParts, mod) {
         const quoteCommand = messageParts[0];
 
