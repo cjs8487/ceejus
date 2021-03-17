@@ -1,4 +1,4 @@
-const TwitchHelper = require('./TwitchHelper');
+const TwitchHelper = require('../../TwitchHelper');
 
 const isUserMod = TwitchHelper.isUserMod;
 
