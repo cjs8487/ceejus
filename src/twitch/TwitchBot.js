@@ -79,7 +79,7 @@ class TwitchBot {
                 target,
                 `@${context.username} command !${deleteCommand} deleted sucessfully`,
             );
-        } else if (commandName === 'cjquote') {
+        } else if (commandName === 'quote') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
             const mod = isUserMod(context, target);
