@@ -41,7 +41,7 @@ class TwitchBot {
         }
 
         const commandParts = msg.substring(1).split(' ');
-        commandName = commandParts[0];
+        commandName = commandParts[0].toLowerCase();
 
         if (commandName === 'lurk') {
             this.client.say(
@@ -55,7 +55,7 @@ class TwitchBot {
             );
         } else if (commandName === 'addcomm') {
             if (!isUserMod(context, target)) return;
-            const newCommand = commandParts[1];
+            const newCommand = commandParts[1].toLowerCase();
             const output = commandParts.slice(2).join(' ');
             this.db.prepare('insert into commands (command_string, output) values (?, ?)').run(newCommand, output);
             this.client.say(
@@ -64,7 +64,7 @@ class TwitchBot {
             );
         } else if (commandName === 'editcomm') {
             if (!isUserMod(context, target)) return;
-            const editCommand = commandParts[1];
+            const editCommand = commandParts[1].toLowerCase();
             const output = commandParts.slice(2).join(' ');
             this.db.prepare('update commands set output=? where command_string=?').run(output, editCommand);
             this.client.say(
@@ -73,7 +73,7 @@ class TwitchBot {
             );
         } else if (commandName === 'deletecomm') {
             if (!isUserMod(context, target)) return;
-            const deleteCommand = commandParts[1];
+            const deleteCommand = commandParts[1].toLowerCase();
             this.db.prepare('delete from commands where command_string=?').run(deleteCommand);
             this.client.say(
                 target,
