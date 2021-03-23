@@ -3,7 +3,15 @@ const fs = require('fs');
 const QuotesBot = require('../modules/quotes/QuotesBot');
 const { isUserMod } = require('./TwitchHelper');
 
+/**
+ * IRC Chatbot run through Twitch. This serves as the main entry point into the Twitch modules of the bot, but most
+ * functionality is broken out into those modules.
+ */
 class TwitchBot {
+    /**
+     * Constructs a new Twitch bot isntance, using the environment variables to contruct the instance
+     * @param {*} db The database to use when looking up information for the bot (commands, quotes, etc.)
+     */
     constructor(db) {
         this.db = db;
         this.quotesBot = new QuotesBot.QuotesBot(db);
@@ -25,14 +33,21 @@ class TwitchBot {
         this.client.connect();
     }
 
-    onMessageHandler(target, context, msg, self) {
+    /**
+     * Handles an incoming chat messsage
+     * @param {*} channel The channel the message was sent in
+     * @param {*} user The user who sent the message
+     * @param {*} message The message that was sent
+     * @param {boolean} self true if the message was sent by the bot
+     */
+    onMessageHandler(channel, user, message, self) {
         if (self) {
             return;
         }
 
         // TODO: TIMED MESSAGE HANDLING
 
-        let commandName = msg.trim();
+        let commandName = message.trim();
 
         if (!commandName.startsWith('!')) {
         // not a command
@@ -40,66 +55,78 @@ class TwitchBot {
             return;
         }
 
-        const commandParts = msg.substring(1).split(' ');
+        const commandParts = message.substring(1).split(' ');
         commandName = commandParts[0].toLowerCase();
 
         if (commandName === 'lurk') {
             this.client.say(
-                target,
-                `@${context.username} is lurking in the shadows, silently supporting the stream`,
+                channel,
+                `@${user.username} is lurking in the shadows, silently supporting the stream`,
             );
         } else if (commandName === 'unlurk') {
             this.client.say(
-                target,
-                `@${context.username} has returned from the shadows`,
+                channel,
+                `@${user.username} has returned from the shadows`,
             );
         } else if (commandName === 'addcomm') {
-            if (!isUserMod(context, target)) return;
+            if (!isUserMod(user, channel)) return;
             const newCommand = commandParts[1].toLowerCase();
             const output = commandParts.slice(2).join(' ');
             this.db.prepare('insert into commands (command_string, output) values (?, ?)').run(newCommand, output);
             this.client.say(
-                target,
-                `@${context.username} command !${newCommand} successfully created`,
+                channel,
+                `@${user.username} command !${newCommand} successfully created`,
             );
         } else if (commandName === 'editcomm') {
-            if (!isUserMod(context, target)) return;
+            if (!isUserMod(user, channel)) return;
             const editCommand = commandParts[1].toLowerCase();
             const output = commandParts.slice(2).join(' ');
             this.db.prepare('update commands set output=? where command_string=?').run(output, editCommand);
             this.client.say(
-                target,
-                `@${context.username} command !${editCommand} editted successfully`,
+                channel,
+                `@${user.username} command !${editCommand} editted successfully`,
             );
         } else if (commandName === 'deletecomm') {
-            if (!isUserMod(context, target)) return;
+            if (!isUserMod(user, channel)) return;
             const deleteCommand = commandParts[1].toLowerCase();
             this.db.prepare('delete from commands where command_string=?').run(deleteCommand);
             this.client.say(
-                target,
-                `@${context.username} command !${deleteCommand} deleted sucessfully`,
+                channel,
+                `@${user.username} command !${deleteCommand} deleted sucessfully`,
             );
         } else if (commandName === 'quote') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
-            const mod = isUserMod(context, target);
+            const mod = isUserMod(user, channel);
+            const quoteResponse = this.quotesBot.handleMessage(commandParts.slice(1), mod);
+            if (quoteResponse === '') {
+                return;
+            }
             this.client.say(
-                target,
-                `@${context.username} ${this.quotesBot.handleMessage(commandParts.slice(1), mod)}`,
+                channel,
+                `@${user.username} ${quoteResponse}`,
             );
         } else {
             // standard text commands
             const response = this.db.prepare('select output from commands where command_string=?').get(commandName);
             if (response === undefined) return; // invalid command
-            this.client.say(target, response.output);
+            this.client.say(channel, response.output);
         }
     }
 
+    /**
+     * Callback for a successful connection to the irc server
+     * @param {*} addr The address of the irc server the bot connected to
+     * @param {*} port The port on the server we are connected through
+     */
     // eslint-disable-next-line class-methods-use-this
     onConnectedHandler(addr, port) {
         console.log(`* Connected to ${addr}:${port}`);
     }
 
+    /**
+     * Checks the database for existing data and loads the initial dataset if the is no data present
+     */
     setupDb() {
         const commands = this.db.prepare('select * from commands');
         if (commands === undefined) {
