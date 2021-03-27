@@ -2,6 +2,7 @@ const Discord = require('discord.js');
 const { QuotesBot } = require('../modules/quotes/QuotesBot');
 
 const prefix = '$';
+const testChannel = '755894973987291176';
 
 /**
  * An IRC bot operating on the Discord platform. This bot can ooperate on the same (or different) database as any of the
@@ -38,8 +39,11 @@ class DiscordBot {
     handleMessage(message) {
         if (!message.content.startsWith(prefix) || message.author.bot) return;
         if (process.env.testing === 'true') {
-            console.log('testing is enabled, ignoring normal usage');
-            return;
+            // console.log(message.channel.id)
+            if (message.channel.id !== testChannel) {
+                console.log('testing is enabled, ignoring normal usage');
+                return;
+            }
         }
         const args = message.content.slice(prefix.length).trim().split(' ');
         const command = args.shift().toLowerCase();
