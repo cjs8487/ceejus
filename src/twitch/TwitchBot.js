@@ -21,7 +21,7 @@ class TwitchBot {
                 username: process.env.BOT_USERNAME,
                 password: process.env.OAUTH_TOKEN,
             },
-            channels: [process.env.CHANNEL_NAME],
+            channels: process.env.CHANNEL_NAME.split(','),
         };
 
         // eslint-disable-next-line new-cap

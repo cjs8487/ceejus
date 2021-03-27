@@ -37,6 +37,10 @@ class DiscordBot {
      */
     handleMessage(message) {
         if (!message.content.startsWith(prefix) || message.author.bot) return;
+        if (process.env.testing === 'true') {
+            console.log('testing is enabled, ignoring normal usage');
+            return;
+        }
         const args = message.content.slice(prefix.length).trim().split(' ');
         const command = args.shift().toLowerCase();
 

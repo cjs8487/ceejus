@@ -7,7 +7,8 @@ require('dotenv').config();
 const db = new Database('database.db', { verbose: console.log });
 
 // set up the databse
-// the setup script will run everytime the bot starts. Take care that it will not overwrite data and will always work or the bot may not start
+// the setup script will run everytime the bot starts.
+// Take care that it will not overwrite data and will always work or the bot may not start
 const setupScript = fs.readFileSync('src/dbsetup.sql', 'utf-8');
 db.exec(setupScript);
 
