@@ -1,3 +1,5 @@
+const { Aliaser } = require("./Aliaser");
+
 /**
  * The shared quotes module across all platforms the bot operates on. All platform bots interact with this module to
  * perform operations on the quotes subsystem.
@@ -9,6 +11,7 @@ class QuotesBot {
      */
     constructor(db) {
         this.db = db;
+        this.aliaser = new Aliaser(db);
     }
 
     /**
@@ -48,13 +51,24 @@ class QuotesBot {
             this.db.prepare('update quotes set quote=? where id=?').run(newQuote, quoteNumber);
             return `#${quoteNumber} edited`;
         }
+        if (quoteCommand === 'alias') {
+            const aliasCommand = messageParts[1];
+            const quoteNumber = parseInt(messageParts[2], 10);
+            const alias = messageParts.slice(3).join(' ');
+            return this.aliaser.handleRequest(aliasCommand, quoteNumber, alias, mod);
+        }
         // command is requesting a quote
         console.log(messageParts);
         if (messageParts.length > 0) { // more was specified in the command, so we need to fetch a specific quote
             const quoteLookup = messageParts[0];
             const quoteId = parseInt(quoteLookup, 10);
             if (Number.isNaN(quoteId)) {
-                return 'aliases are not currently supported';
+                const alias = messageParts.join(' ');
+                const quote = this.db.prepare('select * from quotes where alias=?').get(alias);
+                if (quote === undefined) {
+                    return 'no quote with that alias exists';
+                }
+                return `#${quote.id} (${quote.alias}): ${quote.quote}`;
             }
             const quote = this.db.prepare('select * from quotes where id=?').get(quoteId);
             if (quote === undefined) { // there are no quotes
