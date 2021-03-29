@@ -1,4 +1,4 @@
-const { Aliaser } = require("./Aliaser");
+const { Aliaser } = require('./Aliaser');
 
 /**
  * The shared quotes module across all platforms the bot operates on. All platform bots interact with this module to
@@ -57,6 +57,10 @@ class QuotesBot {
             const alias = messageParts.slice(3).join(' ');
             return this.aliaser.handleRequest(aliasCommand, quoteNumber, alias, mod);
         }
+        if (quoteCommand === 'info') {
+            const quoteNumber = parseInt(messageParts[1], 10);
+            return this.getQuoteInfo(quoteNumber);
+        }
         // command is requesting a quote
         console.log(messageParts);
         if (messageParts.length > 0) { // more was specified in the command, so we need to fetch a specific quote
@@ -82,6 +86,12 @@ class QuotesBot {
             return 'there are no quotes! Use !quote add [quote] to add one';
         }
         return `#${quote.id}: ${quote.quote}`;
+    }
+
+    getQuoteInfo(quoteNumber) {
+        const quote = this.db.prepare('select * from quotes where id=?').get(quoteNumber);
+        return `info for #${quote.id}: Quoted on ${quote.quotedOn} by ${quote.quotedBy}. This quote is also known as ` +
+            `"${quote.alias}"`;
     }
 }
 

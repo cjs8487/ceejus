@@ -7,7 +7,9 @@ create TABLE if not exists COMMANDS (
 create TABLE if not exists QUOTES (
     id integer primary key AUTOINCREMENT,
     quote text not null,
-    alias text
+    alias text,
+    quotedBy text,
+    quotedOn date
 );
 create TABLE if not exists DISCORD_COMMANDS (
     id integer primary key AUTOINCREMENT,
