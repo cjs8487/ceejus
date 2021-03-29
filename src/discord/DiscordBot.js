@@ -1,7 +1,7 @@
 const Discord = require('discord.js');
 const { QuotesBot } = require('../modules/quotes/QuotesBot');
 
-const prefix = '$';
+const prefix = '!';
 const testChannel = '755894973987291176';
 
 /**
@@ -23,6 +23,16 @@ class DiscordBot {
 
         client.once('ready', () => {
             console.log('Ready!');
+            if (process.env.testing === 'true') {
+                client.user.setPresence({
+                    status: 'online',
+                    activity: {
+                        name: `Test Mode (${process.env.npm_package_version})`,
+                    },
+                });
+            } else {
+                client.user.setPresence(`Ceejus ${process.env.npm_package_version}`);
+            }
         });
 
         client.login(process.env.DISCORD_TOKEN);
