@@ -21,9 +21,15 @@ class DiscordBot {
 
         const client = new Discord.Client();
 
+        if (process.env.testing === 'true') {
+            this.testMode = true;
+        } else {
+            this.testMode = false;
+        }
+
         client.once('ready', () => {
             console.log('Ready!');
-            if (process.env.testing === 'true') {
+            if (this.testMode) {
                 client.user.setPresence({
                     status: 'online',
                     activity: {
@@ -53,8 +59,7 @@ class DiscordBot {
      */
     handleMessage(message) {
         if (!message.content.startsWith(prefix) || message.author.bot) return;
-        if (process.env.testing === 'true') {
-            // console.log(message.channel.id)
+        if (this.testMode) {
             if (message.channel.id !== testChannel) {
                 console.log('testing is enabled, ignoring normal usage');
                 return;
