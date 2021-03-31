@@ -27,11 +27,16 @@ class DiscordBot {
                 client.user.setPresence({
                     status: 'online',
                     activity: {
-                        name: `Test Mode (${process.env.npm_package_version})`,
+                        name: `Test Mode (v${process.env.npm_package_version})`,
                     },
                 });
             } else {
-                client.user.setPresence(`Ceejus ${process.env.npm_package_version}`);
+                client.user.setPresence({
+                    status: 'online',
+                    activity: {
+                        name: `Ceejus v${process.env.npm_package_version}`,
+                    },
+                });
             }
         });
 

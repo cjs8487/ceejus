@@ -90,6 +90,9 @@ class QuotesBot {
 
     getQuoteInfo(quoteNumber) {
         const quote = this.db.prepare('select * from quotes where id=?').get(quoteNumber);
+        if (quote === undefined) {
+            return 'no quote found';
+        }
         return `info for #${quote.id}: Quoted on ${quote.quotedOn} by ${quote.quotedBy}. This quote is also known as ` +
             `"${quote.alias}"`;
     }
