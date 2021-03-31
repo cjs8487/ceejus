@@ -1,3 +1,4 @@
+const { GlobalUtils } = require('../../util/GlobalUtils');
 const { Aliaser } = require('./Aliaser');
 
 /**
@@ -23,12 +24,13 @@ class QuotesBot {
      * @returns The response to the request. Usually this is the response each platform's bot will use, but each
      * platform can modify it as seen fit (i.e. to ping the requestor)
      */
-    handleMessage(messageParts, mod) {
+    handleMessage(messageParts, sender, mod) {
         const quoteCommand = messageParts[0];
 
         if (quoteCommand === 'add') {
             const quote = messageParts.slice(1).join(' ');
-            const addData = this.db.prepare('insert into quotes (quote) values (?)').run(quote);
+            const addData = this.db.prepare('insert into quotes (quote, quotedBy, quotedOn) values (?, ?, ?)')
+                .run(quote, sender, GlobalUtils.getTodaysDate());
             return ` successfully added quote #${addData.lastInsertRowid}`;
         }
         if (quoteCommand === 'delete') {

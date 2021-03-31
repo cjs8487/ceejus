@@ -64,7 +64,7 @@ class DiscordBot {
         const command = args.shift().toLowerCase();
 
         if (command === 'quote') {
-            const quoteResponse = this.quotesBot.handleMessage(args, false);
+            const quoteResponse = this.quotesBot.handleMessage(args, message.author.username, false);
             if (quoteResponse === '') {
                 return;
             }

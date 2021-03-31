@@ -98,7 +98,7 @@ class TwitchBot {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
             const mod = isUserMod(user, channel);
-            const quoteResponse = this.quotesBot.handleMessage(commandParts.slice(1), mod);
+            const quoteResponse = this.quotesBot.handleMessage(commandParts.slice(1), user.username, mod);
             if (quoteResponse === '') {
                 return;
             }
