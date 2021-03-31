@@ -1,14 +1,17 @@
+/**
+ * Non-platform specific utilities. Primarily used in shared modules
+ */
 class GlobalUtils {
+    /**
+     * Gets today's date in YYYY-MM-DD format
+     * @returns String representation of today's date in YYYY-MM-DD format
+     */
     static getTodaysDate() {
-        // current timestamp in milliseconds
         const ts = Date.now();
-
         const date = new Date(ts);
         const day = date.getDate();
         const month = date.getMonth() + 1;
         const year = date.getFullYear();
-
-        // prints date & time in YYYY-MM-DD format
         return `${year}-${month}-${day}`;
     }
 }
