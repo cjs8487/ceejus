@@ -63,6 +63,10 @@ class QuotesBot {
             const quoteNumber = parseInt(messageParts[1], 10);
             return this.getQuoteInfo(quoteNumber);
         }
+        if (quoteCommand === 'search') {
+            const searchString = messageParts.slice(1).join(' ');
+            return this.searchQuote(searchString);
+        }
         // command is requesting a quote
         console.log(messageParts);
         if (messageParts.length > 0) { // more was specified in the command, so we need to fetch a specific quote
@@ -97,6 +101,27 @@ class QuotesBot {
         }
         return `info for #${quote.id}: Quoted on ${quote.quotedOn} by ${quote.quotedBy}. This quote is also known as ` +
             `"${quote.alias}"`;
+    }
+
+    searchQuote(searchString) {
+        // const quotes = this.db.prepare('select * from quotes where quote like %?%').all(searchString);
+        // if (quotes === undefined) {
+        //     return 'no quotes found';
+        // }
+        let returnString = '';
+        // quotes.forEach((quote) => {
+        //     returnString += `${quote.id}, `;
+        // });
+        this.db.prepare('select * from quotes').all().forEach((quote) => {
+            if (quote.quote.toLowerCase().includes(searchString.toLowerCase())) {
+                returnString += `#${quote.id}, `;
+            }
+        });
+        if (returnString === '') {
+            return 'no quotes found';
+        }
+        returnString = returnString.slice(0, returnString.length - 2);
+        return returnString;
     }
 }
 

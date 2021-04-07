@@ -1,6 +1,7 @@
 const Database = require('better-sqlite3');
 const fs = require('fs');
 const { DiscordBot } = require('./discord/DiscordBot');
+const { PublicQuotesBot } = require('./twitch/PublicQuotesBot');
 const TwitchBot = require('./twitch/TwitchBot');
 require('dotenv').config();
 
@@ -13,6 +14,7 @@ const setupScript = fs.readFileSync('src/dbsetup.sql', 'utf-8');
 db.exec(setupScript);
 
 const twitchBot = new TwitchBot.TwitchBot(db);
+const publicQuotesBot = new PublicQuotesBot(db);
 twitchBot.setupDb(db);
 const discordBot = new DiscordBot(db);
 
