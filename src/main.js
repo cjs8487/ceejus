@@ -5,7 +5,12 @@ const { PublicQuotesBot } = require('./twitch/PublicQuotesBot');
 const TwitchBot = require('./twitch/TwitchBot');
 require('dotenv').config();
 
-const db = new Database('database.db', { verbose: console.log });
+let db;
+if (process.env.testing === 'true') {
+    db = new Database('database.db', { verbose: console.log });
+} else {
+    db = new Database('dataabse.db');
+}
 
 // set up the databse
 // the setup script will run everytime the bot starts.
