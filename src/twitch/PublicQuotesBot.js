@@ -36,6 +36,10 @@ class PublicQuotesBot {
 
         let commandName = message.trim();
 
+        if (!commandName.startsWith('!')) {
+            return;
+        }
+
         const commandParts = message.substring(1).split(' ');
         commandName = commandParts[0].toLowerCase();
 
