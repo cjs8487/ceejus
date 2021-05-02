@@ -18,6 +18,8 @@ const fs = require('fs');
 const { DiscordBot } = require('./discord/DiscordBot');
 const { PublicQuotesBot } = require('./twitch/PublicQuotesBot');
 const TwitchBot = require('./twitch/TwitchBot');
+const { TwitchAPI } = require('./api/twitch/TwitchAPI');
+const { TwitchOAuth } = require('./api/twitch/TwitchOAuth');
 
 const port = 3000;
 
@@ -27,27 +29,11 @@ const ngrokUrl = process.env.NGROK_URL;
 const secret = process.env.SECRET;
 const clientSecret = process.env.TWITCH_CLIENT_SECRET;
 
+const twitchApi = new TwitchAPI(clientId, authToken);
+const twithOAuth = new TwitchOAuth(clientId, clientSecret);
+
 app.post('/getAppAccessToken', (req, res) => {
-    const accessTokenData = querystring.stringify({
-        client_id: clientId,
-        client_secret: clientSecret,
-        grant_type: 'client_credentials',
-    });
-    const getAccessTokenParams = {
-        host: 'id.twitch.tv',
-        path: '/oauth2/token',
-        method: 'POST',
-    };
-    const request = https.request(getAccessTokenParams, (result) => {
-        result.setEncoding('utf8');
-        result.on('data', (d) => {
-            console.log(d);
-        }).on('end', () => {
-            res.send(result.status);
-        });
-    });
-    request.write(accessTokenData);
-    request.end();
+    
 });
 
 app.post('/createWebhook/:broadcasterId', (req, res) => {
@@ -156,27 +142,15 @@ app.post('/deletesub/:subId', (req, res) => {
     res.status(200).send();
 });
 
-app.get('/userData/:username', (req, res) => {
-    const getUserParams = {
-        host: 'api.twitch.tv',
-        path: `helix/users?login=${req.params.username}`,
-        method: 'GET',
-        headers: {
-            'Client-ID': clientId,
-            Authorization: `Bearer ${authToken}`,
-        },
-    };
-    let responseData = '';
-    const request = https.request(getUserParams, (result) => {
-        result.setEncoding('utf8');
-        result.on('data', (d) => {
-            responseData += d;
-        }).on('end', () => {
-            const responseBody = JSON.parse(responseData);
-            res.send(responseBody);
-        });
-    });
-    request.end();
+app.get('/userData/:username', async (req, res) => {
+    const response = await twitchApi.getUsersByLogin(req.params.username);
+    console.log(`[express response] ${response}`);
+    res.send(response);
+});
+
+app.post('/validateAppAuth', async (req, res) => {
+    const isValid = await twithOAuth.isTokenValid(authToken);
+    res.send(isValid ? 'Valid' : 'Not valid');
 });
 
 app.listen(port, () => {
