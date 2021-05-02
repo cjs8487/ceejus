@@ -1,9 +1,164 @@
+require('dotenv').config();
+
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(bodyParser.json({
+    verify: (req, res, buf) => {
+        // expose the raw body of the request for signature verification
+        req.rawBody = buf;
+    },
+}));
+const https = require('https');
+const querystring = require('querystring');
+const crypto = require('crypto');
 const Database = require('better-sqlite3');
 const fs = require('fs');
 const { DiscordBot } = require('./discord/DiscordBot');
 const { PublicQuotesBot } = require('./twitch/PublicQuotesBot');
 const TwitchBot = require('./twitch/TwitchBot');
-require('dotenv').config();
+
+const port = 3000;
+
+const clientId = process.env.TWITCH_CLIENT_ID;
+const authToken = process.env.AUTH_TOKEN;
+const ngrokUrl = process.env.NGROK_URL;
+const secret = process.env.SECRET;
+const clientSecret = process.env.TWITCH_CLIENT_SECRET;
+
+app.post('/getAppAccessToken', (req, res) => {
+    const accessTokenData = querystring.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type: 'client_credentials',
+    });
+    const getAccessTokenParams = {
+        host: 'id.twitch.tv',
+        path: '/oauth2/token',
+        method: 'POST',
+    };
+    const request = https.request(getAccessTokenParams, (result) => {
+        result.setEncoding('utf8');
+        result.on('data', (d) => {
+            console.log(d);
+        }).on('end', () => {
+            res.send(result.status);
+        });
+    });
+    request.write(accessTokenData);
+    request.end();
+});
+
+app.post('/createWebhook/:broadcasterId', (req, res) => {
+    const createWebhookParams = {
+        host: 'api.twitch.tv',
+        path: 'helix/eventsub/subscriptions',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Client-ID': clientId,
+            Authorization: `Bearer ${authToken}`,
+        },
+    };
+    const createWebHookBody = {
+        type: 'channel.follow',
+        version: '1',
+        condition: {
+            broadcaster_user_id: req.params.broadcasterId,
+        },
+        transport: {
+            method: 'webhook',
+            callback: `${ngrokUrl}/notification`,
+            secret,
+        },
+    };
+    let responseData = '';
+    const webhookReq = https.request(createWebhookParams, (result) => {
+        result.setEncoding('utf8');
+        result.on('data', (d) => {
+            responseData += d;
+        }).on('end', () => {
+            const responseBody = JSON.parse(responseData);
+            res.send(responseBody);
+        });
+    });
+    webhookReq.on('error', (e) => { console.log(`Error ${e}`); });
+    webhookReq.write(JSON.stringify(createWebHookBody));
+    webhookReq.end();
+});
+
+function verifySignature(messageSignature, messageID, messageTimestamp, body) {
+    const message = messageID + messageTimestamp + body;
+    const signature = crypto.createHmac('sha256', secret).update(message);
+    const expectedSignature = `sha256=${signature.digest('hex')}`;
+
+    return expectedSignature === messageSignature;
+}
+
+app.post('/notification', (req, res) => {
+    console.log('POST to /notification');
+    if (!verifySignature(req.header('Twitch-Eventsub-Message-Signature'),
+        req.header('Twitch-Eventsub-Message-Id'),
+        req.header('Twitch-Eventsub-Message-Timestamp'),
+        req.rawBody)) {
+        console.log('failed message signature verification');
+        res.status(403).send('Forbidden');
+    } else {
+        const messageType = req.header('Twitch-Eventsub-Message-Type');
+        if (messageType === 'webhook_callback_verification') {
+            console.log(req.body.challenge);
+            res.send(req.body.challenge);
+        } else if (messageType === 'notification') {
+            console.log(req.body.event);
+            res.send('');
+        }
+    }
+});
+
+app.post('/listsubs', (req, res) => {
+    const getSubsParams = {
+        host: 'api.twitch.tv',
+        path: 'helix/eventsub/subscriptions',
+        method: 'GET',
+        headers: {
+            'Client-ID': clientId,
+            Authorization: `Bearer ${authToken}`,
+        },
+    };
+    let responseData = '';
+    const request = https.request(getSubsParams, (result) => {
+        result.setEncoding('utf8');
+        result.on('data', (d) => {
+            responseData += d;
+        }).on('end', () => {
+            const responseBody = JSON.parse(responseData);
+            res.send(responseBody);
+        });
+    });
+    request.on('error', (e) => { console.log(`Error ${e}`); });
+    request.end();
+});
+
+app.post('/deletesub/:subId', (req, res) => {
+    const deleteSubsParams = {
+        host: 'api.twitch.tv',
+        path: `helix/eventsub/subscriptions?id=${req.params.subId}`,
+        method: 'DELETE',
+        headers: {
+            'Client-ID': clientId,
+            Authorization: `Bearer ${authToken}`,
+        },
+    };
+    const request = https.request(deleteSubsParams);
+    request.on('error', (e) => { console.log(`Error ${e}`); });
+    request.end();
+    res.status(200).send();
+});
+
+app.listen(port, () => {
+    console.log(`Twitch Eventsub Webhook listening on port ${port}`);
+});
 
 let db;
 if (process.env.testing === 'true') {
