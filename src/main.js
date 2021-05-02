@@ -156,6 +156,29 @@ app.post('/deletesub/:subId', (req, res) => {
     res.status(200).send();
 });
 
+app.get('/userData/:username', (req, res) => {
+    const getUserParams = {
+        host: 'api.twitch.tv',
+        path: `helix/users?login=${req.params.username}`,
+        method: 'GET',
+        headers: {
+            'Client-ID': clientId,
+            Authorization: `Bearer ${authToken}`,
+        },
+    };
+    let responseData = '';
+    const request = https.request(getUserParams, (result) => {
+        result.setEncoding('utf8');
+        result.on('data', (d) => {
+            responseData += d;
+        }).on('end', () => {
+            const responseBody = JSON.parse(responseData);
+            res.send(responseBody);
+        });
+    });
+    request.end();
+});
+
 app.listen(port, () => {
     console.log(`Twitch Eventsub Webhook listening on port ${port}`);
 });
