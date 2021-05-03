@@ -1,18 +1,20 @@
 const { GlobalUtils } = require('../../util/GlobalUtils');
+const { BotModule } = require('../BotModule');
 const { Aliaser } = require('./Aliaser');
 
 /**
  * The shared quotes module across all platforms the bot operates on. All platform bots interact with this module to
  * perform operations on the quotes subsystem.
  */
-class QuotesBot {
+class QuotesCore {
     /**
      * Creates a new bot operating on the database
      * @param {*} db The database to operate on
      */
-    constructor(db) {
+    initialize(db) {
         this.db = db;
         this.aliaser = new Aliaser(db);
+        QuotesCore.INSTANCE = this;
     }
 
     /**
@@ -24,7 +26,7 @@ class QuotesBot {
      * @returns The response to the request. Usually this is the response each platform's bot will use, but each
      * platform can modify it as seen fit (i.e. to ping the requestor)
      */
-    handleMessage(messageParts, sender, mod) {
+    handleCommand(messageParts, sender, mod) {
         const quoteCommand = messageParts[0];
 
         if (quoteCommand === 'add') {
@@ -67,33 +69,73 @@ class QuotesBot {
             const searchString = messageParts.slice(1).join(' ');
             return this.searchQuote(searchString);
         }
-        // command is requesting a quote
-        console.log(messageParts);
-        if (messageParts.length > 0) { // more was specified in the command, so we need to fetch a specific quote
-            const quoteLookup = messageParts[0];
-            const quoteId = parseInt(quoteLookup, 10);
-            if (Number.isNaN(quoteId)) {
-                const alias = messageParts.join(' ');
-                const quote = this.db.prepare('select * from quotes where alias=?').get(alias);
-                if (quote === undefined) {
-                    return 'no quote with that alias exists';
-                }
-                return `#${quote.id} (${quote.alias}): ${quote.quote}`;
-            }
-            const quote = this.db.prepare('select * from quotes where id=?').get(quoteId);
-            if (quote === undefined) { // there are no quotes
-                return 'that quote doesn\'t exist';
-            }
-            return `#${quote.id}: ${quote.quote}`;
-        }
-        // otherwise we pick a random quote from the database
-        const quote = this.db.prepare('select * from quotes order by random() limit 1').get();
-        if (quote === undefined) { // there are no quotes
-            return 'there are no quotes! Use !quote add [quote] to add one';
-        }
-        return `#${quote.id}: ${quote.quote}`;
     }
 
+    /**
+     * Retrieves a specified quote from the database
+     *
+     * @param {Number} quoteNumber the number of the quote to find
+     * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
+     */
+    getQuote(quoteNumber) {
+        const quote = this.db.prepare('select * from quotes where id=?').get(quoteNumber);
+        if (quote === undefined) { // there is no quote with the given id
+            // return 'that quote doesn\'t exist';
+            return undefined;
+        }
+        // return `#${quote.id}: ${quote.quote}`;
+        return quote;
+    }
+
+    /**
+     * Retrieves a specified quote from the database by its alias
+     *
+     * @param {String} alias the alias of the quote to find
+     * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
+     */
+    getQuoteAlias(alias) {
+        const quote = this.db.prepare('select * from quotes where alias=?').get(alias);
+        if (quote === undefined) { // no quote with this alias exists
+            // return 'no quote with that alias exists';
+            return undefined;
+        }
+        // return `#${quote.id} (${quote.alias}): ${quote.quote}`;
+        return quote;
+    }
+
+    /**
+     * Retrieves a random quote from the database
+     *
+     * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
+     */
+    getRandomQuote() {
+        return this.db.prepare('select * from quotes order by random() limit 1').get();
+    }
+
+    addQuote(quote, quotedBy) {
+        const addData = this.db.prepare('insert into quotes (quote, quotedBy, quotedOn) values (?, ?, ?)')
+            .run(quote, quotedBy, GlobalUtils.getTodaysDate());
+        return addData.lastInsertRowid;
+    }
+
+    editQuote(quoteNumber, newQuote) {
+        this.db.prepare('update quotes set quote=? where id=?').run(newQuote, quoteNumber);
+    }
+
+    deleteQuote(quoteNumber) {
+        if (Number.isNaN(quoteNumber)) {
+            return false;
+        }
+        this.db.prepare('delete from quotes where id=?').run(quoteNumber);
+        return true;
+    }
+
+    /**
+     * Retreives the supporting info for a given quote
+     *
+     * @param {Number} quoteNumber the number (id) of the quote to retrieve the info for
+     * @returns A string with the info
+     */
     getQuoteInfo(quoteNumber) {
         const quote = this.db.prepare('select * from quotes where id=?').get(quoteNumber);
         if (quote === undefined) {
@@ -103,15 +145,14 @@ class QuotesBot {
             `"${quote.alias}"`;
     }
 
+    /**
+     * Searches for all quotes where a specified string appears
+     *
+     * @param {String} searchString The string to search for within the quote
+     * @returns A string listing all of the quotes containing the search string
+     */
     searchQuote(searchString) {
-        // const quotes = this.db.prepare('select * from quotes where quote like %?%').all(searchString);
-        // if (quotes === undefined) {
-        //     return 'no quotes found';
-        // }
         let returnString = '';
-        // quotes.forEach((quote) => {
-        //     returnString += `${quote.id}, `;
-        // });
         this.db.prepare('select * from quotes').all().forEach((quote) => {
             if (quote.quote.toLowerCase().includes(searchString.toLowerCase())) {
                 returnString += `#${quote.id}, `;
@@ -123,6 +164,17 @@ class QuotesBot {
         returnString = returnString.slice(0, returnString.length - 2);
         return returnString;
     }
+
+    static getInstance() {
+        return QuotesCore.INSTANCE;
+    }
+
+    handleAliasRequest(messageParts, mod) {
+        const aliasCommand = messageParts[1];
+        const quoteNumber = parseInt(messageParts[2], 10);
+        const alias = messageParts.slice(3).join(' ');
+        return this.aliaser.handleRequest(aliasCommand, quoteNumber, alias, mod);
+    }
 }
 
-module.exports.QuotesBot = QuotesBot;
+module.exports.QuotesCore = QuotesCore;

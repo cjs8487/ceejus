@@ -1,0 +1,130 @@
+const _ = require('lodash');
+const Discord = require('discord.js');
+const { BotModule } = require('../../modules/BotModule');
+const { QuotesCore } = require('../../modules/quotes/QuotesCore');
+
+class DiscordQuotesModule extends BotModule {
+    permissionDeniedEmbed = new Discord.MessageEmbed()
+        .setColor('#ff0000')
+        .setAuthor('Ceejus - Quotes')
+        .setTitle('Permission Denied')
+        .setDescription('You don\'t have permission to do that.')
+        .setFooter('Mod permission check for quotes module failed');
+
+    constructor() {
+        super(['quote']);
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    handleCommand(commandParts, sender, mod) {
+        console.log(commandParts);
+        const quoteCommand = commandParts[0];
+        if (quoteCommand === 'add') {
+            const quote = commandParts.slice(1).join(' ');
+            const number = QuotesCore.getInstance().addQuote(quote, sender);
+            return new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setAuthor('Ceejus - Quotes')
+                .setTitle(`Added quote #${number}`)
+                .setDescription(quote);
+        }
+        if (quoteCommand === 'delete') {
+            if (!mod) {
+                return this.permissionDeniedEmbed;
+            }
+            const quoteNumber = parseInt(commandParts[1], 10);
+            if (Number.isNaN(quoteNumber)) {
+                return new Discord.MessageEmbed()
+                    .setColor('#ff0000')
+                    .setAuthor('Ceejus - Quotes')
+                    .setTitle(`Error: ${quoteNumber} is not a number`);
+            }
+            return new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setAuthor('Ceejus - Quotes')
+                .setTitle(`#${quoteNumber} deleted`);
+        }
+        if (quoteCommand === 'edit') {
+            if (!mod) {
+                return this.permissionDeniedEmbed;
+            }
+            const quoteNumber = parseInt(commandParts[1], 10);
+            if (Number.isNaN(quoteNumber)) {
+                return new Discord.MessageEmbed()
+                    .setColor('#ff0000')
+                    .setAuthor('Ceejus - Quotes')
+                    .setTitle(`Error: ${quoteNumber} is not a number`);
+            }
+            return new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setAuthor('Ceejus - Quotes')
+                .setTitle(`#${quoteNumber} edited`);
+        }
+        if (quoteCommand === 'alias') {
+            if (!mod) {
+                return this.permissionDeniedEmbed;
+            }
+            const result = QuotesCore.getInstance().handleAliasRequest(commandParts, mod);
+            return new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setAuthor('Ceejus - Quotes')
+                .setTitle(result);
+        }
+        if (quoteCommand === 'info') {
+            const quoteNumber = parseInt(commandParts[1], 10);
+            const results = QuotesCore.getInstance().getQuoteInfo(quoteNumber);
+            return new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setAuthor('Ceejus - Quotes')
+                .setTitle(`Quote info for #${quoteNumber}`)
+                .setDescription(results);
+        }
+        if (quoteCommand === 'search') {
+            const searchString = commandParts.slice(1).join(' ');
+            const results = QuotesCore.getInstance().searchQuote(searchString);
+            return new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setAuthor('Ceejus - Quotes')
+                .setTitle(`Search results for '${searchString}'`)
+                .setDescription(results);
+        }
+        // looking up a quote
+        let quote;
+        if (commandParts.length > 0) { // looking for a specific quote
+            const lookup = commandParts[0];
+            const quoteNumber = parseInt(lookup, 10);
+            if (Number.isNaN(quoteNumber)) {
+                const alias = commandParts.join(' ');
+                quote = QuotesCore.getInstance().getQuoteAlias(alias);
+                if (_.isNil(quote)) {
+                    return new Discord.MessageEmbed()
+                        .setColor('#0099ff')
+                        .setAuthor('Ceejus - Quotes')
+                        .setTitle(`Quote with alias '${alias}' does not exist`);
+                }
+            } else {
+                quote = QuotesCore.getInstance().getQuote(quoteNumber);
+                if (_.isNil(quote)) {
+                    return new Discord.MessageEmbed()
+                        .setColor('#0099ff')
+                        .setAuthor('Ceejus - Quotes')
+                        .setTitle(`Quote #${quoteNumber} does not exist`);
+                }
+            }
+        } else {
+            quote = QuotesCore.getInstance().getRandomQuote();
+        }
+        return new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setAuthor('Ceejus - Quotes')
+            .setTitle(`Quote #${quote.id}`)
+            .setDescription(quote.quote)
+            .addFields(
+                { name: 'Quoted by', value: quote.quotedBy, inline: true },
+                { name: 'Quoted on', value: quote.quotedOn, inline: true },
+            )
+            .setFooter(`Also known as: ${quote.alias}`);
+    }
+}
+
+module.exports.DiscordQuotesModule = DiscordQuotesModule;

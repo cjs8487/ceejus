@@ -1,11 +1,11 @@
 const tmi = require('tmi.js');
-const { QuotesBot } = require('../modules/quotes/QuotesBot');
+const { QuotesBot, QuotesCore } = require('../modules/quotes/QuotesCore');
 
 class PublicQuotesBot {
     constructor(db) {
         this.db = db;
 
-        this.quotesBot = new QuotesBot(db);
+        this.quotesBot = new QuotesCore(db);
 
         const opts = {
             identity: {

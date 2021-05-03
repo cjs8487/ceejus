@@ -1,6 +1,7 @@
+const _ = require('lodash');
 const tmi = require('tmi.js');
 const fs = require('fs');
-const QuotesBot = require('../modules/quotes/QuotesBot');
+const QuotesBot = require('../modules/quotes/QuotesCore');
 const { isUserMod } = require('./TwitchHelper');
 
 /**
@@ -14,7 +15,8 @@ class TwitchBot {
      */
     constructor(db) {
         this.db = db;
-        this.quotesBot = new QuotesBot.QuotesBot(db);
+        this.quotesBot = new QuotesBot.QuotesCore(db);
+        this.modules = [];
 
         const opts = {
             identity: {
@@ -57,6 +59,15 @@ class TwitchBot {
 
         const commandParts = message.substring(1).split(' ');
         commandName = commandParts[0].toLowerCase();
+
+        let handled = false;
+        _.forEach(this.modules, (module) => {
+            if (module.recognizesCommand(commandName)) {
+                module.handleCommand(commandParts);
+                handled = true;
+            }
+        });
+        if (handled) return;
 
         if (commandName === 'lurk') {
             this.client.say(

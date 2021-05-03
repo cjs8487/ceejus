@@ -11,10 +11,10 @@ app.use(bodyParser.json({
     },
 }));
 const https = require('https');
-const querystring = require('querystring');
 const crypto = require('crypto');
 const Database = require('better-sqlite3');
 const fs = require('fs');
+const { QuotesCore } = require('./modules/quotes/QuotesCore');
 const { DiscordBot } = require('./discord/DiscordBot');
 const { PublicQuotesBot } = require('./twitch/PublicQuotesBot');
 const TwitchBot = require('./twitch/TwitchBot');
@@ -32,8 +32,9 @@ const clientSecret = process.env.TWITCH_CLIENT_SECRET;
 const twitchApi = new TwitchAPI(clientId, authToken);
 const twithOAuth = new TwitchOAuth(clientId, clientSecret);
 
-app.post('/getAppAccessToken', (req, res) => {
-    
+app.post('/getAppAccessToken', async (req, res) => {
+    const token = await twithOAuth.getAppAccessToken();
+    res.write(token);
 });
 
 app.post('/createWebhook/:broadcasterId', (req, res) => {
@@ -153,9 +154,9 @@ app.post('/validateAppAuth', async (req, res) => {
     res.send(isValid ? 'Valid' : 'Not valid');
 });
 
-app.listen(port, () => {
-    console.log(`Twitch Eventsub Webhook listening on port ${port}`);
-});
+// app.listen(port, () => {
+//     console.log(`Twitch Eventsub Webhook listening on port ${port}`);
+// });
 
 let db;
 if (process.env.testing === 'true') {
@@ -169,6 +170,9 @@ if (process.env.testing === 'true') {
 // Take care that it will not overwrite data and will always work or the bot may not start
 const setupScript = fs.readFileSync('src/dbsetup.sql', 'utf-8');
 db.exec(setupScript);
+
+const quotesCore = new QuotesCore();
+quotesCore.initialize(db);
 
 const twitchBot = new TwitchBot.TwitchBot(db);
 const publicQuotesBot = new PublicQuotesBot(db);

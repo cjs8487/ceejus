@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const { QuotesBot } = require('../modules/quotes/QuotesBot');
+const { DiscordQuotesModule } = require('./modules/DiscordQuotesModule');
 
 const prefix = '!';
 const testChannel = '755894973987291176';
@@ -17,8 +17,6 @@ class DiscordBot {
      */
     constructor(db) {
         this.db = db;
-        this.quotesBot = new QuotesBot(db);
-
         const client = new Discord.Client();
 
         if (process.env.testing === 'true') {
@@ -48,6 +46,7 @@ class DiscordBot {
 
         client.login(process.env.DISCORD_TOKEN);
         this.handleMessage = this.handleMessage.bind(this);
+        this.quotesModule = new DiscordQuotesModule();
 
         client.on('message', this.handleMessage);
     }
@@ -69,11 +68,7 @@ class DiscordBot {
         const command = args.shift().toLowerCase();
 
         if (command === 'quote') {
-            const quoteResponse = this.quotesBot.handleMessage(args, message.author.username, false);
-            if (quoteResponse === '') {
-                return;
-            }
-            message.channel.send(`${quoteResponse}`);
+            message.channel.send(this.quotesModule.handleCommand(args, message.author.username, false));
         }
     }
 }
