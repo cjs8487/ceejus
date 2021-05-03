@@ -17,7 +17,6 @@ class DiscordQuotesModule extends BotModule {
 
     // eslint-disable-next-line class-methods-use-this
     handleCommand(commandParts, sender, mod) {
-        console.log(commandParts);
         const quoteCommand = commandParts[0];
         if (quoteCommand === 'add') {
             const quote = commandParts.slice(1).join(' ');
@@ -33,7 +32,7 @@ class DiscordQuotesModule extends BotModule {
                 return this.permissionDeniedEmbed;
             }
             const quoteNumber = parseInt(commandParts[1], 10);
-            if (Number.isNaN(quoteNumber)) {
+            if (!QuotesCore.getInstance().deleteQuote(quoteNumber)) {
                 return new Discord.MessageEmbed()
                     .setColor('#ff0000')
                     .setAuthor('Ceejus - Quotes')
@@ -55,6 +54,8 @@ class DiscordQuotesModule extends BotModule {
                     .setAuthor('Ceejus - Quotes')
                     .setTitle(`Error: ${quoteNumber} is not a number`);
             }
+            const newQuote = commandParts.splice(2).join(' ');
+            QuotesCore.getInstance().editQuote(quoteNumber, newQuote);
             return new Discord.MessageEmbed()
                 .setColor('#0099ff')
                 .setAuthor('Ceejus - Quotes')

@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const tmi = require('tmi.js');
 const fs = require('fs');
-const QuotesBot = require('../modules/quotes/QuotesCore');
 const { isUserMod } = require('./TwitchHelper');
+const { TwitchQuotesModule } = require('./modules/TwitchQuotesModule');
 
 /**
  * IRC Chatbot run through Twitch. This serves as the main entry point into the Twitch modules of the bot, but most
@@ -15,7 +15,7 @@ class TwitchBot {
      */
     constructor(db) {
         this.db = db;
-        this.quotesBot = new QuotesBot.QuotesCore(db);
+        this.quotesBot = new TwitchQuotesModule();
         this.modules = [];
 
         const opts = {
@@ -109,7 +109,7 @@ class TwitchBot {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
             const mod = isUserMod(user, channel);
-            const quoteResponse = this.quotesBot.handleMessage(commandParts.slice(1), user.username, mod);
+            const quoteResponse = this.quotesBot.handleCommand(commandParts.slice(1), user.username, mod);
             if (quoteResponse === '') {
                 return;
             }

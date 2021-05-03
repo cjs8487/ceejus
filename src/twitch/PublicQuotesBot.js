@@ -1,11 +1,11 @@
 const tmi = require('tmi.js');
-const { QuotesBot, QuotesCore } = require('../modules/quotes/QuotesCore');
+const { TwitchQuotesModule } = require('./modules/TwitchQuotesModule');
 
 class PublicQuotesBot {
     constructor(db) {
         this.db = db;
 
-        this.quotesBot = new QuotesCore(db);
+        this.quotesBot = new TwitchQuotesModule(db);
 
         const opts = {
             identity: {
@@ -47,7 +47,7 @@ class PublicQuotesBot {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
             const mod = false;
-            const quoteResponse = this.quotesBot.handleMessage(commandParts.slice(1), user.username, mod);
+            const quoteResponse = this.quotesBot.handleCommand(commandParts.slice(1), user.username, mod);
             if (quoteResponse === '') {
                 return;
             }
