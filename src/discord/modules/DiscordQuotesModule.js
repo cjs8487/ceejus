@@ -4,15 +4,15 @@ const { BotModule } = require('../../modules/BotModule');
 const { QuotesCore } = require('../../modules/quotes/QuotesCore');
 
 class DiscordQuotesModule extends BotModule {
-    permissionDeniedEmbed = new Discord.MessageEmbed()
-        .setColor('#ff0000')
-        .setAuthor('Ceejus - Quotes')
-        .setTitle('Permission Denied')
-        .setDescription('You don\'t have permission to do that.')
-        .setFooter('Mod permission check for quotes module failed');
-
     constructor() {
         super(['quote']);
+
+        this.permissionDeniedEmbed = new Discord.MessageEmbed()
+            .setColor('#ff0000')
+            .setAuthor('Ceejus - Quotes')
+            .setTitle('Permission Denied')
+            .setDescription('You don\'t have permission to do that.')
+            .setFooter('Mod permission check for quotes module failed');
     }
 
     // eslint-disable-next-line class-methods-use-this
