@@ -162,7 +162,7 @@ let db;
 if (process.env.testing === 'true') {
     db = new Database('database.db', { verbose: console.log });
 } else {
-    db = new Database('dataabse.db');
+    db = new Database('database.db');
 }
 
 // set up the databse
