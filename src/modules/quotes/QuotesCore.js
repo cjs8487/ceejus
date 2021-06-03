@@ -90,6 +90,10 @@ class QuotesCore {
             `"${quote.alias}"`;
     }
 
+    editQuoteInfo(quoteNumber, quotedOn, quotedBy) {
+        this.db.prepare('update quotes set quotedOn=?, quotedBy=? where id=?').run(quotedOn, quotedBy, quoteNumber)
+    }
+
     /**
      * Searches for all quotes where a specified string appears
      *
@@ -98,6 +102,9 @@ class QuotesCore {
      */
     searchQuote(searchString) {
         let returnString = '';
+        if (searchString === '') {
+            return 'no search string specified';
+        }
         this.db.prepare('select * from quotes').all().forEach((quote) => {
             if (quote.quote.toLowerCase().includes(searchString.toLowerCase())) {
                 returnString += `#${quote.id}, `;
@@ -108,6 +115,10 @@ class QuotesCore {
         }
         returnString = returnString.slice(0, returnString.length - 2);
         return returnString;
+    }
+
+    getLatestQuote() {
+        return this.db.prepare('select * from quotes order by id desc limit 1').get();
     }
 
     static getInstance() {

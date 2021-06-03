@@ -17,7 +17,7 @@ class TwitchQuotesModule extends BotModule {
         }
         if (quoteCommand === 'delete') {
             if (!mod) {
-                return this.permissionDeniedEmbed;
+                return 'You do not have permission to do that';
             }
             const quoteNumber = parseInt(commandParts[1], 10);
             if (!QuotesCore.getInstance().deleteQuote(quoteNumber)) {
@@ -27,7 +27,7 @@ class TwitchQuotesModule extends BotModule {
         }
         if (quoteCommand === 'edit') {
             if (!mod) {
-                return this.permissionDeniedEmbed;
+                return 'You do not have permission to do that';
             }
             const quoteNumber = parseInt(commandParts[1], 10);
             if (Number.isNaN(quoteNumber)) {
@@ -39,11 +39,18 @@ class TwitchQuotesModule extends BotModule {
         }
         if (quoteCommand === 'alias') {
             if (!mod) {
-                return this.permissionDeniedEmbed;
+                return 'You do not have permission to do that';
             }
             return QuotesCore.getInstance().handleAliasRequest(commandParts, mod);
         }
         if (quoteCommand === 'info') {
+            if (commandParts[1] === 'edit') {
+                const quoteNumber = parseInt(commandParts[2], 10);
+                const quotedOn = commandParts[3];
+                const quotedBy = commandParts.slice(4).join(' ');
+                QuotesCore.getInstance().editQuoteInfo(quoteNumber, quotedOn, quotedBy);
+                return `info for #${quoteNumber} updated`;
+            }
             const quoteNumber = parseInt(commandParts[1], 10);
             const results = QuotesCore.getInstance().getQuoteInfo(quoteNumber);
             return results;
@@ -52,6 +59,10 @@ class TwitchQuotesModule extends BotModule {
             const searchString = commandParts.slice(1).join(' ');
             const results = QuotesCore.getInstance().searchQuote(searchString);
             return results;
+        }
+        if (quoteCommand === 'latest') {
+            const quote = QuotesCore.getInstance().getLatestQuote();
+            return `#${quote.id}: ${quote.quote}`;
         }
         // looking up a quote
         let quote;

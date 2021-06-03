@@ -89,6 +89,19 @@ class DiscordQuotesModule extends BotModule {
                 .setTitle(`Search results for '${searchString}'`)
                 .setDescription(results);
         }
+        if (quoteCommand === 'latest') {
+            const quote = QuotesCore.getInstance().getLatestQuote();
+            return new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setAuthor('Ceejus - Quotes')
+                .setTitle(`Quote #${quote.id}`)
+                .setDescription(quote.quote)
+                .addFields(
+                    { name: 'Quoted by', value: quote.quotedBy, inline: true },
+                    { name: 'Quoted on', value: quote.quotedOn, inline: true },
+                )
+                .setFooter(`Also known as: ${quote.alias}`);
+        }
         // looking up a quote
         let quote;
         if (commandParts.length > 0) { // looking for a specific quote
