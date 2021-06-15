@@ -58,6 +58,11 @@ class TwitchQuotesModule extends BotModule {
         if (quoteCommand === 'search') {
             const searchString = commandParts.slice(1).join(' ');
             const results = QuotesCore.getInstance().searchQuote(searchString);
+            if (!results.includes(',') && results.includes('#')) {
+                // if there is exactly one result and a result was found
+                const quote = QuotesCore.getInstance().getQuote(parseInt(results.slice(1), 10));
+                return `Search result: #${quote.id}: ${quote.quote}`;
+            }
             return results;
         }
         if (quoteCommand === 'latest') {

@@ -2,6 +2,7 @@ const _ = require('lodash');
 const Discord = require('discord.js');
 const { BotModule } = require('../../modules/BotModule');
 const { QuotesCore } = require('../../modules/quotes/QuotesCore');
+const { result } = require('lodash');
 
 class DiscordQuotesModule extends BotModule {
     constructor() {
@@ -83,6 +84,20 @@ class DiscordQuotesModule extends BotModule {
         if (quoteCommand === 'search') {
             const searchString = commandParts.slice(1).join(' ');
             const results = QuotesCore.getInstance().searchQuote(searchString);
+            if (!results.includes(',') && results.includes('#')) {
+                // if there is exactly one result and a result was found
+                const quote = QuotesCore.getInstance().getQuote(parseInt(results.slice(1), 10));
+                return new Discord.MessageEmbed()
+                    .setColor('#0099ff')
+                    .setAuthor('Ceejus - Quotes')
+                    .setTitle(`Search result for '${searchString}': Quote #${quote.id}`)
+                    .setDescription(quote.quote)
+                    .addFields(
+                        { name: 'Quoted by', value: quote.quotedBy, inline: true },
+                        { name: 'Quoted on', value: quote.quotedOn, inline: true },
+                    )
+                    .setFooter(`Also known as: ${quote.alias}`);
+            }
             return new Discord.MessageEmbed()
                 .setColor('#0099ff')
                 .setAuthor('Ceejus - Quotes')
