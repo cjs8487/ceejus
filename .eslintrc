@@ -24,7 +24,8 @@
                     "props": false
                 }],
                 "no-mixed-operators": ["off"],
-                "prefer-destructuring": ["off"]
+                "prefer-destructuring": ["off"],
+                "linebreak-style": ["off"]
             }
         }
     ]
