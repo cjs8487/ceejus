@@ -2,7 +2,6 @@ const _ = require('lodash');
 const Discord = require('discord.js');
 const { BotModule } = require('../../modules/BotModule');
 const { QuotesCore } = require('../../modules/quotes/QuotesCore');
-const { result } = require('lodash');
 
 class DiscordQuotesModule extends BotModule {
     constructor() {

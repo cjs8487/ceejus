@@ -91,7 +91,7 @@ class QuotesCore {
     }
 
     editQuoteInfo(quoteNumber, quotedOn, quotedBy) {
-        this.db.prepare('update quotes set quotedOn=?, quotedBy=? where id=?').run(quotedOn, quotedBy, quoteNumber)
+        this.db.prepare('update quotes set quotedOn=?, quotedBy=? where id=?').run(quotedOn, quotedBy, quoteNumber);
     }
 
     /**

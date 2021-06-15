@@ -21,7 +21,7 @@ const TwitchBot = require('./twitch/TwitchBot');
 const { TwitchAPI } = require('./api/twitch/TwitchAPI');
 const { TwitchOAuth } = require('./api/twitch/TwitchOAuth');
 
-const port = 3000;
+// const port = 3000;
 
 const clientId = process.env.TWITCH_CLIENT_ID;
 const authToken = process.env.AUTH_TOKEN;
