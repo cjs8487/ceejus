@@ -1,4 +1,5 @@
 const tmi = require('tmi.js');
+const { MultiTwitch } = require('./modules/MultiTwitch');
 const { TwitchQuotesModule } = require('./modules/TwitchQuotesModule');
 
 class PublicQuotesBot {
@@ -54,6 +55,17 @@ class PublicQuotesBot {
             this.client.say(
                 channel,
                 `@${user.username} ${quoteResponse}`,
+            );
+        } else if (commandName === 'multi') {
+            // pass the message on to the quotes bot to handle
+            // we remove the !quote because the bot assumes that the message has already been parsed
+            const mod = false;
+            const multiResponse = MultiTwitch.INSTANCE.handleCommand(commandParts.slice(1), user.username, mod);
+            if (multiResponse === '') {
+                return;
+            }
+            this.client.say(
+                channel, `${multiResponse}`,
             );
         }
     }

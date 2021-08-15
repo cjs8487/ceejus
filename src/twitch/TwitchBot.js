@@ -3,6 +3,7 @@ const tmi = require('tmi.js');
 const fs = require('fs');
 const { isUserMod } = require('./TwitchHelper');
 const { TwitchQuotesModule } = require('./modules/TwitchQuotesModule');
+const { MultiTwitch } = require('./modules/MultiTwitch');
 
 /**
  * IRC Chatbot run through Twitch. This serves as the main entry point into the Twitch modules of the bot, but most
@@ -16,6 +17,7 @@ class TwitchBot {
     constructor(db) {
         this.db = db;
         this.quotesBot = new TwitchQuotesModule();
+        this.multiModule = new MultiTwitch();
         this.modules = [];
 
         const opts = {
@@ -52,8 +54,8 @@ class TwitchBot {
         let commandName = message.trim();
 
         if (!commandName.startsWith('!')) {
-        // not a command
-        // TODO: MODERATION?
+            // not a command
+            // TODO: MODERATION?
             return;
         }
 
@@ -116,6 +118,18 @@ class TwitchBot {
             this.client.say(
                 channel,
                 `@${user.username} ${quoteResponse}`,
+            );
+        } else if (commandName === 'multi') {
+            // pass the message on to the quotes bot to handle
+            // we remove the !quote because the bot assumes that the message has already been parsed
+            const mod = isUserMod(user, channel);
+            const multiResponse = this.multiModule.handleCommand(commandParts.slice(1), user.username, mod);
+            if (multiResponse === '') {
+                return;
+            }
+            this.client.say(
+                channel,
+                `${multiResponse}`,
             );
         } else {
             // standard text commands

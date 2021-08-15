@@ -21,7 +21,7 @@ const TwitchBot = require('./twitch/TwitchBot');
 const { TwitchAPI } = require('./api/twitch/TwitchAPI');
 const { TwitchOAuth } = require('./api/twitch/TwitchOAuth');
 
-// const port = 3000;
+const port = 3000;
 
 const clientId = process.env.TWITCH_CLIENT_ID;
 const authToken = process.env.AUTH_TOKEN;
@@ -32,7 +32,7 @@ const clientSecret = process.env.TWITCH_CLIENT_SECRET;
 const twitchApi = new TwitchAPI(clientId, authToken);
 const twithOAuth = new TwitchOAuth(clientId, clientSecret);
 
-app.post('/getAppAccessToken', async (req, res) => {
+app.post('/getAppAccessToken', async(req, res) => {
     const token = await twithOAuth.getAppAccessToken();
     res.write(token);
 });
@@ -86,9 +86,9 @@ function verifySignature(messageSignature, messageID, messageTimestamp, body) {
 app.post('/notification', (req, res) => {
     console.log('POST to /notification');
     if (!verifySignature(req.header('Twitch-Eventsub-Message-Signature'),
-        req.header('Twitch-Eventsub-Message-Id'),
-        req.header('Twitch-Eventsub-Message-Timestamp'),
-        req.rawBody)) {
+            req.header('Twitch-Eventsub-Message-Id'),
+            req.header('Twitch-Eventsub-Message-Timestamp'),
+            req.rawBody)) {
         console.log('failed message signature verification');
         res.status(403).send('Forbidden');
     } else {
@@ -143,20 +143,20 @@ app.post('/deletesub/:subId', (req, res) => {
     res.status(200).send();
 });
 
-app.get('/userData/:username', async (req, res) => {
+app.get('/userData/:username', async(req, res) => {
     const response = await twitchApi.getUsersByLogin(req.params.username);
     console.log(`[express response] ${response}`);
     res.send(response);
 });
 
-app.post('/validateAppAuth', async (req, res) => {
+app.post('/validateAppAuth', async(req, res) => {
     const isValid = await twithOAuth.isTokenValid(authToken);
     res.send(isValid ? 'Valid' : 'Not valid');
 });
 
-// app.listen(port, () => {
-//     console.log(`Twitch Eventsub Webhook listening on port ${port}`);
-// });
+app.listen(port, () => {
+    console.log(`Twitch Eventsub Webhook listening on port ${port}`);
+});
 
 let db;
 if (process.env.testing === 'true') {
