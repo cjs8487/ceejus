@@ -20,6 +20,7 @@ const { PublicQuotesBot } = require('./twitch/PublicQuotesBot');
 const TwitchBot = require('./twitch/TwitchBot');
 const { TwitchAPI } = require('./api/twitch/TwitchAPI');
 const { TwitchOAuth } = require('./api/twitch/TwitchOAuth');
+const api = require('./api/API');
 
 const port = 3000;
 
@@ -154,10 +155,6 @@ app.post('/validateAppAuth', async(req, res) => {
     res.send(isValid ? 'Valid' : 'Not valid');
 });
 
-app.listen(port, () => {
-    console.log(`Twitch Eventsub Webhook listening on port ${port}`);
-});
-
 let db;
 if (process.env.testing === 'true') {
     db = new Database('database.db', { verbose: console.log });
@@ -173,11 +170,18 @@ db.exec(setupScript);
 
 const quotesCore = new QuotesCore();
 quotesCore.initialize(db);
+app.set('quotesCore', quotesCore);
 
 const twitchBot = new TwitchBot.TwitchBot(db);
 const publicQuotesBot = new PublicQuotesBot(db);
 twitchBot.setupDb(db);
 const discordBot = new DiscordBot(db);
+
+app.use('/api', api);
+
+app.listen(port, () => {
+    console.log(`Twitch Eventsub Webhook listening on port ${port}`);
+});
 
 // Ensure that the database connection is closed when the process terminates
 process.on('exit', () => db.close());
