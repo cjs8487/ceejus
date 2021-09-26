@@ -5,6 +5,8 @@ const { isUserMod } = require('./TwitchHelper');
 const { TwitchQuotesModule } = require('./modules/TwitchQuotesModule');
 const { MultiTwitch } = require('./modules/MultiTwitch');
 
+const paramRegex = /(?:\$param(?<index>\d*))/g;
+
 /**
  * IRC Chatbot run through Twitch. This serves as the main entry point into the Twitch modules of the bot, but most
  * functionality is broken out into those modules.
@@ -135,7 +137,19 @@ class TwitchBot {
             // standard text commands
             const response = this.db.prepare('select output from commands where command_string=?').get(commandName);
             if (response === undefined) return; // invalid command
-            this.client.say(channel, response.output);
+            // parse argument based commands
+            let success = true;
+            const parsed = response.output.replaceAll(paramRegex, (match, p1) => {
+                if (p1 === 'undefined') {
+                    success = false;
+                }
+                return commandParts[_.toNumber(p1) + 1];
+            });
+            if (success) {
+                this.client.say(channel, parsed);
+            } else {
+                this.client.say(channel, `@${user.username} incorrect syntax for command ${commandName}`);
+            }
         }
     }
 
