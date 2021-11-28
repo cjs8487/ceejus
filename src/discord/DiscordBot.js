@@ -1,3 +1,4 @@
+const https = require('https');
 const Discord = require('discord.js');
 const { DiscordQuotesModule } = require('./modules/DiscordQuotesModule');
 
@@ -69,6 +70,18 @@ class DiscordBot {
 
         if (command === 'quote') {
             message.channel.send(this.quotesModule.handleCommand(args, message.author.username, false));
+        }
+
+        if (command === 'gdq') {
+            https.get('https://taskinoz.com/gdq/api/', (result) => {
+                result.setEncoding('utf8');
+                result.on('data', (d) => {
+                    message.channel.send(d);
+                });
+                result.on('error', (e) => {
+                    message.channel.send('Failed to fetch inforation from the server. Try gain later.');
+                });
+            });
         }
     }
 }
