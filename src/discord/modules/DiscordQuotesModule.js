@@ -94,6 +94,7 @@ class DiscordQuotesModule extends BotModule {
                     .addFields(
                         { name: 'Quoted by', value: quote.quotedBy, inline: true },
                         { name: 'Quoted on', value: quote.quotedOn, inline: true },
+                        { name: 'Requested by', value: sender, inline: true },
                     )
                     .setFooter(`Also known as: ${quote.alias}`);
             }
@@ -101,7 +102,10 @@ class DiscordQuotesModule extends BotModule {
                 .setColor('#0099ff')
                 .setAuthor('Ceejus - Quotes')
                 .setTitle(`Search results for '${searchString}'`)
-                .setDescription(results);
+                .setDescription(results)
+                .addFields(
+                    { name: 'Requested by', value: sender, inline: true },
+                );
         }
         if (quoteCommand === 'latest') {
             const quote = QuotesCore.getInstance().getLatestQuote();
@@ -128,7 +132,10 @@ class DiscordQuotesModule extends BotModule {
                     return new Discord.MessageEmbed()
                         .setColor('#0099ff')
                         .setAuthor('Ceejus - Quotes')
-                        .setTitle(`Quote with alias '${alias}' does not exist`);
+                        .setTitle(`Quote with alias '${alias}' does not exist`)
+                        .addFields(
+                            { name: 'Requested by', value: sender, inline: true },
+                        );
                 }
             } else {
                 quote = QuotesCore.getInstance().getQuote(quoteNumber);
