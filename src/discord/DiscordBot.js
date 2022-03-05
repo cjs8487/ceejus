@@ -69,7 +69,7 @@ class DiscordBot {
         const command = args.shift().toLowerCase();
 
         if (command === 'quote') {
-            message.channel.send(this.quotesModule.handleCommand(args, message.author.username, false));
+            message.channel.send(`@${message.author} ${this.quotesModule.handleCommand(args, message.author.username, false)}`);
         }
 
         if (command === 'gdq') {

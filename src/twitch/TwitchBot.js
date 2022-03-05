@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const tmi = require('tmi.js');
 const fs = require('fs');
+const { flagToEvent, getBiTInfo, lookupFlag } = require('ss-scene-flags');
 const { isUserMod } = require('./TwitchHelper');
 const { TwitchQuotesModule } = require('./modules/TwitchQuotesModule');
 const { MultiTwitch } = require('./modules/MultiTwitch');
@@ -133,6 +134,46 @@ class TwitchBot {
                 channel,
                 `${multiResponse}`,
             );
+        } else if (commandName === 'flags') {
+            if (commandParts[1] === 'event') {
+                try {
+                    const event = flagToEvent(commandParts[2], commandParts.slice(3).join(' '));
+                    if (event.length === 0) {
+                        this.client.say(channel, `@${user.username} flag does not exist on the specified map`);
+                    }
+                    this.client.say(channel, `@${user.username} ${event}`);
+                } catch (e) {
+                    this.client.say(channel, `@${user.username} invalid map or flag specified`);
+                }
+            } else if (commandParts[1] === 'bit') {
+                try {
+                    const info = getBiTInfo(commandParts[2], commandParts.slice(3).join(' '));
+                    if (info.length === 0) {
+                        this.client.say(channel, `@${user.username} flag is not reachable in BiT`);
+                    }
+                    let response = `@${user.username}`;
+                    _.forEach(info, (infoString) => {
+                        response += ` ${infoString}`;
+                    });
+                    this.client.say(channel, response);
+                } catch (e) {
+                    this.client.say(channel, `@${user.username} invalid flag specified`);
+                }
+            } else if (commandParts[1] === 'lookup') {
+                try {
+                    const results = lookupFlag(commandParts[2], commandParts.slice(3).join(' '), true);
+                    if (results.length === 0) {
+                        this.client.say(channel, `@${user.username} flag is not reachable in BiT`);
+                    }
+                    let response = `@${user.username}`;
+                    _.forEach(results, (result) => {
+                        response += ` ${result}`;
+                    });
+                    this.client.say(channel, response);
+                } catch (e) {
+                    this.client.say(channel, `@${user.username} invalid map specified`);
+                }
+            }
         } else {
             // standard text commands
             const response = this.db.prepare('select output from commands where command_string=?').get(commandName);
