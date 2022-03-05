@@ -11,8 +11,8 @@ quotes.use((req, res, next) => {
     next();
 });
 
-quotes.get('/quote', async (req, res) => {
-    const { quoteNumber, alias} = req.query;
+quotes.get('/quote', (req, res) => {
+    const { quoteNumber, alias } = req.query;
     let quote;
     if (quoteNumber) {
         quote = quotesCore.getQuote(quoteNumber);
@@ -21,6 +21,7 @@ quotes.get('/quote', async (req, res) => {
     } else {
         quote = quotesCore.getRandomQuote();
     }
+    console.log(quote);
     res.send(quote);
 });
 

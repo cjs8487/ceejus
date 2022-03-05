@@ -22,7 +22,7 @@ const { TwitchAPI } = require('./api/twitch/TwitchAPI');
 const { TwitchOAuth } = require('./api/twitch/TwitchOAuth');
 const api = require('./api/API');
 
-const port = 3000;
+const port = 8080;
 
 let apiEnabled;
 if (process.env.API_ENABLED === 'true') {
@@ -31,7 +31,7 @@ if (process.env.API_ENABLED === 'true') {
     apiEnabled = false;
 }
 
-if (apiEnabled) {
+if (false) {
     const clientId = process.env.TWITCH_CLIENT_ID;
     const authToken = process.env.AUTH_TOKEN;
     const ngrokUrl = process.env.NGROK_URL;
