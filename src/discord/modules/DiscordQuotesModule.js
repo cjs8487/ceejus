@@ -7,15 +7,15 @@ class DiscordQuotesModule extends BotModule {
     constructor() {
         super(['quote']);
 
+        this.author = { name: 'Ceejus - Quotes' };
         this.permissionDeniedEmbed = new Discord.MessageEmbed()
             .setColor('#ff0000')
-            .setAuthor('Ceejus - Quotes')
+            .setAuthor(this.author)
             .setTitle('Permission Denied')
             .setDescription('You don\'t have permission to do that.')
-            .setFooter('Mod permission check for quotes module failed');
+            .setFooter({ text: 'Mod permission check for quotes module failed' });
     }
 
-    // eslint-disable-next-line class-methods-use-this
     handleCommand(commandParts, sender, mod) {
         const quoteCommand = commandParts[0];
         if (quoteCommand === 'add') {
@@ -23,7 +23,7 @@ class DiscordQuotesModule extends BotModule {
             const number = QuotesCore.getInstance().addQuote(quote, sender);
             return new Discord.MessageEmbed()
                 .setColor('#0099ff')
-                .setAuthor('Ceejus - Quotes')
+                .setAuthor(this.author)
                 .setTitle(`Added quote #${number}`)
                 .setDescription(quote);
         }
@@ -35,7 +35,7 @@ class DiscordQuotesModule extends BotModule {
             if (!QuotesCore.getInstance().deleteQuote(quoteNumber)) {
                 return new Discord.MessageEmbed()
                     .setColor('#ff0000')
-                    .setAuthor('Ceejus - Quotes')
+                    .setAuthor(this.author)
                     .setTitle(`Error: ${quoteNumber} is not a number`);
             }
             return new Discord.MessageEmbed()
@@ -51,14 +51,14 @@ class DiscordQuotesModule extends BotModule {
             if (Number.isNaN(quoteNumber)) {
                 return new Discord.MessageEmbed()
                     .setColor('#ff0000')
-                    .setAuthor('Ceejus - Quotes')
+                    .setAuthor(this.author)
                     .setTitle(`Error: ${quoteNumber} is not a number`);
             }
             const newQuote = commandParts.splice(2).join(' ');
             QuotesCore.getInstance().editQuote(quoteNumber, newQuote);
             return new Discord.MessageEmbed()
                 .setColor('#0099ff')
-                .setAuthor('Ceejus - Quotes')
+                .setAuthor(this.author)
                 .setTitle(`#${quoteNumber} edited`);
         }
         if (quoteCommand === 'alias') {
@@ -68,7 +68,7 @@ class DiscordQuotesModule extends BotModule {
             const result = QuotesCore.getInstance().handleAliasRequest(commandParts, mod);
             return new Discord.MessageEmbed()
                 .setColor('#0099ff')
-                .setAuthor('Ceejus - Quotes')
+                .setAuthor(this.author)
                 .setTitle(result);
         }
         if (quoteCommand === 'info') {
@@ -76,7 +76,7 @@ class DiscordQuotesModule extends BotModule {
             const results = QuotesCore.getInstance().getQuoteInfo(quoteNumber);
             return new Discord.MessageEmbed()
                 .setColor('#0099ff')
-                .setAuthor('Ceejus - Quotes')
+                .setAuthor(this.author)
                 .setTitle(`Quote info for #${quoteNumber}`)
                 .setDescription(results);
         }
@@ -88,7 +88,7 @@ class DiscordQuotesModule extends BotModule {
                 const quote = QuotesCore.getInstance().getQuote(parseInt(results.slice(1), 10));
                 return new Discord.MessageEmbed()
                     .setColor('#0099ff')
-                    .setAuthor('Ceejus - Quotes')
+                    .setAuthor(this.author)
                     .setTitle(`Search result for '${searchString}': Quote #${quote.id}`)
                     .setDescription(quote.quote)
                     .addFields(
@@ -100,7 +100,7 @@ class DiscordQuotesModule extends BotModule {
             }
             return new Discord.MessageEmbed()
                 .setColor('#0099ff')
-                .setAuthor('Ceejus - Quotes')
+                .setAuthor(this.author)
                 .setTitle(`Search results for '${searchString}'`)
                 .setDescription(results)
                 .addFields(
@@ -111,14 +111,14 @@ class DiscordQuotesModule extends BotModule {
             const quote = QuotesCore.getInstance().getLatestQuote();
             return new Discord.MessageEmbed()
                 .setColor('#0099ff')
-                .setAuthor('Ceejus - Quotes')
+                .setAuthor({ name: 'Ceejus - Quotes' })
                 .setTitle(`Quote #${quote.id}`)
                 .setDescription(quote.quote)
                 .addFields(
                     { name: 'Quoted by', value: quote.quotedBy, inline: true },
                     { name: 'Quoted on', value: quote.quotedOn, inline: true },
                 )
-                .setFooter(`Also known as: ${quote.alias}`);
+                .setFooter({ text: `Also known as: ${quote.alias}` });
         }
         // looking up a quote
         let quote;
@@ -131,7 +131,7 @@ class DiscordQuotesModule extends BotModule {
                 if (_.isNil(quote)) {
                     return new Discord.MessageEmbed()
                         .setColor('#0099ff')
-                        .setAuthor('Ceejus - Quotes')
+                        .setAuthor(this.author)
                         .setTitle(`Quote with alias '${alias}' does not exist`)
                         .addFields(
                             { name: 'Requested by', value: sender, inline: true },
@@ -142,7 +142,7 @@ class DiscordQuotesModule extends BotModule {
                 if (_.isNil(quote)) {
                     return new Discord.MessageEmbed()
                         .setColor('#0099ff')
-                        .setAuthor('Ceejus - Quotes')
+                        .setAuthor(this.author)
                         .setTitle(`Quote #${quoteNumber} does not exist`);
                 }
             }
@@ -151,14 +151,14 @@ class DiscordQuotesModule extends BotModule {
         }
         return new Discord.MessageEmbed()
             .setColor('#0099ff')
-            .setAuthor('Ceejus - Quotes')
+            .setAuthor(this.author)
             .setTitle(`Quote #${quote.id}`)
             .setDescription(quote.quote)
             .addFields(
                 { name: 'Quoted by', value: quote.quotedBy, inline: true },
                 { name: 'Quoted on', value: quote.quotedOn, inline: true },
             )
-            .setFooter(`Also known as: ${quote.alias}`);
+            .setFooter({ text: `Also known as: ${quote.alias}` });
     }
 }
 

@@ -28,6 +28,7 @@ class QuotesCore {
             // return 'that quote doesn\'t exist';
             return undefined;
         }
+        this.convertFileds(quote);
         // return `#${quote.id}: ${quote.quote}`;
         return quote;
     }
@@ -44,6 +45,7 @@ class QuotesCore {
             // return 'no quote with that alias exists';
             return undefined;
         }
+        this.convertFileds(quote);
         // return `#${quote.id} (${quote.alias}): ${quote.quote}`;
         return quote;
     }
@@ -54,7 +56,23 @@ class QuotesCore {
      * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
      */
     getRandomQuote() {
-        return this.db.prepare('select * from quotes order by random() limit 1').get();
+        const quote = this.db.prepare('select * from quotes order by random() limit 1').get();
+        this.convertFileds(quote);
+        console.log(quote);
+        return quote;
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    convertFileds(quote) {
+        if (quote.alias === null) {
+            quote.alias = 'unknown';
+        }
+        if (quote.quotedBy === null) {
+            quote.quotedBy = 'unknown';
+        }
+        if (quote.quotedOn === null) {
+            quote.quotedOn = 'unknown';
+        }
     }
 
     addQuote(quote, quotedBy) {

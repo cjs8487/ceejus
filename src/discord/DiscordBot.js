@@ -1,5 +1,5 @@
 const https = require('https');
-const Discord = require('discord.js');
+const { Client } = require('discord.js');
 const { DiscordQuotesModule } = require('./modules/DiscordQuotesModule');
 
 const prefix = '!';
@@ -18,7 +18,9 @@ class DiscordBot {
      */
     constructor(db) {
         this.db = db;
-        const client = new Discord.Client();
+        const client = new Client({
+            intents: 32767,
+        });
 
         if (process.env.testing === 'true') {
             this.testMode = true;
@@ -31,16 +33,16 @@ class DiscordBot {
             if (this.testMode) {
                 client.user.setPresence({
                     status: 'online',
-                    activity: {
+                    activities: [{
                         name: `Test Mode (v${process.env.npm_package_version})`,
-                    },
+                    }],
                 });
             } else {
                 client.user.setPresence({
                     status: 'online',
-                    activity: {
+                    activities: [{
                         name: `Ceejus v${process.env.npm_package_version}`,
-                    },
+                    }],
                 });
             }
         });
@@ -69,7 +71,8 @@ class DiscordBot {
         const command = args.shift().toLowerCase();
 
         if (command === 'quote') {
-            message.channel.send(`@${message.author} ${this.quotesModule.handleCommand(args, message.author.username, false)}`);
+            message.channel.send({ content: `${message.author}`, embeds: [this.quotesModule.handleCommand(args, message.author.username, false)] });
+            // message.channel.send(this.quotesModule.handleCommand(args, message.author.username, false));
         }
 
         if (command === 'gdq') {
