@@ -21,7 +21,6 @@ quotes.get('/quote', (req, res) => {
     } else {
         quote = quotesCore.getRandomQuote();
     }
-    console.log(quote);
     res.send(quote);
 });
 

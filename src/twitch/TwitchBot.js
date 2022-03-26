@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const fetch = require('node-fetch');
 const tmi = require('tmi.js');
 const fs = require('fs');
 const { flagToEvent, getBiTInfo, lookupFlag } = require('ss-scene-flags');
@@ -47,7 +48,7 @@ class TwitchBot {
      * @param {*} message The message that was sent
      * @param {boolean} self true if the message was sent by the bot
      */
-    onMessageHandler(channel, user, message, self) {
+    async onMessageHandler(channel, user, message, self) {
         if (self) {
             return;
         }
@@ -174,6 +175,9 @@ class TwitchBot {
                     this.client.say(channel, `@${user.username} invalid map specified`);
                 }
             }
+        } else if (commandName === 'floha') {
+            const quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+            this.client.say(channel, `@${user.username} #${quote.id}: ${quote.quote_text}`)
         } else {
             // standard text commands
             const response = this.db.prepare('select output from commands where command_string=?').get(commandName);

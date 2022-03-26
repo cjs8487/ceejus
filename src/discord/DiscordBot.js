@@ -1,5 +1,7 @@
 const https = require('https');
+const fetch = require('node-fetch');
 const { Client } = require('discord.js');
+const Discord = require('discord.js');
 const { DiscordQuotesModule } = require('./modules/DiscordQuotesModule');
 
 const prefix = '!';
@@ -59,7 +61,7 @@ class DiscordBot {
      * @param {*} message The message to handle. Contains all the necessary information for proper handling (comes
      * directly from Discord)
      */
-    handleMessage(message) {
+    async handleMessage(message) {
         if (!message.content.startsWith(prefix) || message.author.bot) return;
         if (this.testMode) {
             if (message.channel.id !== testChannel) {
@@ -71,8 +73,32 @@ class DiscordBot {
         const command = args.shift().toLowerCase();
 
         if (command === 'quote') {
-            message.channel.send({ content: `${message.author}`, embeds: [this.quotesModule.handleCommand(args, message.author.username, false)] });
-            // message.channel.send(this.quotesModule.handleCommand(args, message.author.username, false));
+            message.channel.send(
+                {
+                    content: `${message.author}`,
+                    embeds: [this.quotesModule.handleCommand(args, message.author.username, false)],
+                },
+            );
+        }
+
+        if (command === 'floha') {
+            const quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+            const embed = new Discord.MessageEmbed()
+                .setColor('#0099ff')
+                .setAuthor({ name: 'Flohabot - Quotes' })
+                .setTitle(`Quote #${quote.id}`)
+                .setDescription(quote.quote_text)
+                .addFields(
+                    // { name: 'Quoted by', value: quote.quotedBy, inline: true },
+                    { name: 'Quoted on', value: quote.creation_date, inline: true },
+                )
+                .setFooter({ text: `Also known as: ${quote.alias}` });
+            message.channel.send(
+                {
+                    content: `${message.author}`,
+                    embeds: [embed],
+                },
+            );
         }
 
         if (command === 'gdq') {
@@ -81,7 +107,7 @@ class DiscordBot {
                 result.on('data', (d) => {
                     message.channel.send(d);
                 });
-                result.on('error', (e) => {
+                result.on('error', () => {
                     message.channel.send('Failed to fetch inforation from the server. Try gain later.');
                 });
             });
