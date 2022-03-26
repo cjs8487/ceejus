@@ -82,7 +82,23 @@ class DiscordBot {
         }
 
         if (command === 'floha') {
-            const quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+            let quote;
+            if (args.length > 0) {
+                const quoteNumber = parseInt(args[0], 10);
+                if (Number.isNaN(quoteNumber)) {
+                    quote = await (
+                        await fetch(
+                            `https://flohabot.bingothon.com/api/quotes/quote?alias=${args.join(' ')}`,
+                        )
+                    ).json();
+                } else {
+                    quote = await (
+                        await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
+                    ).json();
+                }
+            } else {
+                quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+            }
             const embed = new Discord.MessageEmbed()
                 .setColor('#0099ff')
                 .setAuthor({ name: 'Flohabot - Quotes' })

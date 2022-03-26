@@ -176,8 +176,24 @@ class TwitchBot {
                 }
             }
         } else if (commandName === 'floha') {
-            const quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
-            this.client.say(channel, `@${user.username} #${quote.id}: ${quote.quote_text}`)
+            let quote;
+            if (commandParts.length > 1) {
+                const quoteNumber = parseInt(commandParts[1], 10);
+                if (Number.isNaN(quoteNumber)) {
+                    quote = await (
+                        await fetch(
+                            `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
+                        )
+                    ).json();
+                } else {
+                    quote = await (
+                        await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
+                    ).json();
+                }
+            } else {
+                quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+            }
+            this.client.say(channel, `@${user.username} #${quote.id}: ${quote.quote_text}`);
         } else {
             // standard text commands
             const response = this.db.prepare('select output from commands where command_string=?').get(commandName);
