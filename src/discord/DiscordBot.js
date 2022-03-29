@@ -86,35 +86,108 @@ class DiscordBot {
             if (args.length > 0) {
                 const quoteNumber = parseInt(args[0], 10);
                 if (Number.isNaN(quoteNumber)) {
-                    quote = await (
-                        await fetch(
-                            `https://flohabot.bingothon.com/api/quotes/quote?alias=${args.join(' ')}`,
-                        )
-                    ).json();
+                    const response =
+                        await fetch(`https://flohabot.bingothon.com/api/quotes/quote?alias=${args.join(' ')}`);
+                    if (!response.ok) {
+                        const embed = new Discord.MessageEmbed()
+                            .setColor('#ff0000')
+                            .setAuthor({ name: 'Ceejus - Remote Quotes' })
+                            .setTitle(`Error ${response.status}`)
+                            .setDescription('Oh no an error ocurred. Please try again later');
+                        message.channel.send(
+                            {
+                                content: `${message.author}`,
+                                embeds: [embed],
+                            },
+                        );
+                    } else {
+                        quote = await response.json();
+                        const embed = new Discord.MessageEmbed()
+                            .setColor('#0099ff')
+                            .setAuthor({ name: 'Flohabot - Quotes' })
+                            .setTitle(`Quote #${quote.id}`)
+                            .setDescription(quote.quote_text)
+                            .addFields(
+                                // { name: 'Quoted by', value: quote.quotedBy, inline: true },
+                                { name: 'Quoted on', value: quote.creation_date, inline: true },
+                            )
+                            .setFooter({ text: `Also known as: ${quote.alias}` });
+                        message.channel.send(
+                            {
+                                content: `${message.author}`,
+                                embeds: [embed],
+                            },
+                        );
+                    }
                 } else {
-                    quote = await (
-                        await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
-                    ).json();
+                    const response =
+                        await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`);
+                    if (!response.ok) {
+                        const embed = new Discord.MessageEmbed()
+                            .setColor('#ff0000')
+                            .setAuthor({ name: 'Ceejus - Remote Quotes' })
+                            .setTitle(`Error ${response.status}`)
+                            .setDescription('Oh no an error ocurred. Please try again later');
+                        message.channel.send(
+                            {
+                                content: `${message.author}`,
+                                embeds: [embed],
+                            },
+                        );
+                    } else {
+                        quote = await response.json();
+                        const embed = new Discord.MessageEmbed()
+                            .setColor('#0099ff')
+                            .setAuthor({ name: 'Flohabot - Quotes' })
+                            .setTitle(`Quote #${quote.id}`)
+                            .setDescription(quote.quote_text)
+                            .addFields(
+                                // { name: 'Quoted by', value: quote.quotedBy, inline: true },
+                                { name: 'Quoted on', value: quote.creation_date, inline: true },
+                            )
+                            .setFooter({ text: `Also known as: ${quote.alias}` });
+                        message.channel.send(
+                            {
+                                content: `${message.author}`,
+                                embeds: [embed],
+                            },
+                        );
+                    }
                 }
             } else {
-                quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+                const response = await fetch('https://flohabot.bingothon.com/api/quotes/quote');
+                if (!response.ok) {
+                    const embed = new Discord.MessageEmbed()
+                        .setColor('#ff0000')
+                        .setAuthor({ name: 'Ceejus - Remote Quotes' })
+                        .setTitle(`Error ${response.status}`)
+                        .setDescription('Oh no an error ocurred. Please try again later');
+                    message.channel.send(
+                        {
+                            content: `${message.author}`,
+                            embeds: [embed],
+                        },
+                    );
+                } else {
+                    quote = await response.json();
+                    const embed = new Discord.MessageEmbed()
+                        .setColor('#0099ff')
+                        .setAuthor({ name: 'Flohabot - Quotes' })
+                        .setTitle(`Quote #${quote.id}`)
+                        .setDescription(quote.quote_text)
+                        .addFields(
+                            // { name: 'Quoted by', value: quote.quotedBy, inline: true },
+                            { name: 'Quoted on', value: quote.creation_date, inline: true },
+                        )
+                        .setFooter({ text: `Also known as: ${quote.alias}` });
+                    message.channel.send(
+                        {
+                            content: `${message.author}`,
+                            embeds: [embed],
+                        },
+                    );
+                }
             }
-            const embed = new Discord.MessageEmbed()
-                .setColor('#0099ff')
-                .setAuthor({ name: 'Flohabot - Quotes' })
-                .setTitle(`Quote #${quote.id}`)
-                .setDescription(quote.quote_text)
-                .addFields(
-                    // { name: 'Quoted by', value: quote.quotedBy, inline: true },
-                    { name: 'Quoted on', value: quote.creation_date, inline: true },
-                )
-                .setFooter({ text: `Also known as: ${quote.alias}` });
-            message.channel.send(
-                {
-                    content: `${message.author}`,
-                    embeds: [embed],
-                },
-            );
         }
 
         if (command === 'gdq') {
