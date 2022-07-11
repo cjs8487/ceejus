@@ -31,7 +31,9 @@ if (process.env.API_ENABLED === 'true') {
     apiEnabled = false;
 }
 
-if (false) {
+if (apiEnabled) {
+    console.log('full api is enabled');
+
     const clientId = process.env.TWITCH_CLIENT_ID;
     const authToken = process.env.AUTH_TOKEN;
     const ngrokUrl = process.env.NGROK_URL;
@@ -43,7 +45,8 @@ if (false) {
 
     app.post('/getAppAccessToken', async (req, res) => {
         const token = await twithOAuth.getAppAccessToken();
-        res.write(token);
+        res.write(token.access_token);
+        res.end();
     });
 
     app.post('/createWebhook/:broadcasterId', (req, res) => {
@@ -58,7 +61,7 @@ if (false) {
             },
         };
         const createWebHookBody = {
-            type: 'channel.follow',
+            type: 'channel.channel_points_custom_reward_redemption.add',
             version: '1',
             condition: {
                 broadcaster_user_id: req.params.broadcasterId,
@@ -95,9 +98,9 @@ if (false) {
     app.post('/notification', (req, res) => {
         console.log('POST to /notification');
         if (!verifySignature(req.header('Twitch-Eventsub-Message-Signature'),
-                req.header('Twitch-Eventsub-Message-Id'),
-                req.header('Twitch-Eventsub-Message-Timestamp'),
-                req.rawBody)) {
+            req.header('Twitch-Eventsub-Message-Id'),
+            req.header('Twitch-Eventsub-Message-Timestamp'),
+            req.rawBody)) {
             console.log('failed message signature verification');
             res.status(403).send('Forbidden');
         } else {
@@ -152,13 +155,13 @@ if (false) {
         res.status(200).send();
     });
 
-    app.get('/userData/:username', async(req, res) => {
+    app.get('/userData/:username', async (req, res) => {
         const response = await twitchApi.getUsersByLogin(req.params.username);
         console.log(`[express response] ${response}`);
         res.send(response);
     });
 
-    app.post('/validateAppAuth', async(req, res) => {
+    app.post('/validateAppAuth', async (req, res) => {
         const isValid = await twithOAuth.isTokenValid(authToken);
         res.send(isValid ? 'Valid' : 'Not valid');
     });
