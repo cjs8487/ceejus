@@ -1,3 +1,5 @@
+import EconomyCore from './modules/economy/EconomyCore.ts';
+
 require('dotenv').config();
 
 const express = require('express');
@@ -39,6 +41,7 @@ if (apiEnabled) {
     const ngrokUrl = process.env.NGROK_URL;
     const secret = process.env.SECRET;
     const clientSecret = process.env.TWITCH_CLIENT_SECRET;
+    const channelAuth = process.env.CHANNEL_AUTH;
 
     const twitchApi = new TwitchAPI(clientId, authToken);
     const twithOAuth = new TwitchOAuth(clientId, clientSecret);
@@ -95,7 +98,7 @@ if (apiEnabled) {
         return expectedSignature === messageSignature;
     }
 
-    app.post('/notification', (req, res) => {
+    app.post('/notification', async (req, res) => {
         console.log('POST to /notification');
         if (!verifySignature(req.header('Twitch-Eventsub-Message-Signature'),
             req.header('Twitch-Eventsub-Message-Id'),
@@ -110,6 +113,12 @@ if (apiEnabled) {
                 res.send(req.body.challenge);
             } else if (messageType === 'notification') {
                 console.log(req.body.event);
+                const { event } = req.body;
+                try {
+                    await twitchApi.markRedeemed(channelAuth, event.id, event.broadcaster_user_id, event.reward.id)
+                } catch (e) {
+                    console.log(e);
+                }
                 res.send('');
             }
         }
@@ -184,7 +193,10 @@ const quotesCore = new QuotesCore();
 quotesCore.initialize(db);
 app.set('quotesCore', quotesCore);
 
-const twitchBot = new TwitchBot.TwitchBot(db);
+const economyCore = new EconomyCore(db);
+app.set('economyCore', economyCore);
+
+const twitchBot = new TwitchBot.TwitchBot(db, economyCore);
 const publicQuotesBot = new PublicQuotesBot(db);
 twitchBot.setupDb(db);
 const discordBot = new DiscordBot(db);

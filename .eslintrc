@@ -18,7 +18,8 @@
     "overrides": [
         {
             "files": [
-                "src/**/*.js"
+                "src/**/*.js",
+                "src/**/*.ts"
             ],
             "rules": {
                 "indent": ["error", 4],

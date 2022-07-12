@@ -1,3 +1,5 @@
+import TwitchEconomyModule from './modules/TwitchEconomyModule.ts';
+
 const _ = require('lodash');
 const fetch = require('node-fetch');
 const tmi = require('tmi.js');
@@ -18,11 +20,11 @@ class TwitchBot {
      * Constructs a new Twitch bot isntance, using the environment variables to contruct the instance
      * @param {*} db The database to use when looking up information for the bot (commands, quotes, etc.)
      */
-    constructor(db) {
+    constructor(db, economyCore) {
         this.db = db;
         this.quotesBot = new TwitchQuotesModule();
         this.multiModule = new MultiTwitch();
-        this.modules = [];
+        this.modules = [new TwitchEconomyModule(economyCore)];
 
         const opts = {
             identity: {
@@ -69,7 +71,10 @@ class TwitchBot {
         let handled = false;
         _.forEach(this.modules, (module) => {
             if (module.recognizesCommand(commandName)) {
-                module.handleCommand(commandParts);
+                this.client.say(
+                    channel,
+                    module.handleCommand(commandParts, user.username, false),
+                );
                 handled = true;
             }
         });
