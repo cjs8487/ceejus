@@ -24,4 +24,4 @@ quotes.get('/quote', (req, res) => {
     res.send(quote);
 });
 
-module.exports = quotes;
+export default quotes;

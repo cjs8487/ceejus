@@ -1,3 +1,7 @@
+import { ApiClient } from '@twurple/api';
+import { StaticAuthProvider } from '@twurple/auth';
+import UserManager from './database/UserManager';
+import AuthManager from './auth/AuthManager';
 import EconomyCore from './modules/economy/EconomyCore.ts';
 
 require('dotenv').config();
@@ -6,12 +10,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-app.use(bodyParser.json({
-    verify: (req, res, buf) => {
-        // expose the raw body of the request for signature verification
-        req.rawBody = buf;
-    },
-}));
+// app.use(bodyParser.json({
+//     verify: (req, res, buf) => {
+//         // expose the raw body of the request for signature verification
+//         req.rawBody = buf;
+//     },
+// }));
+
 const https = require('https');
 const crypto = require('crypto');
 const Database = require('better-sqlite3');
@@ -33,18 +38,20 @@ if (process.env.API_ENABLED === 'true') {
     apiEnabled = false;
 }
 
+const clientId = process.env.TWITCH_CLIENT_ID;
+const authToken = process.env.AUTH_TOKEN;
+const ngrokUrl = process.env.NGROK_URL;
+const secret = process.env.SECRET;
+const clientSecret = process.env.TWITCH_CLIENT_SECRET;
+const channelAuth = process.env.CHANNEL_AUTH;
+
 if (apiEnabled) {
     console.log('full api is enabled');
 
-    const clientId = process.env.TWITCH_CLIENT_ID;
-    const authToken = process.env.AUTH_TOKEN;
-    const ngrokUrl = process.env.NGROK_URL;
-    const secret = process.env.SECRET;
-    const clientSecret = process.env.TWITCH_CLIENT_SECRET;
-    const channelAuth = process.env.CHANNEL_AUTH;
-
     const twitchApi = new TwitchAPI(clientId, authToken);
     const twithOAuth = new TwitchOAuth(clientId, clientSecret);
+
+    twithOAuth.getAuthorizationCode('ksrho1aok0ncdzog26xmbgq9lqejik');
 
     app.post('/getAppAccessToken', async (req, res) => {
         const token = await twithOAuth.getAppAccessToken();
@@ -189,17 +196,27 @@ if (process.env.testing === 'true') {
 const setupScript = fs.readFileSync('src/dbsetup.sql', 'utf-8');
 db.exec(setupScript);
 
-const quotesCore = new QuotesCore();
-quotesCore.initialize(db);
-app.set('quotesCore', quotesCore);
+const userManager = new UserManager(db);
+const authManger = new AuthManager(clientId, clientSecret, db);
+const botAuthProvider = new StaticAuthProvider(clientId, channelAuth);
+const apiClient = new ApiClient({ authProvider: botAuthProvider });
 
-const economyCore = new EconomyCore(db);
-app.set('economyCore', economyCore);
+app.set('userManager', userManager);
+app.set('authManager', authManger);
+app.set('apiClient', apiClient);
+app.set('clientId', clientId);
 
-const twitchBot = new TwitchBot.TwitchBot(db, economyCore);
-const publicQuotesBot = new PublicQuotesBot(db);
-twitchBot.setupDb(db);
-const discordBot = new DiscordBot(db);
+// const quotesCore = new QuotesCore();
+// quotesCore.initialize(db);
+// app.set('quotesCore', quotesCore);
+
+// const economyCore = new EconomyCore(db);
+// app.set('economyCore', economyCore);
+//
+// const twitchBot = new TwitchBot.TwitchBot(db, economyCore);
+// const publicQuotesBot = new PublicQuotesBot(db);
+// twitchBot.setupDb(db);
+// const discordBot = new DiscordBot(db);
 
 if (apiEnabled) {
     app.use('/api', api);
