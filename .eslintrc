@@ -42,7 +42,8 @@
                 "prefer-destructuring": ["off"],
                 "linebreak-style": ["off"],
                 "lines-between-class-members": ["off"],
-                "import/extensions": ["off"]
+                "import/extensions": ["off"],
+                "@typescript-eslint/no-explicit-any": ["off"]
             }
         }
     ]

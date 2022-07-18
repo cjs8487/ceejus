@@ -1,6 +1,12 @@
 import { AccessToken } from '@twurple/auth';
 import { Database, RunResult } from 'better-sqlite3';
 
+export type User = {
+    userId: number,
+    username: string,
+    active: boolean,
+}
+
 class UserManager {
     db: Database;
 
@@ -34,10 +40,37 @@ class UserManager {
         this.db.prepare('update users set active=0 where user_id=?').run(userId);
     }
 
+    getAllUsers(): User[] {
+        const users = this.db.prepare('select * from users').all();
+        console.log(users);
+        return users.map((user: any) => ({
+            userId: user.user_id,
+            username: user.username,
+            active: !!user.active,
+        }));
+    }
+
     updateAuth(userId: number, accessTokenObj: AccessToken) {
         const { accessToken, refreshToken, expiresIn, obtainmentTimestamp } = accessTokenObj;
         this.db.prepare('update oauth set access_token=?, refresh_token=?, expires_in=?, obtained=? where owner=?')
             .run(accessToken, refreshToken, expiresIn, obtainmentTimestamp, userId);
+    }
+
+    getAccessToken(userId: number): AccessToken {
+        const data = this.db.prepare('select * from oauth where owner=?').get(userId);
+        return {
+            accessToken: data.access_token,
+            refreshToken: data.refresh_token,
+            expiresIn: data.expires_in,
+            obtainmentTimestamp: data.obtained,
+            scope: [],
+        };
+    }
+
+    userExists(username: string) {
+        const result = this.db.prepare('select user_id from users where username=?').all(username);
+        console.log(result);
+        return result.length > 0;
     }
 }
 

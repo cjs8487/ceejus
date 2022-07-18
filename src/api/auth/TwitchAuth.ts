@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { ApiClient } from '@twurple/api';
-import AuthManager from 'src/auth/AuthManager';
-import UserManager from 'src/database/UserManager';
 import { AccessToken, StaticAuthProvider } from '@twurple/auth';
+import AuthManager from 'src/auth/TokenManager';
+import UserManager from 'src/database/UserManager';
 
 const twitchAuth = Router();
 
@@ -24,9 +24,6 @@ twitchAuth.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 twitchAuth.post('/authorized', async (req: Request, res: Response) => {
-    console.log(userManager);
-    console.log(authManager);
-    console.log(clientId);
     try {
         const { code } = req.body;
         // console.log(code);
@@ -39,9 +36,13 @@ twitchAuth.post('/authorized', async (req: Request, res: Response) => {
         const apiClient = new ApiClient({ authProvider });
         const user = await (apiClient.users.getMe());
 
-        const userId = userManager.registerUser(user.displayName, firstToken);
-        authManager.registerUser(userId, firstToken);
-        res.status(200).send('Successfully registered');
+        if (!userManager.userExists(user.displayName)) {
+            const userId = userManager.registerUser(user.displayName, firstToken);
+            authManager.registerUser(userId, firstToken);
+            res.status(200).send('Successfully registered');
+        } else {
+            res.status(409).send('Already registered');
+        }
     } catch (e: any) {
         // console.log(e);
         res.status(500).send(e.message);

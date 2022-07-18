@@ -9,7 +9,7 @@ create TABLE if not exists QUOTES (
 
 create table if not exists users (
     user_id integer primary key autoincrement,
-    username text unique not null,
+    username text not null unique,
     active integer not null
 );
 

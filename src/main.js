@@ -1,7 +1,7 @@
 import { ApiClient } from '@twurple/api';
 import { StaticAuthProvider } from '@twurple/auth';
 import UserManager from './database/UserManager';
-import AuthManager from './auth/AuthManager';
+import AuthManager from './auth/TokenManager';
 import EconomyCore from './modules/economy/EconomyCore.ts';
 
 require('dotenv').config();
@@ -197,7 +197,7 @@ const setupScript = fs.readFileSync('src/dbsetup.sql', 'utf-8');
 db.exec(setupScript);
 
 const userManager = new UserManager(db);
-const authManger = new AuthManager(clientId, clientSecret, db);
+const authManger = new AuthManager(clientId, clientSecret, userManager);
 const botAuthProvider = new StaticAuthProvider(clientId, channelAuth);
 const apiClient = new ApiClient({ authProvider: botAuthProvider });
 

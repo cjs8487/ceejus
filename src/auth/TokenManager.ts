@@ -1,7 +1,7 @@
 import { AccessToken, exchangeCode, RefreshingAuthProvider } from '@twurple/auth';
-import UserManager from 'src/database/UserManager';
+import UserManager, { User } from 'src/database/UserManager';
 
-class AuthManager {
+class TokenManager {
     clientId: string
     clientSecret: string
     userManager: UserManager;
@@ -12,6 +12,9 @@ class AuthManager {
         this.clientSecret = clientSecret;
         this.userManager = userManager;
         this.authProviders = new Map();
+        this.userManager.getAllUsers().forEach((user: User) => {
+            this.registerUser(user.userId, userManager.getAccessToken(user.userId));
+        });
     }
 
     registerUser(user: number, token: AccessToken): void {
@@ -35,4 +38,4 @@ class AuthManager {
     }
 }
 
-export default AuthManager;
+export default TokenManager;
