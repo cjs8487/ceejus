@@ -1,5 +1,7 @@
 import { ApiClient } from '@twurple/api';
 import { StaticAuthProvider } from '@twurple/auth';
+import { EventSubListener, EventSubMiddleware } from '@twurple/eventsub';
+import { NgrokAdapter } from '@twurple/eventsub-ngrok';
 import UserManager from './database/UserManager';
 import AuthManager from './auth/TokenManager';
 import EconomyCore from './modules/economy/EconomyCore.ts';
@@ -198,13 +200,20 @@ db.exec(setupScript);
 
 const userManager = new UserManager(db);
 const authManger = new AuthManager(clientId, clientSecret, userManager);
-const botAuthProvider = new StaticAuthProvider(clientId, channelAuth);
+const botAuthProvider = new StaticAuthProvider(clientId, authToken, undefined, 'app');
 const apiClient = new ApiClient({ authProvider: botAuthProvider });
+
+const eventSubListener = new EventSubListener({
+    apiClient,
+    adapter: new NgrokAdapter(),
+    secret,
+});
 
 app.set('userManager', userManager);
 app.set('authManager', authManger);
 app.set('apiClient', apiClient);
 app.set('clientId', clientId);
+app.set('eventSubListener', eventSubListener);
 
 // const quotesCore = new QuotesCore();
 // quotesCore.initialize(db);
@@ -221,8 +230,13 @@ app.set('clientId', clientId);
 if (apiEnabled) {
     app.use('/api', api);
 
-    app.listen(port, () => {
+    app.listen(port, async () => {
         console.log(`Twitch Eventsub Webhook listening on port ${port}`);
+        await apiClient.eventSub.deleteAllSubscriptions();
+        await eventSubListener.listen();
+        const followSub = await eventSubListener.subscribeToChannelFollowEvents(12826, (event) => {
+            console.log(`${event.userDisplayName} just followed ${event.broadcasterDisplayName}!`);
+        });
     });
 }
 
@@ -231,3 +245,5 @@ process.on('exit', () => db.close());
 process.on('SIGHUP', () => process.exit(128 + 1));
 process.on('SIGINT', () => process.exit(128 + 2));
 process.on('SIGTERM', () => process.exit(128 + 15));
+
+export {};
