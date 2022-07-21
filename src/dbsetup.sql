@@ -9,9 +9,13 @@ create TABLE if not exists QUOTES (
 
 create table if not exists users (
     user_id integer primary key autoincrement,
-    username text not null unique,
+    username text not null,
+    twitch_id text not null,
     active integer not null
 );
+
+create unique index if not exists user_username_index on users(username);
+create unique index if not exists user_twitchid_index on users(twitch_id);
 
 create table if not exists oauth (
     auth_id integer primary key autoincrement,

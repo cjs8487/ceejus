@@ -14,8 +14,9 @@ class UserManager {
         this.db = db;
     }
 
-    registerUser(username: string, accessToken: AccessToken): number {
-        const addData: RunResult = this.db.prepare('insert into users (username, active) values (?, 1)').run(username);
+    registerUser(username: string, twitchId: string, accessToken: AccessToken): number {
+        const addData: RunResult =
+            this.db.prepare('insert into users (username, twitch_id, active) values (?, ?, 1)').run(username, twitchId);
         this.db.prepare(
             'insert into oauth (owner, access_token, refresh_token, expires_in, obtained) values (?, ?, ?, ?, ?)',
         ).run(
@@ -42,7 +43,6 @@ class UserManager {
 
     getAllUsers(): User[] {
         const users = this.db.prepare('select * from users').all();
-        console.log(users);
         return users.map((user: any) => ({
             userId: user.user_id,
             username: user.username,
@@ -69,7 +69,6 @@ class UserManager {
 
     userExists(username: string) {
         const result = this.db.prepare('select user_id from users where username=?').all(username);
-        console.log(result);
         return result.length > 0;
     }
 }
