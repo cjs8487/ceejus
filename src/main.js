@@ -1,6 +1,6 @@
 import { ApiClient } from '@twurple/api';
 import { StaticAuthProvider } from '@twurple/auth';
-import { EventSubListener, EventSubMiddleware } from '@twurple/eventsub';
+import { DirectConnectionAdapter, EventSubListener, EventSubMiddleware, ReverseProxyAdapter } from '@twurple/eventsub';
 import { NgrokAdapter } from '@twurple/eventsub-ngrok';
 import UserManager from './database/UserManager';
 import AuthManager from './auth/TokenManager';
@@ -31,7 +31,7 @@ const { TwitchAPI } = require('./api/twitch/TwitchAPI');
 const { TwitchOAuth } = require('./api/twitch/TwitchOAuth');
 const api = require('./api/API');
 
-const port = 8080;
+const port = 8081;
 
 let apiEnabled;
 if (process.env.API_ENABLED === 'true') {
@@ -199,18 +199,20 @@ const setupScript = fs.readFileSync('src/dbsetup.sql', 'utf-8');
 db.exec(setupScript);
 
 const userManager = new UserManager(db);
-const authManger = new AuthManager(clientId, clientSecret, userManager);
+const tokenManager = new AuthManager(clientId, clientSecret, userManager);
 const botAuthProvider = new StaticAuthProvider(clientId, authToken, undefined, 'app');
 const apiClient = new ApiClient({ authProvider: botAuthProvider });
 
 const eventSubListener = new EventSubListener({
     apiClient,
-    adapter: new NgrokAdapter(),
+    adapter: new ReverseProxyAdapter({
+        hostName: ngrokUrl,
+    }),
     secret,
 });
 
 app.set('userManager', userManager);
-app.set('authManager', authManger);
+app.set('tokenManager', tokenManager);
 app.set('apiClient', apiClient);
 app.set('clientId', clientId);
 app.set('eventSubListener', eventSubListener);
@@ -232,11 +234,13 @@ if (apiEnabled) {
 
     app.listen(port, async () => {
         console.log(`Twitch Eventsub Webhook listening on port ${port}`);
-        await apiClient.eventSub.deleteAllSubscriptions();
         await eventSubListener.listen();
         const followSub = await eventSubListener.subscribeToChannelFollowEvents(12826, (event) => {
             console.log(`${event.userDisplayName} just followed ${event.broadcasterDisplayName}!`);
         });
+        await (await apiClient.eventSub.getSubscriptions()).data.forEach((sub) => {
+            console.log(`${sub.id}: ${sub.type} when ${JSON.stringify(sub.condition)}`);
+        })
     });
 }
 

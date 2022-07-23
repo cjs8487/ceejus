@@ -7,6 +7,19 @@ export type User = {
     active: boolean,
 }
 
+export const NO_USER: User = {
+    userId: -1,
+    username: '',
+    active: false,
+};
+
+type DBUSer = {
+    // eslint-disable-next-line camelcase
+    user_id: number,
+    username: string,
+    active: number,
+}
+
 class UserManager {
     db: Database;
 
@@ -18,11 +31,13 @@ class UserManager {
         const addData: RunResult =
             this.db.prepare('insert into users (username, twitch_id, active) values (?, ?, 1)').run(username, twitchId);
         this.db.prepare(
-            'insert into oauth (owner, access_token, refresh_token, expires_in, obtained) values (?, ?, ?, ?, ?)',
+            // eslint-disable-next-line max-len
+            'insert into oauth (owner, access_token, refresh_token, scopes, expires_in, obtained) values (?, ?, ?, ?, ?, ?)',
         ).run(
             addData.lastInsertRowid,
             accessToken.accessToken,
             accessToken.refreshToken,
+            accessToken.scope.join(','),
             accessToken.expiresIn,
             accessToken.obtainmentTimestamp,
         );
@@ -50,6 +65,27 @@ class UserManager {
         }));
     }
 
+    getUser(user: number): User;
+    getUser(user: string): User;
+
+    getUser(user: number | string): User {
+        let sql = 'select * from users where ';
+        if (typeof user === 'number') {
+            sql += 'user_id=?';
+        } else {
+            sql += 'username=?';
+        }
+        const selectedUser: DBUSer = this.db.prepare(sql).get(user);
+        if (selectedUser === undefined) {
+            return NO_USER;
+        }
+        return {
+            userId: selectedUser.user_id,
+            username: selectedUser.username,
+            active: !!selectedUser.active,
+        };
+    }
+
     updateAuth(userId: number, accessTokenObj: AccessToken) {
         const { accessToken, refreshToken, expiresIn, obtainmentTimestamp } = accessTokenObj;
         this.db.prepare('update oauth set access_token=?, refresh_token=?, expires_in=?, obtained=? where owner=?')
@@ -63,7 +99,7 @@ class UserManager {
             refreshToken: data.refresh_token,
             expiresIn: data.expires_in,
             obtainmentTimestamp: data.obtained,
-            scope: [],
+            scope: data.scopes.split(','),
         };
     }
 

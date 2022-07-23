@@ -15,7 +15,7 @@ twitchAuth.use((req: Request, res: Response, next: NextFunction) => {
         userManager = req.app.get('userManager');
     }
     if (tokenManager === undefined) {
-        tokenManager = req.app.get('authManager');
+        tokenManager = req.app.get('tokenManager');
     }
     if (clientId === undefined) {
         clientId = req.app.get('clientId');
@@ -44,7 +44,7 @@ twitchAuth.post('/authorized', async (req: Request, res: Response) => {
             res.status(409).send('Already registered');
         }
     } catch (e: any) {
-        console.log(e);
+        // console.log(e);
         res.status(500).send(e.message);
     }
 });
