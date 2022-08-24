@@ -3,8 +3,12 @@ import { StaticAuthProvider } from '@twurple/auth';
 import { DirectConnectionAdapter, EventSubListener, EventSubMiddleware, ReverseProxyAdapter } from '@twurple/eventsub';
 import { NgrokAdapter } from '@twurple/eventsub-ngrok';
 import UserManager from './database/UserManager';
+import { EconomyRedemptionsManager } from './database/EconomyRedemptionsManager';
 import AuthManager from './auth/TokenManager';
 import EconomyCore from './modules/economy/EconomyCore.ts';
+import { handleRedemption } from './api/twitch/Rewards';
+import { RedemptionsManager } from './database/RedemptionsManager';
+import TwitchEventSubHandler from './lib/TwitchEventSub';
 
 require('dotenv').config();
 
@@ -12,12 +16,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
-// app.use(bodyParser.json({
-//     verify: (req, res, buf) => {
-//         // expose the raw body of the request for signature verification
-//         req.rawBody = buf;
-//     },
-// }));
+app.use(bodyParser.json({
+    verify: (req, res, buf) => {
+        // expose the raw body of the request for signature verification
+        req.rawBody = buf;
+    },
+}));
 
 const https = require('https');
 const crypto = require('crypto');
@@ -59,78 +63,6 @@ if (apiEnabled) {
         const token = await twithOAuth.getAppAccessToken();
         res.write(token.access_token);
         res.end();
-    });
-
-    app.post('/createWebhook/:broadcasterId', (req, res) => {
-        const createWebhookParams = {
-            host: 'api.twitch.tv',
-            path: 'helix/eventsub/subscriptions',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Client-ID': clientId,
-                Authorization: `Bearer ${authToken}`,
-            },
-        };
-        const createWebHookBody = {
-            type: 'channel.channel_points_custom_reward_redemption.add',
-            version: '1',
-            condition: {
-                broadcaster_user_id: req.params.broadcasterId,
-            },
-            transport: {
-                method: 'webhook',
-                callback: `${ngrokUrl}/notification`,
-                secret,
-            },
-        };
-        let responseData = '';
-        const webhookReq = https.request(createWebhookParams, (result) => {
-            result.setEncoding('utf8');
-            result.on('data', (d) => {
-                responseData += d;
-            }).on('end', () => {
-                const responseBody = JSON.parse(responseData);
-                res.send(responseBody);
-            });
-        });
-        webhookReq.on('error', (e) => { console.log(`Error ${e}`); });
-        webhookReq.write(JSON.stringify(createWebHookBody));
-        webhookReq.end();
-    });
-
-    function verifySignature(messageSignature, messageID, messageTimestamp, body) {
-        const message = messageID + messageTimestamp + body;
-        const signature = crypto.createHmac('sha256', secret).update(message);
-        const expectedSignature = `sha256=${signature.digest('hex')}`;
-
-        return expectedSignature === messageSignature;
-    }
-
-    app.post('/notification', async (req, res) => {
-        console.log('POST to /notification');
-        if (!verifySignature(req.header('Twitch-Eventsub-Message-Signature'),
-            req.header('Twitch-Eventsub-Message-Id'),
-            req.header('Twitch-Eventsub-Message-Timestamp'),
-            req.rawBody)) {
-            console.log('failed message signature verification');
-            res.status(403).send('Forbidden');
-        } else {
-            const messageType = req.header('Twitch-Eventsub-Message-Type');
-            if (messageType === 'webhook_callback_verification') {
-                console.log(req.body.challenge);
-                res.send(req.body.challenge);
-            } else if (messageType === 'notification') {
-                console.log(req.body.event);
-                const { event } = req.body;
-                try {
-                    await twitchApi.markRedeemed(channelAuth, event.id, event.broadcaster_user_id, event.reward.id)
-                } catch (e) {
-                    console.log(e);
-                }
-                res.send('');
-            }
-        }
     });
 
     app.post('/listsubs', (req, res) => {
@@ -199,23 +131,29 @@ const setupScript = fs.readFileSync('src/dbsetup.sql', 'utf-8');
 db.exec(setupScript);
 
 const userManager = new UserManager(db);
+const economyRedemptionsManager = new EconomyRedemptionsManager(db);
+const redemptionsManager = new RedemptionsManager(db);
 const tokenManager = new AuthManager(clientId, clientSecret, userManager);
 const botAuthProvider = new StaticAuthProvider(clientId, authToken, undefined, 'app');
 const apiClient = new ApiClient({ authProvider: botAuthProvider });
 
-const eventSubListener = new EventSubListener({
-    apiClient,
-    adapter: new ReverseProxyAdapter({
-        hostName: ngrokUrl,
-    }),
-    secret,
-});
+// const eventSubListener = new EventSubListener({
+//     apiClient,
+//     adapter: new ReverseProxyAdapter({
+//         hostName: ngrokUrl,
+//     }),
+//     secret,
+// });
+
+const eventSubManager = new TwitchEventSubHandler(clientId, apiClient, clientSecret, botAuthProvider, app, ngrokUrl);
 
 app.set('userManager', userManager);
 app.set('tokenManager', tokenManager);
+app.set('redemptionsManager', redemptionsManager);
+app.set('economyRedemptionsManager', economyRedemptionsManager);
 app.set('apiClient', apiClient);
 app.set('clientId', clientId);
-app.set('eventSubListener', eventSubListener);
+app.set('eventSubManager', eventSubManager);
 
 // const quotesCore = new QuotesCore();
 // quotesCore.initialize(db);
@@ -229,18 +167,53 @@ app.set('eventSubListener', eventSubListener);
 // twitchBot.setupDb(db);
 // const discordBot = new DiscordBot(db);
 
+// const subscribtionCalls = new Map();
+// subscribtionCalls.set(
+//     'channel.channel_points_custom_reward_redemption.add',
+//     eventSubListener.subscribeToChannelRedemptionAddEvents,
+// );
+// const rewardDelegates = new Map();
+// rewardDelegates.set('economy', handleRedemption);
+
 if (apiEnabled) {
     app.use('/api', api);
 
     app.listen(port, async () => {
         console.log(`Twitch Eventsub Webhook listening on port ${port}`);
-        await eventSubListener.listen();
-        const followSub = await eventSubListener.subscribeToChannelFollowEvents(12826, (event) => {
-            console.log(`${event.userDisplayName} just followed ${event.broadcasterDisplayName}!`);
-        });
-        await (await apiClient.eventSub.getSubscriptions()).data.forEach((sub) => {
+        // await apiClient.eventSub.deleteAllSubscriptions();
+        // await eventSubListener.listen();
+        // const followSub = await eventSubListener.subscribeToChannelFollowEvents(12826, (event) => {
+        //     console.log(`${event.userDisplayName} just followed ${event.broadcasterDisplayName}!`);
+        // });
+        (await apiClient.eventSub.getSubscriptions()).data.forEach((sub) => {
             console.log(`${sub.id}: ${sub.type} when ${JSON.stringify(sub.condition)}`);
-        })
+            // const metadata = redemptionsManager.getMetadata(sub.id);
+            // const user = userManager.getUser(metadata.owner);
+            const userApiClient = tokenManager.getApiClient(userManager.getUser('cjs0789').id);
+            switch (sub.type) {
+                case 'channel.channel_points_custom_reward_redemption.add':
+                    // eventSubListener.subscribeToChannelRedemptionAddEventsForReward(
+                    //     sub.condition.broadcaster_user_id,
+                    //     sub.condition.reward_id,
+                    //     (event) => handleRedemption(event, userApiClient),
+                    // );
+                    // switch (metadata.module) {
+                    //     case 'economy':
+                    //         eventSubListener.subscribeToChannelRedemptionAddEventsForReward(
+                    //             user.twitchId,
+                    //             metadata.twitchRewardId,
+                    //             (event) => handleRedemption(event, userApiClient),
+                    //         );
+                    //         break;
+                    //     default:
+                    //         console.log(`${metadata.module} has no handler for ${sub.type}`);
+                    //         break;
+                    // }
+                    break;
+                default:
+                    console.log(`Existing eventsub subscription found for unregistered type ${sub.type}`);
+            }
+        });
     });
 }
 

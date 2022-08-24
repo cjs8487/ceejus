@@ -26,8 +26,7 @@ class TokenManager {
                 clientId: this.clientId,
                 clientSecret: this.clientSecret,
                 onRefresh: (newToken) => {
-                    console.log(newToken);
-                    this.userManager.updateAuth(user, newToken)
+                    this.userManager.updateAuth(user, newToken);
                 },
             },
             token,
