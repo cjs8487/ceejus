@@ -1,6 +1,6 @@
 import { createHmac } from 'crypto';
 import { Request, Response } from 'express';
-import { tokenManager, userManager } from '../System';
+import { economyRedemptionsManager, redemptionsManager, tokenManager, userManager } from '../System';
 import { secret } from '../Environment';
 
 const verifySignature = (messageSignature: string, messageID: string, messageTimestamp: string, body: string) => {
@@ -10,13 +10,15 @@ const verifySignature = (messageSignature: string, messageID: string, messageTim
     return expectedSignature === messageSignature;
 };
 
-export const handleRedemption = (
+export const handleEconomyRedemption = (
     data: any,
 ) => {
     const userApiClient = tokenManager.getApiClient(userManager.getUser('cjs0789').userId);
     if (userApiClient === undefined) {
         console.log('received a notification for a user with no user record');
     } else {
+        const { amount } = economyRedemptionsManager.getRedemption(data.reward.id);
+        console.log(`Giving ${data.user_name} ${amount} currency`);
         userApiClient.channelPoints.updateRedemptionStatusByIds(
             data.broadcaster_user_id,
             data.reward.id,
@@ -51,7 +53,15 @@ export const notification = async (req: any, res: Response) => {
         try {
             console.log(event);
             // TODO: handle event based on type and metadata and call appropriate delegate
-            handleRedemption(event);
+            const { module, type } = redemptionsManager.getMetadata(event.reward.id);
+            console.log(`received notification for ${module} - ${type}`);
+            switch (module) {
+                case 'economy':
+                    handleEconomyRedemption(event);
+                    break;
+                default:
+                    console.log('received a notification for a redemption with no associtaed handler');
+            }
         } catch (e) {
             console.log(e);
         }

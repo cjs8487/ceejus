@@ -60,7 +60,10 @@ export default class TwitchEventSubHandler {
         };
     }
 
-    public async subscribeToRedemptionAddEvent(broadcasterId: string): Promise<CreateSubscriptionResponse> {
+    public async subscribeToRedemptionAddEvent(
+        broadcasterId: string,
+        rewardId: string,
+    ): Promise<CreateSubscriptionResponse> {
         const subscriptionCreationParams = {
             host: 'api.twitch.tv',
             path: 'helix/eventsub/subscriptions',
@@ -76,6 +79,7 @@ export default class TwitchEventSubHandler {
             version: '1',
             condition: {
                 broadcaster_user_id: broadcasterId,
+                reward_id: rewardId,
             },
             transport: this.transport,
         };

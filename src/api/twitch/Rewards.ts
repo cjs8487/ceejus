@@ -1,5 +1,4 @@
-import { ApiClient, HelixChannelPointsApi, HelixCustomReward, HelixUser } from '@twurple/api';
-import { EventSubChannelRedemptionAddEvent, EventSubListener } from '@twurple/eventsub/lib';
+import { ApiClient } from '@twurple/api';
 import { Router } from 'express';
 import {
     economyRedemptionsManager,
@@ -29,15 +28,14 @@ rewards.post('/create', async (req, res) => {
             title,
         });
         economyRedemptionsManager.addRedemption(1, reward.id, amount);
-        const sub = await eventSubManager.subscribeToRedemptionAddEvent(user.id);
+        const sub = await eventSubManager.subscribeToRedemptionAddEvent(user.id, reward.id);
         if ('error' in sub) {
             await apiClient.channelPoints.deleteCustomReward(user, reward.id);
             res.status(sub.status);
             res.send(sub.message);
             return;
         }
-        console.log(sub);
-        redemptionsManager.createMetadata(1, sub.data[0].id, 'economy');
+        redemptionsManager.createMetadata(1, reward.id, 'economy');
         res.status(200).send('Reward created and listener attached');
     } catch (e: any) {
         if (e.status === 400) {
