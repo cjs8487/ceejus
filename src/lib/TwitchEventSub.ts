@@ -1,21 +1,6 @@
 import { request } from 'https';
-import { createHmac } from 'crypto';
 import { AuthProvider } from '@twurple/auth';
-import { Application, Request, Response } from 'express';
 import { ApiClient } from '@twurple/api/lib';
-
-type CreateSubscriptionHeaders = {
-    'Content-Type': 'application/json';
-    'Client-ID': string;
-    Authorization: string;
-}
-
-type CreateSubscriptionParams = {
-    host: 'api.twitch.tv';
-    path: 'helix/eventsub/subscriptions';
-    method: 'POST';
-    headers: CreateSubscriptionHeaders;
-}
 
 type WebhookTransport = {
     method: 'webhook';
@@ -62,7 +47,7 @@ export default class TwitchEventSubHandler {
         apiClient: ApiClient,
         secret: string,
         authProvider:AuthProvider,
-        app: Application, urlBase: string,
+        urlBase: string,
     ) {
         this.clientId = clientId;
         this.apiClient = apiClient;
@@ -73,8 +58,6 @@ export default class TwitchEventSubHandler {
             callback: `${urlBase}/notification`,
             secret: this.secret,
         };
-        this.notification = this.notification.bind(this);
-        app.post('/notification', this.notification);
     }
 
     public async subscribeToRedemptionAddEvent(broadcasterId: string): Promise<CreateSubscriptionResponse> {
@@ -118,52 +101,5 @@ export default class TwitchEventSubHandler {
             req.write(JSON.stringify(body));
             req.end();
         });
-    }
-
-    private async notification(req: any, res: Response) {
-        console.log('POST to /notification');
-        // safeties
-        const signature = req.header('Twitch-Eventsub-Message-Signature');
-        const messageId = req.header('Twitch-Eventsub-Message-Id');
-        const timestamp = req.header('Twitch-Eventsub-Message-Timestamp');
-        if (signature === undefined || messageId === undefined || timestamp === undefined) {
-            console.log('Missing a required header element');
-            res.status(403).send('Forbidden');
-            return;
-        }
-        if (!this.verifySignature(signature, messageId, timestamp, req.rawBody)) {
-            console.log('failed message signature verification');
-            res.status(403).send('Forbidden');
-            return;
-        }
-        // handle the notification
-        const messageType = req.header('Twitch-Eventsub-Message-Type');
-        if (messageType === 'webhook_callback_verification') {
-            console.log(req.body.challenge);
-            res.send(req.body.challenge);
-        } else if (messageType === 'notification') {
-            console.log(req.body.event);
-            const { event } = req.body;
-            try {
-                console.log(event);
-                // TODO: handle event based on type and metadata and call appropriate delegate
-                // this.apiClient.channelPoints.updateRedemptionStatusByIds(
-                //     event.broadcaster_user_id,
-                //     event.reward.id,
-                //     event.id,
-                //     'FULFILLED',
-                // );
-            } catch (e) {
-                console.log(e);
-            }
-            res.send('');
-        }
-    }
-
-    private verifySignature(messageSignature: string, messageID: string, messageTimestamp: string, body: string) {
-        const message = messageID + messageTimestamp + body;
-        const signature = createHmac('sha256', this.secret).update(message);
-        const expectedSignature = `sha256=${signature.digest('hex')}`;
-        return expectedSignature === messageSignature;
     }
 }
