@@ -1,19 +1,19 @@
-import EconomyCore from 'src/modules/economy/EconomyCore';
+import { economyManager, userManager } from '../../System';
 import { BotModule } from '../../modules/BotModule';
 
 class TwitchEconomyModule extends BotModule {
-    core: EconomyCore;
-
-    constructor(core: EconomyCore) {
+    constructor() {
         super(['gamble', 'money']);
-        this.core = core;
     }
 
     // eslint-disable-next-line class-methods-use-this
     handleCommand(commandParts: string[], sender: string, mod: boolean): string {
         const command = commandParts[0];
         if (command === 'money') {
-            return `${this.core.getCurrency(sender)}`;
+            return `${economyManager.getCurrency(
+                userManager.getUser(sender).userId,
+                userManager.getUser('cjs0789').userId,
+            )}`;
         }
         return '';
     }

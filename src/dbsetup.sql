@@ -45,3 +45,25 @@ create table if not exists redemption_metadata(
     foreign key(owner) references users(user_id)
 );
 create index if not exists redemption_metadata_twitch_id_index on redemption_metadata(twitch_reward_id);
+
+create table if not exists economy(
+    user number not null,
+    owner number not null,
+    amount number not null,
+    gamble_net number not null,
+    amount_given number not null,
+    amount_received number not null,
+    primary key(user, owner)
+    foreign key(user) references users(user_id),
+    foreign key(owner) references users(user_id)
+);
+create index if not exists economy_gamble_net_index on economy(gamble_net);
+
+create table if not exists economy_info(
+    info_id integer primary key autoincrement,
+    owner number not null,
+    currency_name string not null,
+    earn_rate number not null,
+    minimum_gamble number not null,
+    foreign key(owner) references users(user_id)
+);

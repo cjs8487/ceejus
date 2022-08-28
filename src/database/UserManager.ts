@@ -20,6 +20,12 @@ type DBUSer = {
     active: number,
 }
 
+const toExternalForm = (user: DBUSer): User => ({
+    userId: user.user_id,
+    username: user.username,
+    active: !!user.active,
+});
+
 class UserManager {
     db: Database;
 
@@ -57,12 +63,8 @@ class UserManager {
     }
 
     getAllUsers(): User[] {
-        const users = this.db.prepare('select * from users').all();
-        return users.map((user: any) => ({
-            userId: user.user_id,
-            username: user.username,
-            active: !!user.active,
-        }));
+        const users: DBUSer[] = this.db.prepare('select * from users').all();
+        return users.map((user: DBUSer) => toExternalForm(user));
     }
 
     getUser(user: number): User;
@@ -79,11 +81,13 @@ class UserManager {
         if (selectedUser === undefined) {
             return NO_USER;
         }
-        return {
-            userId: selectedUser.user_id,
-            username: selectedUser.username,
-            active: !!selectedUser.active,
-        };
+        return toExternalForm(selectedUser);
+    }
+
+    getUserByTwitchId(twitchId: string): User {
+        const user: DBUSer = this.db.prepare('select * from users where twitch_id=?').get(twitchId);
+        console.log(user);
+        return toExternalForm(user);
     }
 
     updateAuth(userId: number, accessTokenObj: AccessToken) {

@@ -1,5 +1,6 @@
 import { notification } from './lib/EventSubHandlers';
 import { apiEnabled } from './Environment';
+import { db } from './System';
 
 require('dotenv').config();
 
@@ -48,25 +49,17 @@ const channelAuth = process.env.CHANNEL_AUTH;
 // app.set('clientId', clientId);
 // app.set('eventSubManager', eventSubManager);
 
-// const quotesCore = new QuotesCore();
-// quotesCore.initialize(db);
-// app.set('quotesCore', quotesCore);
+const quotesCore = new QuotesCore();
+quotesCore.initialize(db);
+app.set('quotesCore', quotesCore);
 
 // const economyCore = new EconomyCore(db);
 // app.set('economyCore', economyCore);
 //
-// const twitchBot = new TwitchBot.TwitchBot(db, economyCore);
+const twitchBot = new TwitchBot.TwitchBot(db);
 // const publicQuotesBot = new PublicQuotesBot(db);
 // twitchBot.setupDb(db);
 // const discordBot = new DiscordBot(db);
-
-// const subscribtionCalls = new Map();
-// subscribtionCalls.set(
-//     'channel.channel_points_custom_reward_redemption.add',
-//     eventSubListener.subscribeToChannelRedemptionAddEvents,
-// );
-// const rewardDelegates = new Map();
-// rewardDelegates.set('economy', handleRedemption);
 
 if (apiEnabled) {
     app.use('/api', api);

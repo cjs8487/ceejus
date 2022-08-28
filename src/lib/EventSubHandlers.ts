@@ -1,6 +1,6 @@
 import { createHmac } from 'crypto';
 import { Request, Response } from 'express';
-import { economyRedemptionsManager, redemptionsManager, tokenManager, userManager } from '../System';
+import { economyManager, economyRedemptionsManager, redemptionsManager, tokenManager, userManager } from '../System';
 import { secret } from '../Environment';
 
 const verifySignature = (messageSignature: string, messageID: string, messageTimestamp: string, body: string) => {
@@ -13,12 +13,16 @@ const verifySignature = (messageSignature: string, messageID: string, messageTim
 export const handleEconomyRedemption = (
     data: any,
 ) => {
-    const userApiClient = tokenManager.getApiClient(userManager.getUser('cjs0789').userId);
+    const owner = userManager.getUserByTwitchId(data.broadcaster_user_id).userId;
+    console.log(owner);
+    const userApiClient = tokenManager.getApiClient(owner);
     if (userApiClient === undefined) {
         console.log('received a notification for a user with no user record');
     } else {
         const { amount } = economyRedemptionsManager.getRedemption(data.reward.id);
+
         console.log(`Giving ${data.user_name} ${amount} currency`);
+        economyManager.addCurrency(userManager.getUserByTwitchId(data.user_id).userId, owner, amount);
         userApiClient.channelPoints.updateRedemptionStatusByIds(
             data.broadcaster_user_id,
             data.reward.id,
