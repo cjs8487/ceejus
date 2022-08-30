@@ -1,3 +1,4 @@
+import { getOrCreateUserName } from '../../util/UserUtils';
 import { economyManager, userManager } from '../../System';
 import { BotModule } from '../../modules/BotModule';
 
@@ -7,12 +8,12 @@ class TwitchEconomyModule extends BotModule {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    handleCommand(commandParts: string[], sender: string, mod: boolean): string {
+    async handleCommand(commandParts: string[], sender: string, mod: boolean, ...metadata: any): Promise<string> {
         const command = commandParts[0];
         if (command === 'money') {
             return `${economyManager.getCurrency(
-                userManager.getUser(sender).userId,
-                userManager.getUser('cjs0789').userId,
+                await getOrCreateUserName(sender),
+                userManager.getUser(metadata[0]).userId,
             )}`;
         }
         return '';

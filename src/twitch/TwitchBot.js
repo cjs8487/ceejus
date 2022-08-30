@@ -1,3 +1,4 @@
+import { handleEconomyCommand } from '../modules/Modules';
 import TwitchEconomyModule from './modules/TwitchEconomyModule.ts';
 
 const _ = require('lodash');
@@ -24,7 +25,9 @@ class TwitchBot {
         this.db = db;
         this.quotesBot = new TwitchQuotesModule();
         this.multiModule = new MultiTwitch();
-        this.modules = [new TwitchEconomyModule(economyCore)];
+        this.modules = new Map();
+        this.modules.set(['money', 'gamble', 'give'], handleEconomyCommand);
+        console.log(this.modules);
 
         const opts = {
             identity: {
@@ -68,14 +71,15 @@ class TwitchBot {
         const commandParts = message.substring(1).split(' ');
         commandName = commandParts[0].toLowerCase();
 
+        const mod = isUserMod(user, channel);
         let handled = false;
-        _.forEach(this.modules, (module) => {
-            if (module.recognizesCommand(commandName)) {
+        this.modules.forEach(async (delegate, commands) => {
+            handled = true;
+            if (_.includes(commands, commandName)) {
                 this.client.say(
                     channel,
-                    module.handleCommand(commandParts, user.username, false),
+                    await delegate(commandParts, user.username, mod, ['cjs0789']),
                 );
-                handled = true;
             }
         });
         if (handled) return;
@@ -119,7 +123,6 @@ class TwitchBot {
         } else if (commandName === 'quote') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
-            const mod = isUserMod(user, channel);
             const quoteResponse = this.quotesBot.handleCommand(commandParts.slice(1), user.username, mod);
             if (quoteResponse === '') {
                 return;

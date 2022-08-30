@@ -27,12 +27,12 @@ db.exec(setupScript);
 process.on('exit', () => db.close());
 
 const botAuthProvider = new StaticAuthProvider(twitchClientId, twitchAuthToken, undefined, 'app');
-const apiClient = new ApiClient({ authProvider: botAuthProvider });
+export const botApiClient = new ApiClient({ authProvider: botAuthProvider });
 
 export const userManager = new UserManager(db);
 export const economyRedemptionsManager = new EconomyRedemptionsManager(db);
 export const redemptionsManager = new RedemptionsManager(db);
 export const tokenManager = new TokenManager(twitchClientId, twitchClientSecret, userManager);
 export const eventSubManager =
-    new TwitchEventSubHandler(twitchClientId, apiClient, secret, botAuthProvider, ngrokUrl);
+    new TwitchEventSubHandler(twitchClientId, botApiClient, secret, botAuthProvider, ngrokUrl);
 export const economyManager = new EconomyManager(db);

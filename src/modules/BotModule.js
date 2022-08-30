@@ -52,14 +52,16 @@ class BotModule {
      * @param {Array} commandParts the parts of the message, split on spaces, excluding the command itself
      * @param {String} sender the sender of the message
      * @param {Boolean} mod true if the sender has elevated privileges in the context the message was sent.
+     * @param {String} metadata an array of arguments that contain additional information for the commands execution.
+     * These may vary from platform to platform, and even between commands, but the latter will be less common.
      * @returns {String} The retrun value of the handled command. This is the value the bot will output to whatever IRC
      * server it is connected to. In the case of global/shared modules this must be text, as otherwise it may not work
      * across multiple IRC servers. In the case of platform specific modules, this method may return something other
      * than text, but it will always be in a format that can be directly sent to the IRC server (i.e. a Discord Embed)
      */
     // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    handleCommand(commandParts, sender, mod) {
-        return '';
+    handleCommand(commandParts, sender, mod, ...metadata) {
+        return new Promise((res) => res(''));
     }
 }
 

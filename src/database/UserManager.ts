@@ -13,6 +13,14 @@ export const NO_USER: User = {
     active: false,
 };
 
+export const NO_TOKEN: AccessToken = {
+    accessToken: '',
+    refreshToken: '',
+    expiresIn: 0,
+    obtainmentTimestamp: 0,
+    scope: [],
+};
+
 type DBUSer = {
     // eslint-disable-next-line camelcase
     user_id: number,
@@ -47,6 +55,12 @@ class UserManager {
             accessToken.expiresIn,
             accessToken.obtainmentTimestamp,
         );
+        return addData.lastInsertRowid as number;
+    }
+
+    registerUserWithoutAuth(username: string, twitchId: string): number {
+        const addData: RunResult =
+            this.db.prepare('insert into users (username, twitch_id, active) values (?, ?, 1)').run(username, twitchId);
         return addData.lastInsertRowid as number;
     }
 
@@ -86,7 +100,7 @@ class UserManager {
 
     getUserByTwitchId(twitchId: string): User {
         const user: DBUSer = this.db.prepare('select * from users where twitch_id=?').get(twitchId);
-        console.log(user);
+        if (user === undefined) return NO_USER;
         return toExternalForm(user);
     }
 
@@ -98,6 +112,7 @@ class UserManager {
 
     getAccessToken(userId: number): AccessToken {
         const data = this.db.prepare('select * from oauth where owner=?').get(userId);
+        if (data === undefined) return NO_TOKEN;
         return {
             accessToken: data.access_token,
             refreshToken: data.refresh_token,
