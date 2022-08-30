@@ -1,6 +1,6 @@
+import _ from 'lodash';
 import { getOrCreateUserName } from '../util/UserUtils';
 import { economyManager, userManager } from '../System';
-import _ from 'lodash';
 
 export type HandlerDelegate = (
     commandParts: string[],
@@ -17,17 +17,20 @@ export const handleEconomyCommand: HandlerDelegate = async (
 ): Promise<string> => {
     const command = commandParts.shift();
     const [channelName] = metadata;
+    const user = await getOrCreateUserName(sender);
+    const owner = userManager.getUser(channelName).userId;
     const currencyName = 'BiTcoins';
     if (command === 'money') {
-        return `${economyManager.getCurrency(
-            await getOrCreateUserName(sender),
-            userManager.getUser(channelName).userId,
-        )}`;
+        let target: string;
+        if (commandParts.length > 0) {
+            [target] = commandParts;
+        } else {
+            target = sender;
+        }
+        return `${economyManager.getCurrency(await getOrCreateUserName(target), owner)}`;
     }
     if (command === 'gamble') {
         const [amount] = commandParts;
-        const user = await getOrCreateUserName(sender);
-        const owner = userManager.getUser(channelName).userId;
         const total = economyManager.getCurrency(user, owner);
         let gambleAmount: number;
         if (amount === 'all') {
@@ -58,7 +61,7 @@ export const handleEconomyCommand: HandlerDelegate = async (
             userManager.getUser(channelName).userId,
             Number(amount),
         );
-        return `gave ${receiver} ${amount} units`;
+        return `gave ${receiver} ${amount} ${currencyName}`;
     }
     return '';
 };
