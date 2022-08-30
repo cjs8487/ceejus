@@ -27,7 +27,7 @@ export const handleEconomyCommand: HandlerDelegate = async (
         } else {
             target = sender;
         }
-        return `${economyManager.getCurrency(await getOrCreateUserName(target), owner)}`;
+        return `${economyManager.getCurrency(await getOrCreateUserName(target), owner)} ${currencyName}`;
     }
     if (command === 'gamble') {
         const [amount] = commandParts;
@@ -48,10 +48,10 @@ export const handleEconomyCommand: HandlerDelegate = async (
             }
         }
         if (_.random(1) === 0) {
-            economyManager.removeCurrency(user, owner, gambleAmount);
+            economyManager.gambleLoss(user, owner, gambleAmount);
             return `You lost ${gambleAmount} ${currencyName}`;
         }
-        economyManager.addCurrency(user, owner, gambleAmount);
+        economyManager.gambleWin(user, owner, gambleAmount);
         return `You won ${gambleAmount} ${currencyName}`;
     }
     if (command === 'give' && mod) {
@@ -62,6 +62,16 @@ export const handleEconomyCommand: HandlerDelegate = async (
             Number(amount),
         );
         return `gave ${receiver} ${amount} ${currencyName}`;
+    }
+    if (command === 'net') {
+        let target: string;
+        if (commandParts.length > 0) {
+            [target] = commandParts;
+        } else {
+            target = sender;
+        }
+        const net = economyManager.getGambleNet(await getOrCreateUserName(target), owner);
+        return `${target} has net ${net} ${currencyName} from gambling${net < 0 ? '...f' : '...congrats'}`;
     }
     return '';
 };

@@ -73,6 +73,24 @@ class EconomyManager {
         this.db.prepare('update economy set amount=? where user=?').run(newAmount, user);
         return '';
     }
+
+    getGambleNet(user: number, owner: number): number {
+        return this.db.prepare('select gamble_net from economy where user=? and owner=?').get(user, owner).gamble_net;
+    }
+
+    gambleLoss(user: number, owner: number, amount: number): void {
+        this.removeCurrency(user, owner, amount);
+        const currNet = this.getGambleNet(user, owner);
+        const newNet = currNet - amount;
+        this.db.prepare('update economy set gamble_net=? where user=? and owner=?').run(newNet, user, owner);
+    }
+
+    gambleWin(user: number, owner: number, amount: number): void {
+        this.addCurrency(user, owner, amount);
+        const currNet = this.getGambleNet(user, owner);
+        const newNet = currNet + amount;
+        this.db.prepare('update economy set gamble_net=? where user=? and owner=?').run(newNet, user, owner);
+    }
 }
 
 export default EconomyManager;

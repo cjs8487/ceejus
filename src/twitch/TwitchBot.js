@@ -26,8 +26,7 @@ class TwitchBot {
         this.quotesBot = new TwitchQuotesModule();
         this.multiModule = new MultiTwitch();
         this.modules = new Map();
-        this.modules.set(['money', 'gamble', 'give'], handleEconomyCommand);
-        console.log(this.modules);
+        this.modules.set(['money', 'gamble', 'give', 'net'], handleEconomyCommand);
 
         const opts = {
             identity: {
