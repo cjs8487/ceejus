@@ -1,6 +1,7 @@
 import { request } from 'https';
 import { AuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api/lib';
+import { logError } from '../Logger';
 
 type WebhookTransport = {
     method: 'webhook';
@@ -99,7 +100,7 @@ export default class TwitchEventSubHandler {
                 });
             });
             req.on('error', (e) => {
-                console.log(`Error ${e}`);
+                logError(`Error during async request: ${e}`);
                 reject(e);
             });
             req.write(JSON.stringify(body));

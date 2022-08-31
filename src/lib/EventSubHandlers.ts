@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { economyManager, economyRedemptionsManager, redemptionsManager, tokenManager, userManager } from '../System';
 import { secret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';
+import { logError, logWarn } from '../Logger';
 
 const verifySignature = (messageSignature: string, messageID: string, messageTimestamp: string, body: string) => {
     const message = messageID + messageTimestamp + body;
@@ -17,7 +18,7 @@ export const handleEconomyRedemption = async (
     const owner = userManager.getUserByTwitchId(data.broadcaster_user_id).userId;
     const userApiClient = tokenManager.getApiClient(owner);
     if (userApiClient === undefined) {
-        console.log('received a notification for a user with no user record');
+        logWarn('received a notification for a channel with no user record');
     } else {
         const { amount } = economyRedemptionsManager.getRedemption(data.reward.id);
         const twitchId = data.user_id;
@@ -33,18 +34,17 @@ export const handleEconomyRedemption = async (
 };
 
 export const notification = async (req: any, res: Response) => {
-    console.log('POST to /notification');
     // safeties
     const signature = req.header('Twitch-Eventsub-Message-Signature');
     const messageId = req.header('Twitch-Eventsub-Message-Id');
     const timestamp = req.header('Twitch-Eventsub-Message-Timestamp');
     if (signature === undefined || messageId === undefined || timestamp === undefined) {
-        console.log('Missing a required header element');
+        logWarn('Missing a required header element');
         res.status(403).send('Forbidden');
         return;
     }
     if (!verifySignature(signature, messageId, timestamp, req.rawBody)) {
-        console.log('failed message signature verification');
+        logError('failed message signature verification');
         res.status(403).send('Forbidden');
         return;
     }
@@ -55,19 +55,17 @@ export const notification = async (req: any, res: Response) => {
     } else if (messageType === 'notification') {
         const { event } = req.body;
         try {
-            console.log(event);
             // TODO: handle event based on type and metadata and call appropriate delegate
             const { module, type } = redemptionsManager.getMetadata(event.reward.id);
-            console.log(`received notification for ${module} - ${type}`);
             switch (module) {
                 case 'economy':
                     handleEconomyRedemption(event);
                     break;
                 default:
-                    console.log('received a notification for a redemption with no associtaed handler');
+                    logError('received a notification for a redemption with no associtaed handler');
             }
         } catch (e) {
-            console.log(e);
+            logError(`Error while handling an EventSub notification ${e}`);
         }
         res.send('');
     }

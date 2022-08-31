@@ -9,6 +9,7 @@ import { RedemptionsManager } from './database/RedemptionsManager';
 import TokenManager from './auth/TokenManager';
 import TwitchEventSubHandler from './lib/TwitchEventSub';
 import EconomyManager from './database/EconomyManager';
+import { logInfo, logVerbose } from './Logger';
 
 // set up the databse
 // the setup script will run everytime the bot starts.
@@ -16,7 +17,8 @@ import EconomyManager from './database/EconomyManager';
 // eslint-disable-next-line import/no-mutable-exports
 export let db: DB;
 if (testing) {
-    db = new Database('database.db', { verbose: console.log });
+    db = new Database('database.db', { verbose: logVerbose });
+    logInfo('db verbose enabled');
 } else {
     db = new Database('database.db');
 }
