@@ -7,10 +7,11 @@ import {
     tokenManager,
     userManager,
 } from '../../System';
+import { isAuthenticated } from '../APICore';
 
 const rewards = Router();
 
-rewards.post('/create', async (req, res) => {
+rewards.post('/create', isAuthenticated, async (req, res) => {
     const { cost, title, amount } = req.body;
     try {
         const apiClient: ApiClient | undefined = tokenManager.getApiClient(userManager.getUser('cjs0789').userId);
@@ -45,6 +46,40 @@ rewards.post('/create', async (req, res) => {
         }
         res.send(e.message);
     }
+});
+
+rewards.get('/:id', (req, res) => {
+    const { id } = req.params;
+    const realId = Number(id);
+    if (Number.isNaN(realId)) {
+        res.status(400).send('Bad request');
+        return;
+    }
+    const meta = economyRedemptionsManager.getRedemption(realId);
+    res.status(200).send(meta);
+});
+
+rewards.get('/all/:id', (req, res) => {
+    const { id } = req.params;
+    const realId = Number(id);
+    if (Number.isNaN(realId)) {
+        res.status(400).send('Bad request');
+        return;
+    }
+    const metas = economyRedemptionsManager.getAllRedemptionsForUser(realId);
+    res.status(200).send(metas);
+});
+
+rewards.delete('/:id', isAuthenticated, (req, res) => {
+    const { id } = req.params;
+    const realId = Number(id);
+    if (Number.isNaN(realId)) {
+        res.status(400).send('Bad request');
+        return;
+    }
+    economyRedemptionsManager.deleteRedemption(realId);
+    redemptionsManager.deleteMetadata(realId);
+    res.sendStatus(200);
 });
 
 export default rewards;

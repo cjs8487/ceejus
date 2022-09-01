@@ -1,8 +1,9 @@
-import { NextFunction, Router, Request, Response } from 'express';
+import { Router } from 'express';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
 
+import { isAuthenticated } from './APICore';
 import quotes from './QuotesAPI';
 import twitchAuth from './auth/TwitchAuth';
 import rewards from './twitch/Rewards';
@@ -31,14 +32,9 @@ router.use(session({
     saveUninitialized: true,
 }));
 
-const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-    if (req.session.user) next();
-    else res.sendStatus(401);
-};
-
 router.use('/quotes', quotes);
 router.use('/auth/twitch', twitchAuth);
-router.use('/rewards', isAuthenticated, rewards);
+router.use('/rewards', rewards);
 router.get('/me', isAuthenticated, (req, res) => {
     res.send(req.session.user);
 });

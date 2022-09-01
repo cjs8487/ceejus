@@ -44,8 +44,26 @@ export class RedemptionsManager {
         };
     }
 
+    getAllMetadataForUser(id: number): RedemptionMetadata[] {
+        const redemptions: DBMetadata[] = this.db.prepare('select * from redemption_metadata where owner=?').all(id);
+        if (redemptions === undefined) {
+            return [];
+        }
+        return redemptions.map((redemption: DBMetadata) => ({
+            metaId: redemption.meta_id,
+            owner: redemption.owner,
+            twitchRewardId: redemption.twitch_reward_id,
+            module: redemption.module,
+            type: redemption.type,
+        }));
+    }
+
     createMetadata(owner: number, twitchRewardId: string, module: string, type?: string): void {
         this.db.prepare('insert into redemption_metadata (owner, twitch_reward_id, module, type) values (?, ?, ?, ?)')
             .run(owner, twitchRewardId, module, type);
+    }
+
+    deleteMetadata(id: number) {
+        this.db.prepare('delete from redemption_metadata where meta_id=?').run(id);
     }
 }

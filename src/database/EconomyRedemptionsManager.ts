@@ -29,9 +29,17 @@ export class EconomyRedemptionsManager {
         ).run(owner, twitchId, amount);
     }
 
-    getRedemption(twitchId: string): EconomyRedemption {
-        const redemption: DBRedemption = this.db.prepare('select * from economy_redemptions where twitch_reward_id=?')
-            .get(twitchId);
+    getRedemption(id: string): EconomyRedemption;
+    getRedemption(id: number): EconomyRedemption;
+    getRedemption(id: string | number): EconomyRedemption {
+        let sql = 'select * from economy_redemptions';
+        if (typeof id === 'string') {
+            sql += 'where twitch_reward_id=?';
+        } else {
+            sql += 'where redemption_id=?';
+        }
+        const redemption: DBRedemption = this.db.prepare(sql)
+            .get(id);
         return {
             redemptionId: redemption.redemption_id,
             owner: redemption.owner,
@@ -48,5 +56,20 @@ export class EconomyRedemptionsManager {
             twitchRewardId: result.twitch_reward_id,
             amount: result.amount,
         }));
+    }
+
+    getAllRedemptionsForUser(id: number): EconomyRedemption[] {
+        const results: DBRedemption[] = this.db.prepare('select * from economy_redemptions where owner=?')
+            .all(id);
+        return results.map((result: DBRedemption) => ({
+            redemptionId: result.redemption_id,
+            owner: result.owner,
+            twitchRewardId: result.twitch_reward_id,
+            amount: result.amount,
+        }));
+    }
+
+    deleteRedemption(id: number) {
+        this.db.prepare('delete from economy_redemptions where redemption_id=?').run(id);
     }
 }
