@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { economyManager, economyRedemptionsManager, redemptionsManager, tokenManager, userManager } from '../System';
 import { secret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';
-import { logError, logWarn } from '../Logger';
+import { logError, logInfo, logWarn } from '../Logger';
 
 const verifySignature = (messageSignature: string, messageID: string, messageTimestamp: string, body: string) => {
     const message = messageID + messageTimestamp + body;
@@ -52,6 +52,14 @@ export const notification = async (req: any, res: Response) => {
     const messageType = req.header('Twitch-Eventsub-Message-Type');
     if (messageType === 'webhook_callback_verification') {
         res.send(req.body.challenge);
+    } else if (messageType === 'revocation') {
+        const { id, status } = req.body;
+        redemptionsManager.deleteMetadata(id);
+        if (status === 'notification_failures_exceeded') {
+            logError(`Subscription with ID ${id} revoked due to callback failures`);
+        } else {
+            logInfo(`Subscripion with ID ${id} revoked with status ${status}`);
+        }
     } else if (messageType === 'notification') {
         const { event } = req.body;
         try {
@@ -64,7 +72,7 @@ export const notification = async (req: any, res: Response) => {
                 default:
                     logError('received a notification for a redemption with no associtaed handler');
             }
-        } catch (e) {
+        } catch (e: any) {
             logError(`Error while handling an EventSub notification ${e}`);
         }
         res.send('');

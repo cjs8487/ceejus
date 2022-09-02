@@ -63,7 +63,15 @@ export class RedemptionsManager {
             .run(owner, twitchRewardId, module, type);
     }
 
-    deleteMetadata(id: number) {
-        this.db.prepare('delete from redemption_metadata where meta_id=?').run(id);
+    deleteMetadata(id: number): void;
+    deleteMetadata(id: string): void;
+    deleteMetadata(id: number | string): void {
+        let sql = 'delete from redemption_metadata ';
+        if (typeof id === 'number') {
+            sql += 'where meta_id=?';
+        } else {
+            sql += 'where twitch_reward_id=?';
+        }
+        this.db.prepare(sql).run(id);
     }
 }

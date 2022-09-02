@@ -10,8 +10,6 @@ const twitchAuth = Router();
 twitchAuth.post('/authorized', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { code } = req.body;
-        console.log(code);
-        // console.log(code);
         const firstToken: AccessToken | undefined = await tokenManager?.exchangeCode(code);
         if (firstToken === undefined) {
             res.status(500).send('An unknown error courred while processing the request. You have not been authorized');

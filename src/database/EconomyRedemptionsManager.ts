@@ -32,7 +32,7 @@ export class EconomyRedemptionsManager {
     getRedemption(id: string): EconomyRedemption;
     getRedemption(id: number): EconomyRedemption;
     getRedemption(id: string | number): EconomyRedemption {
-        let sql = 'select * from economy_redemptions';
+        let sql = 'select * from economy_redemptions ';
         if (typeof id === 'string') {
             sql += 'where twitch_reward_id=?';
         } else {
