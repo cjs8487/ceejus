@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
 export const botUsername: string = process.env.BOT_USERNAME ?? '';
+export const botOAuthToken: string = process.env.OAUTH_TOKEN ?? '';
 export const testing: boolean = process.env.TESTING === 'true';
 export const twitchClientId = process.env.TWITCH_CLIENT_ID ?? '';
 export const twitchClientSecret = process.env.TWITCH_CLIENT_SECRET ?? '';

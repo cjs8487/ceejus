@@ -28,7 +28,7 @@ db.exec(setupScript);
 // Ensure that the database connection is closed when the process terminates
 process.on('exit', () => db.close());
 
-const botAuthProvider = new StaticAuthProvider(twitchClientId, twitchAuthToken, undefined, 'app');
+export const botAuthProvider = new StaticAuthProvider(twitchClientId, twitchAuthToken, undefined, 'app');
 export const botApiClient = new ApiClient({ authProvider: botAuthProvider });
 
 export const userManager = new UserManager(db);

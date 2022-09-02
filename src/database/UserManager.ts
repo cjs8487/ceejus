@@ -21,14 +21,14 @@ export const NO_TOKEN: AccessToken = {
     scope: [],
 };
 
-type DBUSer = {
+type DBUser = {
     // eslint-disable-next-line camelcase
     user_id: number,
     username: string,
     active: number,
 }
 
-const toExternalForm = (user: DBUSer): User => ({
+const toExternalForm = (user: DBUser): User => ({
     userId: user.user_id,
     username: user.username,
     active: !!user.active,
@@ -76,9 +76,14 @@ class UserManager {
         this.db.prepare('update users set active=0 where user_id=?').run(userId);
     }
 
-    getAllUsers(): User[] {
-        const users: DBUSer[] = this.db.prepare('select * from users').all();
-        return users.map((user: DBUSer) => toExternalForm(user));
+    getAllUsers(active?: boolean): User[] {
+        let users: DBUser[];
+        if (active) {
+            users = this.db.prepare('select * from users where active=1').all();
+        } else {
+            users = this.db.prepare('select * from users').all();
+        }
+        return users.map((user: DBUser) => toExternalForm(user));
     }
 
     getUser(user: number): User;
@@ -91,7 +96,7 @@ class UserManager {
         } else {
             sql += 'username=?';
         }
-        const selectedUser: DBUSer = this.db.prepare(sql).get(user);
+        const selectedUser: DBUser = this.db.prepare(sql).get(user);
         if (selectedUser === undefined) {
             return NO_USER;
         }
@@ -99,7 +104,7 @@ class UserManager {
     }
 
     getUserByTwitchId(twitchId: string): User {
-        const user: DBUSer = this.db.prepare('select * from users where twitch_id=?').get(twitchId);
+        const user: DBUser = this.db.prepare('select * from users where twitch_id=?').get(twitchId);
         if (user === undefined) return NO_USER;
         return toExternalForm(user);
     }

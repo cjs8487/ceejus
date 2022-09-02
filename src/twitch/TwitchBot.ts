@@ -1,5 +1,12 @@
-import { handleEconomyCommand } from '../modules/Modules';
-import TwitchEconomyModule from './modules/TwitchEconomyModule.ts';
+import { ChatClient } from '@twurple/chat';
+import { Database } from 'better-sqlite3';
+import { StaticAuthProvider } from '@twurple/auth';
+import { User } from '../database/UserManager';
+import { userManager } from '../System';
+import { handleEconomyCommand, HandlerDelegate } from '../modules/Modules';
+import { MultiTwitch } from './modules/MultiTwitch';
+import { TwitchQuotesModule } from './modules/TwitchQuotesModule';
+import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
 
 const _ = require('lodash');
 const fetch = require('node-fetch');
@@ -7,8 +14,6 @@ const tmi = require('tmi.js');
 const fs = require('fs');
 const { flagToEvent, getBiTInfo, lookupFlag } = require('ss-scene-flags');
 const { isUserMod } = require('./TwitchHelper');
-const { TwitchQuotesModule } = require('./modules/TwitchQuotesModule');
-const { MultiTwitch } = require('./modules/MultiTwitch');
 
 const paramRegex = /(?:\$param(?<index>\d*))/g;
 
@@ -17,31 +22,49 @@ const paramRegex = /(?:\$param(?<index>\d*))/g;
  * functionality is broken out into those modules.
  */
 class TwitchBot {
+    db: Database;
+    quotesBot: TwitchQuotesModule;
+    multiModule: MultiTwitch;
+    modules: Map<string[], HandlerDelegate>;
+    client: ChatClient;
+
     /**
      * Constructs a new Twitch bot isntance, using the environment variables to contruct the instance
      * @param {*} db The database to use when looking up information for the bot (commands, quotes, etc.)
      */
-    constructor(db, economyCore) {
+    constructor(db: Database) {
         this.db = db;
         this.quotesBot = new TwitchQuotesModule();
         this.multiModule = new MultiTwitch();
         this.modules = new Map();
         this.modules.set(['money', 'gamble', 'give', 'net'], handleEconomyCommand);
 
-        const opts = {
-            identity: {
-                username: process.env.BOT_USERNAME,
-                password: process.env.OAUTH_TOKEN,
-            },
-            channels: process.env.CHANNEL_NAME.split(','),
-        };
-
+        // const opts = {
+        //     identity: {
+        //         username: process.env.BOT_USERNAME,
+        //         password: process.env.OAUTH_TOKEN,
+        //     },
+        //     channels: process.env.CHANNEL_NAME.split(','),
+        // };
+        //
         // eslint-disable-next-line new-cap
-        this.client = new tmi.client(opts);
-        this.onMessageHandler = this.onMessageHandler.bind(this);
-        this.client.on('message', this.onMessageHandler);
-        this.client.on('connected', this.onConnectedHandler);
+        // this.client = new tmi.client(opts);
+        // this.onMessageHandler = this.onMessageHandler.bind(this);
+        // this.client.on('message', this.onMessageHandler);
+        // this.client.on('connected', this.onConnectedHandler);
 
+        // this.client.connect();
+
+        const channels: string[] = userManager.getAllUsers(true).map((user: User) => user.username);
+        console.log(channels);
+        this.client = new ChatClient({
+            authProvider: new StaticAuthProvider(twitchClientId, botOAuthToken),
+            channels,
+        });
+
+        this.onMessageHandler = this.onMessageHandler.bind(this);
+
+        this.client.onMessage(this.onMessageHandler);
         this.client.connect();
     }
 
@@ -50,10 +73,9 @@ class TwitchBot {
      * @param {*} channel The channel the message was sent in
      * @param {*} user The user who sent the message
      * @param {*} message The message that was sent
-     * @param {boolean} self true if the message was sent by the bot
      */
-    async onMessageHandler(channel, user, message, self) {
-        if (self) {
+    async onMessageHandler(channel: string, user: string, message: string) {
+        if (user === botUsername) {
             return;
         }
 
@@ -73,11 +95,11 @@ class TwitchBot {
         const mod = isUserMod(user, channel);
         let handled = false;
         this.modules.forEach(async (delegate, commands) => {
-            handled = true;
             if (_.includes(commands, commandName)) {
+                handled = true;
                 this.client.say(
                     channel,
-                    await delegate(commandParts, user.username, mod, ['cjs0789']),
+                    await delegate(commandParts, user, mod, 'cjs0789'),
                 );
             }
         });
@@ -86,12 +108,12 @@ class TwitchBot {
         if (commandName === 'lurk') {
             this.client.say(
                 channel,
-                `@${user.username} is lurking in the shadows, silently supporting the stream`,
+                `@${user} is lurking in the shadows, silently supporting the stream`,
             );
         } else if (commandName === 'unlurk') {
             this.client.say(
                 channel,
-                `@${user.username} has returned from the shadows`,
+                `@${user} has returned from the shadows`,
             );
         } else if (commandName === 'addcomm') {
             if (!isUserMod(user, channel)) return;
@@ -100,7 +122,7 @@ class TwitchBot {
             this.db.prepare('insert into commands (command_string, output) values (?, ?)').run(newCommand, output);
             this.client.say(
                 channel,
-                `@${user.username} command !${newCommand} successfully created`,
+                `@${user} command !${newCommand} successfully created`,
             );
         } else if (commandName === 'editcomm') {
             if (!isUserMod(user, channel)) return;
@@ -109,7 +131,7 @@ class TwitchBot {
             this.db.prepare('update commands set output=? where command_string=?').run(output, editCommand);
             this.client.say(
                 channel,
-                `@${user.username} command !${editCommand} editted successfully`,
+                `@${user} command !${editCommand} editted successfully`,
             );
         } else if (commandName === 'deletecomm') {
             if (!isUserMod(user, channel)) return;
@@ -117,23 +139,23 @@ class TwitchBot {
             this.db.prepare('delete from commands where command_string=?').run(deleteCommand);
             this.client.say(
                 channel,
-                `@${user.username} command !${deleteCommand} deleted sucessfully`,
+                `@${user} command !${deleteCommand} deleted sucessfully`,
             );
         } else if (commandName === 'quote') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
-            const quoteResponse = this.quotesBot.handleCommand(commandParts.slice(1), user.username, mod);
+            const quoteResponse = this.quotesBot.handleCommand(commandParts.slice(1), user, mod);
             if (quoteResponse === '') {
                 return;
             }
             this.client.say(
                 channel,
-                `@${user.username} ${quoteResponse}`,
+                `@${user} ${quoteResponse}`,
             );
         } else if (commandName === 'multi') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
-            const multiResponse = this.multiModule.handleCommand(commandParts.slice(1), user.username, mod);
+            const multiResponse = this.multiModule.handleCommand(commandParts.slice(1), user, mod);
             if (multiResponse === '') {
                 return;
             }
@@ -146,39 +168,39 @@ class TwitchBot {
                 try {
                     const event = flagToEvent(commandParts[2], commandParts.slice(3).join(' '));
                     if (event.length === 0) {
-                        this.client.say(channel, `@${user.username} flag does not exist on the specified map`);
+                        this.client.say(channel, `@${user} flag does not exist on the specified map`);
                     }
-                    this.client.say(channel, `@${user.username} ${event}`);
+                    this.client.say(channel, `@${user} ${event}`);
                 } catch (e) {
-                    this.client.say(channel, `@${user.username} invalid map or flag specified`);
+                    this.client.say(channel, `@${user} invalid map or flag specified`);
                 }
             } else if (commandParts[1] === 'bit') {
                 try {
                     const info = getBiTInfo(commandParts[2], commandParts.slice(3).join(' '));
                     if (info.length === 0) {
-                        this.client.say(channel, `@${user.username} flag is not reachable in BiT`);
+                        this.client.say(channel, `@${user} flag is not reachable in BiT`);
                     }
-                    let response = `@${user.username}`;
-                    _.forEach(info, (infoString) => {
+                    let response = `@${user}`;
+                    _.forEach(info, (infoString: string) => {
                         response += ` ${infoString}`;
                     });
                     this.client.say(channel, response);
                 } catch (e) {
-                    this.client.say(channel, `@${user.username} invalid flag specified`);
+                    this.client.say(channel, `@${user} invalid flag specified`);
                 }
             } else if (commandParts[1] === 'lookup') {
                 try {
                     const results = lookupFlag(commandParts[2], commandParts.slice(3).join(' '), true);
                     if (results.length === 0) {
-                        this.client.say(channel, `@${user.username} flag is not reachable in BiT`);
+                        this.client.say(channel, `@${user} flag is not reachable in BiT`);
                     }
-                    let response = `@${user.username}`;
-                    _.forEach(results, (result) => {
+                    let response = `@${user}`;
+                    _.forEach(results, (result: string) => {
                         response += ` ${result}`;
                     });
                     this.client.say(channel, response);
                 } catch (e) {
-                    this.client.say(channel, `@${user.username} invalid map specified`);
+                    this.client.say(channel, `@${user} invalid map specified`);
                 }
             }
         } else if (commandName === 'floha') {
@@ -199,14 +221,14 @@ class TwitchBot {
             } else {
                 quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
             }
-            this.client.say(channel, `@${user.username} #${quote.id}: ${quote.quote_text}`);
+            this.client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
         } else {
             // standard text commands
             const response = this.db.prepare('select output from commands where command_string=?').get(commandName);
             if (response === undefined) return; // invalid command
             // parse argument based commands
             let success = true;
-            const parsed = response.output.replaceAll(paramRegex, (match, p1) => {
+            const parsed = response.output.replaceAll(paramRegex, (match: string, p1: string) => {
                 if (p1 === 'undefined') {
                     success = false;
                 }
@@ -215,7 +237,7 @@ class TwitchBot {
             if (success) {
                 this.client.say(channel, parsed);
             } else {
-                this.client.say(channel, `@${user.username} incorrect syntax for command ${commandName}`);
+                this.client.say(channel, `@${user} incorrect syntax for command ${commandName}`);
             }
         }
     }
@@ -226,7 +248,7 @@ class TwitchBot {
      * @param {*} port The port on the server we are connected through
      */
     // eslint-disable-next-line class-methods-use-this
-    onConnectedHandler(addr, port) {
+    onConnectedHandler(addr: string, port: number) {
         console.log(`* Connected to ${addr}:${port}`);
     }
 
