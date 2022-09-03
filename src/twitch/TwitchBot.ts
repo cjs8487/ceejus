@@ -1,19 +1,18 @@
+import { StaticAuthProvider } from '@twurple/auth';
 import { ChatClient } from '@twurple/chat';
 import { Database } from 'better-sqlite3';
-import { StaticAuthProvider } from '@twurple/auth';
+import fs from 'fs';
+import _ from 'lodash';
+import fetch from 'node-fetch';
+import { flagToEvent, getBiTInfo, lookupFlag } from 'ss-scene-flags';
 import { User } from '../database/UserManager';
-import { userManager } from '../System';
+import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
+import { logInfo } from '../Logger';
 import { handleEconomyCommand, HandlerDelegate } from '../modules/Modules';
+import { userManager } from '../System';
 import { MultiTwitch } from './modules/MultiTwitch';
 import { TwitchQuotesModule } from './modules/TwitchQuotesModule';
-import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
-
-const _ = require('lodash');
-const fetch = require('node-fetch');
-const tmi = require('tmi.js');
-const fs = require('fs');
-const { flagToEvent, getBiTInfo, lookupFlag } = require('ss-scene-flags');
-const { isUserMod } = require('./TwitchHelper');
+import { isUserMod } from './TwitchHelper';
 
 const paramRegex = /(?:\$param(?<index>\d*))/g;
 
@@ -56,7 +55,6 @@ class TwitchBot {
         // this.client.connect();
 
         const channels: string[] = userManager.getAllUsers(true).map((user: User) => user.username);
-        console.log(channels);
         this.client = new ChatClient({
             authProvider: new StaticAuthProvider(twitchClientId, botOAuthToken),
             channels,
@@ -176,7 +174,7 @@ class TwitchBot {
                 }
             } else if (commandParts[1] === 'bit') {
                 try {
-                    const info = getBiTInfo(commandParts[2], commandParts.slice(3).join(' '));
+                    const info = getBiTInfo(commandParts[2]);
                     if (info.length === 0) {
                         this.client.say(channel, `@${user} flag is not reachable in BiT`);
                     }
@@ -249,7 +247,7 @@ class TwitchBot {
      */
     // eslint-disable-next-line class-methods-use-this
     onConnectedHandler(addr: string, port: number) {
-        console.log(`* Connected to ${addr}:${port}`);
+        logInfo(`* Connected to ${addr}:${port}`);
     }
 
     /**

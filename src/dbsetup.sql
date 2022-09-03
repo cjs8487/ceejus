@@ -67,3 +67,20 @@ create table if not exists economy_info(
     minimum_gamble number not null,
     foreign key(owner) references users(user_id)
 );
+
+create TABLE if not exists COMMANDS (
+    id integer,
+    owner number not null,
+    command_string text not NULL,
+    output text not null,
+    active integer not null,
+    permission integer not null,
+    primary key(id, owner)
+);
+create TABLE if not exists DISCORD_COMMANDS (
+    id integer,
+    owner number not null,
+    command_string text not NULL,
+    output text not null,
+    primary key(id, owner)
+);

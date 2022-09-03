@@ -1,5 +1,5 @@
 import { createHmac } from 'crypto';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { economyManager, economyRedemptionsManager, redemptionsManager, tokenManager, userManager } from '../System';
 import { secret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';

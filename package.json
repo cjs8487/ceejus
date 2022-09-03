@@ -4,7 +4,7 @@
   "description": "My personal Discord/Twitch bot",
   "main": "main.js",
   "scripts": {
-    "dev": "nodemon -e js,ts,json --exec ts-node src/main.js",
+    "dev": "nodemon -e js,ts,json --files --exec ts-node src/main.js",
     "run": "node src/main.js",
     "twitch": "node src/twitch/TwitchBot.js",
     "test": "echo \"Error: no test specified\" && exit 1",
