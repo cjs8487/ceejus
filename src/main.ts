@@ -1,5 +1,6 @@
 import bodyParser from 'body-parser';
 import express from 'express';
+import 'http';
 import { apiEnabled } from './Environment';
 import { notification } from './lib/EventSubHandlers';
 import { logInfo } from './Logger';
@@ -10,6 +11,18 @@ import { db } from './System';
 import api from './api/API';
 import TwitchBot from './twitch/TwitchBot';
 
+declare module 'express' {
+    interface Request {
+        rawBody: any;
+    }
+}
+
+declare module 'http' {
+    interface IncomingMessage {
+        rawBody: any;
+    }
+}
+
 const app = express();
 app.use(bodyParser.json({
     verify: (req, res, buf) => {
@@ -18,13 +31,13 @@ app.use(bodyParser.json({
     },
 }));
 
-const port = 8081;
+const port = 8001;
 
 const quotesCore = new QuotesCore();
 quotesCore.initialize(db);
 app.set('quotesCore', quotesCore);
 
-const twitchBot = new TwitchBot.TwitchBot(db);
+const twitchBot = new TwitchBot(db);
 // const publicQuotesBot = new PublicQuotesBot(db);
 // twitchBot.setupDb(db);
 // const discordBot = new DiscordBot(db);

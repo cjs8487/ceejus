@@ -39,4 +39,4 @@ router.get('/me', isAuthenticated, (req, res) => {
     res.send(req.session.user);
 });
 
-module.exports = router;
+export default router;

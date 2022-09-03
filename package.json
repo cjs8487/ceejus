@@ -4,8 +4,8 @@
   "description": "My personal Discord/Twitch bot",
   "main": "main.js",
   "scripts": {
-    "dev": "nodemon -e js,ts,json --files --exec ts-node src/main.js",
-    "run": "node src/main.js",
+    "dev": "nodemon -e js,ts,json --files --exec ts-node src/main.ts",
+    "run": "node src/main.ts",
     "twitch": "node src/twitch/TwitchBot.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --max-warnings 0 \"src/**/*.js\" \"*.js\""
@@ -25,8 +25,6 @@
     "@twurple/api": "^5.1.6",
     "@twurple/auth": "^5.1.6",
     "@twurple/chat": "^5.1.6",
-    "@twurple/eventsub": "^5.1.7",
-    "@twurple/eventsub-ngrok": "^5.1.7",
     "better-sqlite3": "^7.1.2",
     "better-sqlite3-session-store": "^0.1.0",
     "body-parser": "^1.19.0",
@@ -39,7 +37,6 @@
     "memorystore": "^1.6.7",
     "node-fetch": "^2.6.7",
     "ss-scene-flags": "^1.0.1",
-    "tmi.js": "^1.7.5",
     "winston": "^3.8.1"
   },
   "devDependencies": {

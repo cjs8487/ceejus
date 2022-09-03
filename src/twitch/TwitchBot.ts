@@ -262,4 +262,4 @@ class TwitchBot {
     }
 }
 
-module.exports.TwitchBot = TwitchBot;
+export default TwitchBot;

@@ -1,5 +1,5 @@
 import { createHmac } from 'crypto';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { economyManager, economyRedemptionsManager, redemptionsManager, tokenManager, userManager } from '../System';
 import { secret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';
@@ -33,7 +33,7 @@ export const handleEconomyRedemption = async (
     }
 };
 
-export const notification = async (req: any, res: Response) => {
+export const notification = async (req: Request, res: Response) => {
     // safeties
     const signature = req.header('Twitch-Eventsub-Message-Signature');
     const messageId = req.header('Twitch-Eventsub-Message-Id');
