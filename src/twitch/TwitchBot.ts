@@ -8,13 +8,12 @@ import { flagToEvent, getBiTInfo, lookupFlag } from 'ss-scene-flags';
 import { User } from '../database/UserManager';
 import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
 import { logInfo } from '../Logger';
-import { handleEconomyCommand, HandlerDelegate } from '../modules/Modules';
+import { handleEconomyCommand, handleFlagCommand, HandlerDelegate } from '../modules/Modules';
 import { userManager } from '../System';
 import { MultiTwitch } from './modules/MultiTwitch';
 import { TwitchQuotesModule } from './modules/TwitchQuotesModule';
 import { isUserMod } from './TwitchHelper';
-
-const paramRegex = /(?:\$param(?<index>\d*))/g;
+import { handleCommand } from './TwitchModules';
 
 /**
  * IRC Chatbot run through Twitch. This serves as the main entry point into the Twitch modules of the bot, but most
@@ -37,22 +36,7 @@ class TwitchBot {
         this.multiModule = new MultiTwitch();
         this.modules = new Map();
         this.modules.set(['money', 'gamble', 'give', 'net'], handleEconomyCommand);
-
-        // const opts = {
-        //     identity: {
-        //         username: process.env.BOT_USERNAME,
-        //         password: process.env.OAUTH_TOKEN,
-        //     },
-        //     channels: process.env.CHANNEL_NAME.split(','),
-        // };
-        //
-        // eslint-disable-next-line new-cap
-        // this.client = new tmi.client(opts);
-        // this.onMessageHandler = this.onMessageHandler.bind(this);
-        // this.client.on('message', this.onMessageHandler);
-        // this.client.on('connected', this.onConnectedHandler);
-
-        // this.client.connect();
+        this.modules.set(['flags'], handleFlagCommand);
 
         const channels: string[] = userManager.getAllUsers(true).map((user: User) => user.username);
         this.client = new ChatClient({
@@ -97,7 +81,7 @@ class TwitchBot {
                 handled = true;
                 this.client.say(
                     channel,
-                    await delegate(commandParts, user, mod, 'cjs0789'),
+                    await delegate(commandParts, user, mod, channel),
                 );
             }
         });
@@ -161,46 +145,6 @@ class TwitchBot {
                 channel,
                 `${multiResponse}`,
             );
-        } else if (commandName === 'flags') {
-            if (commandParts[1] === 'event') {
-                try {
-                    const event = flagToEvent(commandParts[2], commandParts.slice(3).join(' '));
-                    if (event.length === 0) {
-                        this.client.say(channel, `@${user} flag does not exist on the specified map`);
-                    }
-                    this.client.say(channel, `@${user} ${event}`);
-                } catch (e) {
-                    this.client.say(channel, `@${user} invalid map or flag specified`);
-                }
-            } else if (commandParts[1] === 'bit') {
-                try {
-                    const info = getBiTInfo(commandParts[2]);
-                    if (info.length === 0) {
-                        this.client.say(channel, `@${user} flag is not reachable in BiT`);
-                    }
-                    let response = `@${user}`;
-                    _.forEach(info, (infoString: string) => {
-                        response += ` ${infoString}`;
-                    });
-                    this.client.say(channel, response);
-                } catch (e) {
-                    this.client.say(channel, `@${user} invalid flag specified`);
-                }
-            } else if (commandParts[1] === 'lookup') {
-                try {
-                    const results = lookupFlag(commandParts[2], commandParts.slice(3).join(' '), true);
-                    if (results.length === 0) {
-                        this.client.say(channel, `@${user} flag is not reachable in BiT`);
-                    }
-                    let response = `@${user}`;
-                    _.forEach(results, (result: string) => {
-                        response += ` ${result}`;
-                    });
-                    this.client.say(channel, response);
-                } catch (e) {
-                    this.client.say(channel, `@${user} invalid map specified`);
-                }
-            }
         } else if (commandName === 'floha') {
             let quote;
             if (commandParts.length > 1) {
@@ -221,22 +165,7 @@ class TwitchBot {
             }
             this.client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
         } else {
-            // standard text commands
-            const response = this.db.prepare('select output from commands where command_string=?').get(commandName);
-            if (response === undefined) return; // invalid command
-            // parse argument based commands
-            let success = true;
-            const parsed = response.output.replaceAll(paramRegex, (match: string, p1: string) => {
-                if (p1 === 'undefined') {
-                    success = false;
-                }
-                return commandParts[_.toNumber(p1) + 1];
-            });
-            if (success) {
-                this.client.say(channel, parsed);
-            } else {
-                this.client.say(channel, `@${user} incorrect syntax for command ${commandName}`);
-            }
+            this.client.say(channel, await handleCommand(commandParts, user, mod));
         }
     }
 
