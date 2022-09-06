@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { flagToEvent, getBiTInfo, lookupFlag } from 'ss-scene-flags';
-import { economyManager, userManager } from '../System';
+import { economyManager, quotesManager, userManager } from '../System';
 import { getOrCreateUserName } from '../util/UserUtils';
 
 /**
@@ -12,6 +12,95 @@ export type HandlerDelegate = (
     mod: boolean,
     ...metadata: string[]
 ) => Promise<string>;
+
+export const handleQuoteCommand: HandlerDelegate = async (
+    commandParts: string[],
+    sender: string,
+    mod: boolean,
+    ...metadata: string[]
+): Promise<string> => {
+    const quoteCommand = commandParts[0];
+    if (quoteCommand === 'add') {
+        const quote = commandParts.slice(1).join(' ');
+        const number = quotesManager.addQuote(quote, sender);
+        return `Added quote #${number}`;
+    }
+    if (quoteCommand === 'delete') {
+        if (!mod) {
+            return 'You do not have permission to do that';
+        }
+        const quoteNumber = parseInt(commandParts[1], 10);
+        if (!quotesManager.deleteQuote(quoteNumber)) {
+            return `Error: ${quoteNumber} is not a number`;
+        }
+        return `#${quoteNumber} deleted`;
+    }
+    if (quoteCommand === 'edit') {
+        if (!mod) {
+            return 'You do not have permission to do that';
+        }
+        const quoteNumber = parseInt(commandParts[1], 10);
+        if (Number.isNaN(quoteNumber)) {
+            return `Error: ${quoteNumber} is not a number`;
+        }
+        const newQuote = commandParts.splice(2).join(' ');
+        quotesManager.editQuote(quoteNumber, newQuote);
+        return `#${quoteNumber} edited`;
+    }
+    if (quoteCommand === 'alias') {
+        if (!mod) {
+            return 'You do not have permission to do that';
+        }
+        return quotesManager.handleAliasRequest(commandParts, mod);
+    }
+    if (quoteCommand === 'info') {
+        if (commandParts[1] === 'edit') {
+            const quoteNumber = parseInt(commandParts[2], 10);
+            const quotedOn = commandParts[3];
+            const quotedBy = commandParts.slice(4).join(' ');
+            quotesManager.editQuoteInfo(quoteNumber, quotedOn, quotedBy);
+            return `info for #${quoteNumber} updated`;
+        }
+        const quoteNumber = parseInt(commandParts[1], 10);
+        const results = quotesManager.getQuoteInfo(quoteNumber);
+        return results;
+    }
+    if (quoteCommand === 'search') {
+        const searchString = commandParts.slice(1).join(' ');
+        const results = quotesManager.searchQuote(searchString);
+        if (!results.includes(',') && results.includes('#')) {
+            // if there is exactly one result and a result was found
+            const quote = quotesManager.getQuote(parseInt(results.slice(1), 10));
+            return `Search result: #${quote.id}: ${quote.quote}`;
+        }
+        return results;
+    }
+    if (quoteCommand === 'latest') {
+        const quote = quotesManager.getLatestQuote();
+        return `#${quote.id}: ${quote.quote}`;
+    }
+    // looking up a quote
+    let quote;
+    if (commandParts.length > 0) { // looking for a specific quote
+        const lookup = commandParts[0];
+        const quoteNumber = parseInt(lookup, 10);
+        if (Number.isNaN(quoteNumber)) {
+            const alias = commandParts.join(' ');
+            quote = quotesManager.getQuoteAlias(alias);
+            if (_.isNil(quote)) {
+                return `Quote with alias '${alias}' does not exist`;
+            }
+            return `#${quote.id} (${quote.alias}): ${quote.quote}`;
+        }
+        quote = quotesManager.getQuote(quoteNumber);
+        if (_.isNil(quote)) {
+            return `Quote #${quoteNumber} does not exist`;
+        }
+    } else {
+        quote = quotesManager.getRandomQuote();
+    }
+    return `#${quote.id}: ${quote.quote}`;
+};
 
 export const handleEconomyCommand: HandlerDelegate = async (
     commandParts: string[],

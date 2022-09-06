@@ -4,11 +4,10 @@ import { Database } from 'better-sqlite3';
 import fs from 'fs';
 import _ from 'lodash';
 import fetch from 'node-fetch';
-import { flagToEvent, getBiTInfo, lookupFlag } from 'ss-scene-flags';
 import { User } from '../database/UserManager';
 import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
 import { logInfo } from '../Logger';
-import { handleEconomyCommand, handleFlagCommand, HandlerDelegate } from '../modules/Modules';
+import { handleEconomyCommand, handleFlagCommand, handleQuoteCommand, HandlerDelegate } from '../modules/Modules';
 import { userManager } from '../System';
 import { MultiTwitch } from './modules/MultiTwitch';
 import { TwitchQuotesModule } from './modules/TwitchQuotesModule';
@@ -126,7 +125,7 @@ class TwitchBot {
         } else if (commandName === 'quote') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
-            const quoteResponse = this.quotesBot.handleCommand(commandParts.slice(1), user, mod);
+            const quoteResponse = await handleQuoteCommand(commandParts.slice(1), user, mod);
             if (quoteResponse === '') {
                 return;
             }

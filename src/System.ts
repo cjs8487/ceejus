@@ -10,6 +10,7 @@ import TokenManager from './auth/TokenManager';
 import TwitchEventSubHandler from './lib/TwitchEventSub';
 import EconomyManager from './database/EconomyManager';
 import { logInfo, logVerbose } from './Logger';
+import QuotesManager from './modules/quotes/QuotesManager';
 
 // set up the databse
 // the setup script will run everytime the bot starts.
@@ -37,4 +38,5 @@ export const redemptionsManager = new RedemptionsManager(db);
 export const tokenManager = new TokenManager(twitchClientId, twitchClientSecret, userManager);
 export const eventSubManager =
     new TwitchEventSubHandler(twitchClientId, botApiClient, secret, botAuthProvider, ngrokUrl);
+export const quotesManager = new QuotesManager(db);
 export const economyManager = new EconomyManager(db);

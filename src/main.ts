@@ -4,7 +4,7 @@ import 'http';
 import { apiEnabled } from './Environment';
 import { notification } from './lib/EventSubHandlers';
 import { logInfo } from './Logger';
-import { QuotesCore } from './modules/quotes/QuotesCore';
+import QuotesManager from './modules/quotes/QuotesManager';
 import { db } from './System';
 // import { DiscordBot } from './discord/DiscordBot';
 // import { PublicQuotesBot } from './twitch/PublicQuotesBot';
@@ -32,10 +32,6 @@ app.use(bodyParser.json({
 }));
 
 const port = 8001;
-
-const quotesCore = new QuotesCore();
-quotesCore.initialize(db);
-app.set('quotesCore', quotesCore);
 
 const twitchBot = new TwitchBot(db);
 // const publicQuotesBot = new PublicQuotesBot(db);

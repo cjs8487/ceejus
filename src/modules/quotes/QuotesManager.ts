@@ -1,19 +1,26 @@
-const { GlobalUtils } = require('../../util/GlobalUtils');
-const { Aliaser } = require('./Aliaser');
+import { Database } from 'better-sqlite3';
+import { GlobalUtils } from '../../util/GlobalUtils';
+import { Aliaser } from './Aliaser';
+
+export type Quote = {
+    id: number,
+    quote: string,
+    alias: string,
+    quotedBy: string,
+    quotedOn: string,
+}
 
 /**
  * The shared quotes module across all platforms the bot operates on. All platform bots interact with this module to
  * perform operations on the quotes subsystem.
  */
-class QuotesCore {
-    /**
-     * Creates a new bot operating on the database
-     * @param {*} db The database to operate on
-     */
-    initialize(db) {
+class QuotesManager {
+    db: Database;
+    aliaser: Aliaser;
+
+    constructor(db: Database) {
         this.db = db;
         this.aliaser = new Aliaser(db);
-        QuotesCore.INSTANCE = this;
     }
 
     /**
@@ -22,7 +29,7 @@ class QuotesCore {
      * @param {Number} quoteNumber the number of the quote to find
      * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
      */
-    getQuote(quoteNumber) {
+    getQuote(quoteNumber: number) {
         const quote = this.db.prepare('select * from quotes where id=?').get(quoteNumber);
         if (quote === undefined) { // there is no quote with the given id
             // return 'that quote doesn\'t exist';
@@ -39,7 +46,7 @@ class QuotesCore {
      * @param {String} alias the alias of the quote to find
      * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
      */
-    getQuoteAlias(alias) {
+    getQuoteAlias(alias: string) {
         const quote = this.db.prepare('select * from quotes where alias=?').get(alias);
         if (quote === undefined) { // no quote with this alias exists
             // return 'no quote with that alias exists';
@@ -62,7 +69,7 @@ class QuotesCore {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    convertFields(quote) {
+    convertFields(quote: Quote) {
         if (quote.alias === null) {
             quote.alias = 'unknown';
         }
@@ -74,17 +81,17 @@ class QuotesCore {
         }
     }
 
-    addQuote(quote, quotedBy) {
+    addQuote(quote: string, quotedBy: string): number {
         const addData = this.db.prepare('insert into quotes (quote, quotedBy, quotedOn) values (?, ?, ?)')
             .run(quote, quotedBy, GlobalUtils.getTodaysDate());
-        return addData.lastInsertRowid;
+        return addData.lastInsertRowid as number;
     }
 
-    editQuote(quoteNumber, newQuote) {
+    editQuote(quoteNumber: number, newQuote: string) {
         this.db.prepare('update quotes set quote=? where id=?').run(newQuote, quoteNumber);
     }
 
-    deleteQuote(quoteNumber) {
+    deleteQuote(quoteNumber: number) {
         if (Number.isNaN(quoteNumber)) {
             return false;
         }
@@ -98,7 +105,7 @@ class QuotesCore {
      * @param {Number} quoteNumber the number (id) of the quote to retrieve the info for
      * @returns A string with the info
      */
-    getQuoteInfo(quoteNumber) {
+    getQuoteInfo(quoteNumber: number) {
         const quote = this.db.prepare('select * from quotes where id=?').get(quoteNumber);
         if (quote === undefined) {
             return 'no quote found';
@@ -107,7 +114,7 @@ class QuotesCore {
             `"${quote.alias}"`;
     }
 
-    editQuoteInfo(quoteNumber, quotedOn, quotedBy) {
+    editQuoteInfo(quoteNumber: number, quotedOn: string, quotedBy: string) {
         this.db.prepare('update quotes set quotedOn=?, quotedBy=? where id=?').run(quotedOn, quotedBy, quoteNumber);
     }
 
@@ -117,7 +124,7 @@ class QuotesCore {
      * @param {String} searchString The string to search for within the quote
      * @returns A string listing all of the quotes containing the search string
      */
-    searchQuote(searchString) {
+    searchQuote(searchString: string) {
         let returnString = '';
         if (searchString === '') {
             return 'no search string specified';
@@ -138,11 +145,7 @@ class QuotesCore {
         return this.db.prepare('select * from quotes order by id desc limit 1').get();
     }
 
-    static getInstance() {
-        return QuotesCore.INSTANCE;
-    }
-
-    handleAliasRequest(messageParts, mod) {
+    handleAliasRequest(messageParts: string[], mod: boolean) {
         const aliasCommand = messageParts[1];
         const quoteNumber = parseInt(messageParts[2], 10);
         const alias = messageParts.slice(3).join(' ');
@@ -150,4 +153,4 @@ class QuotesCore {
     }
 }
 
-module.exports.QuotesCore = QuotesCore;
+export default QuotesManager;
