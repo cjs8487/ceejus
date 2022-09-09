@@ -17,7 +17,6 @@ export const handleQuoteCommand: HandlerDelegate = async (
     commandParts: string[],
     sender: string,
     mod: boolean,
-    ...metadata: string[]
 ): Promise<string> => {
     const quoteCommand = commandParts[0];
     if (quoteCommand === 'add') {

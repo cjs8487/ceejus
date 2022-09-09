@@ -4,7 +4,6 @@ import 'http';
 import { apiEnabled } from './Environment';
 import { notification } from './lib/EventSubHandlers';
 import { logInfo } from './Logger';
-import QuotesManager from './modules/quotes/QuotesManager';
 import { db } from './System';
 // import { DiscordBot } from './discord/DiscordBot';
 // import { PublicQuotesBot } from './twitch/PublicQuotesBot';

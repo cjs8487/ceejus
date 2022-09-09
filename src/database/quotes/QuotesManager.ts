@@ -1,6 +1,6 @@
 import { Database } from 'better-sqlite3';
 import { GlobalUtils } from '../../util/GlobalUtils';
-import { Aliaser } from './Aliaser';
+import Aliaser from './Aliaser';
 
 export type Quote = {
     id: number,

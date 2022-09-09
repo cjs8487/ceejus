@@ -1,13 +1,16 @@
+import { Database } from 'better-sqlite3';
+
 /**
  * Handles the Alias subsystem of the quotes bot. Specifc quotes can be assigned aliases, which can then be used in
  * place of their quote number to retreive them
  */
 class Aliaser {
+    db: Database;
     /**
      * Creates a new instance of the alias controller operating on the quote database
      * @param {*} db The database the controller is operating on
      */
-    constructor(db) {
+    constructor(db: Database) {
         this.db = db;
     }
 
@@ -20,7 +23,7 @@ class Aliaser {
      * @param {*} mod Whether or not the command has mod level permissions
      * @returns The output string
      */
-    handleRequest(requestType, quoteNumber, alias, mod) {
+    handleRequest(requestType: string, quoteNumber: number, alias: string, mod: boolean) {
         if (!mod) return '';
         if (requestType === 'set') {
             return this.updateAlias(quoteNumber, alias);
@@ -34,7 +37,7 @@ class Aliaser {
      * @param {*} alias The alias we are setting
      * @returns The output string
      */
-    updateAlias(quoteNumber, alias) {
+    updateAlias(quoteNumber: number, alias: string) {
         this.db.prepare('update quotes set alias=? where id=?').run(alias, quoteNumber);
         return `#${quoteNumber} aliased to ${alias}`;
     }
@@ -44,10 +47,10 @@ class Aliaser {
      * @param {*} quoteNumber The quote number whose alias we are removing
      * @returns The output string
      */
-    removeAlias(quoteNumber) {
+    removeAlias(quoteNumber: number) {
         this.db.prepare('update quotes set alias=null where id=?').run(quoteNumber);
         return `removed alias for #${quoteNumber}`;
     }
 }
 
-module.exports.Aliaser = Aliaser;
+export default Aliaser;
