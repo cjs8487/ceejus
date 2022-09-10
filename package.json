@@ -1,6 +1,6 @@
 {
   "name": "ceejus",
-  "version": "0.3.2",
+  "version": "2.0.0 beta 1",
   "description": "My personal Discord/Twitch bot",
   "main": "main.js",
   "scripts": {

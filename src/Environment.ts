@@ -10,3 +10,4 @@ export const secret = process.env.SECRET ?? '';
 export const ngrokUrl = process.env.NGROK_URL ?? 'localhost:8081';
 export const apiEnabled = process.env.API_ENABLED === 'true';
 export const sessionSecret = process.env.SESSION_SECRET ?? '';
+export const discordToken = process.env.DIsCORD_TOKEN;

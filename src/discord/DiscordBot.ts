@@ -1,8 +1,10 @@
-const https = require('https');
-const fetch = require('node-fetch');
-const { Client } = require('discord.js');
-const Discord = require('discord.js');
-const { DiscordQuotesModule } = require('./modules/DiscordQuotesModule');
+import { Database } from 'better-sqlite3';
+import Discord, { Client, Message } from 'discord.js';
+import https from 'https';
+import fetch from 'node-fetch';
+import { logInfo } from '../Logger';
+import { discordToken, testing } from '../Environment';
+import { handleQuoteCommand } from '../modules/Modules';
 
 const prefix = '!';
 const testChannel = '755894973987291176';
@@ -14,33 +16,28 @@ const testChannel = '755894973987291176';
  * know what you are doing.
  */
 class DiscordBot {
+    db: Database;
     /**
      * Constructs a new bot operating on Discord
      * @param {*} db the bot's database
      */
-    constructor(db) {
+    constructor(db: Database) {
         this.db = db;
         const client = new Client({
             intents: 32767,
         });
 
-        if (process.env.testing === 'true') {
-            this.testMode = true;
-        } else {
-            this.testMode = false;
-        }
-
         client.once('ready', () => {
-            console.log('Ready!');
-            if (this.testMode) {
-                client.user.setPresence({
+            logInfo('Discord module ready and active');
+            if (testing) {
+                client.user?.setPresence({
                     status: 'online',
                     activities: [{
                         name: `Test Mode (v${process.env.npm_package_version})`,
                     }],
                 });
             } else {
-                client.user.setPresence({
+                client.user?.setPresence({
                     status: 'online',
                     activities: [{
                         name: `Ceejus v${process.env.npm_package_version}`,
@@ -49,9 +46,8 @@ class DiscordBot {
             }
         });
 
-        client.login(process.env.DISCORD_TOKEN);
+        client.login(discordToken);
         this.handleMessage = this.handleMessage.bind(this);
-        this.quotesModule = new DiscordQuotesModule();
 
         client.on('message', this.handleMessage);
     }
@@ -61,23 +57,25 @@ class DiscordBot {
      * @param {*} message The message to handle. Contains all the necessary information for proper handling (comes
      * directly from Discord)
      */
-    async handleMessage(message) {
+    // eslint-disable-next-line class-methods-use-this
+    async handleMessage(message: Message) {
         if (!message.content.startsWith(prefix) || message.author.bot) return;
-        if (this.testMode) {
+        if (testing) {
             if (message.channel.id !== testChannel) {
-                console.log('testing is enabled, ignoring normal usage');
+                logInfo('testing is enabled, ignoring normal usage');
                 return;
             }
         }
         const args = message.content.slice(prefix.length).trim().split(' ');
-        const command = args.shift().toLowerCase();
+        const command = args.shift()?.toLowerCase();
 
         if (command === 'quote') {
             message.channel.send(
-                {
-                    content: `${message.author}`,
-                    embeds: [this.quotesModule.handleCommand(args, message.author.username, false)],
-                },
+                // {
+                //     content: `${message.author}`,
+                //     embeds: [this.quotesModule.handleCommand(args, message.author.username, false)],
+                // },
+                await handleQuoteCommand(args, message.author.username, false),
             );
         }
 
@@ -204,4 +202,4 @@ class DiscordBot {
     }
 }
 
-module.exports.DiscordBot = DiscordBot;
+export default DiscordBot;
