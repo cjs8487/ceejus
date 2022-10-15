@@ -45,7 +45,9 @@
                 "linebreak-style": ["off"],
                 "lines-between-class-members": ["off"],
                 "import/extensions": ["off"],
-                "@typescript-eslint/no-explicit-any": ["off"]
+                "@typescript-eslint/no-explicit-any": ["off"],
+                "no-shadow": ["off"],
+                "@typescript-eslint/no-shadow": ["error"]
             }
         }
     ]

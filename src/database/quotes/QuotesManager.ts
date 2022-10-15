@@ -10,6 +10,17 @@ export type Quote = {
     quotedOn: string,
 }
 
+export type QuoteInfo = {
+    id: number,
+    alias: string,
+    quotedBy: string,
+    quotedOn: string,
+}
+
+export type QuoteError = {
+    error: string
+}
+
 /**
  * The shared quotes module across all platforms the bot operates on. All platform bots interact with this module to
  * perform operations on the quotes subsystem.
@@ -62,8 +73,8 @@ class QuotesManager {
      *
      * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
      */
-    getRandomQuote() {
-        const quote = this.db.prepare('select * from quotes order by random() limit 1').get();
+    getRandomQuote(): Quote {
+        const quote: Quote = this.db.prepare('select * from quotes order by random() limit 1').get();
         this.convertFields(quote);
         return quote;
     }
@@ -103,15 +114,11 @@ class QuotesManager {
      * Retreives the supporting info for a given quote
      *
      * @param {Number} quoteNumber the number (id) of the quote to retrieve the info for
-     * @returns A string with the info
      */
-    getQuoteInfo(quoteNumber: number) {
-        const quote = this.db.prepare('select * from quotes where id=?').get(quoteNumber);
-        if (quote === undefined) {
-            return 'no quote found';
-        }
-        return `info for #${quote.id}: Quoted on ${quote.quotedOn} by ${quote.quotedBy}. This quote is also known as ` +
-            `"${quote.alias}"`;
+    getQuoteInfo(quoteNumber: number): QuoteInfo | undefined {
+        const quote = this.db.prepare('select id, alias, quotedOn, quotedBy from quotes where id=?').get(quoteNumber);
+        this.convertFields(quote);
+        return quote;
     }
 
     editQuoteInfo(quoteNumber: number, quotedOn: string, quotedBy: string) {
@@ -122,26 +129,32 @@ class QuotesManager {
      * Searches for all quotes where a specified string appears
      *
      * @param {String} searchString The string to search for within the quote
-     * @returns A string listing all of the quotes containing the search string
      */
-    searchQuote(searchString: string) {
-        let returnString = '';
+    searchQuote(searchString: string): Quote[] | QuoteError {
         if (searchString === '') {
-            return 'no search string specified';
+            return {
+                error: 'no search string specified',
+            };
         }
-        this.db.prepare('select * from quotes').all().forEach((quote) => {
-            if (quote.quote.toLowerCase().includes(searchString.toLowerCase())) {
-                returnString += `#${quote.id}, `;
-            }
+        // this.db.prepare('select * from quotes').all().forEach((quote) => {
+        //     if (quote.quote.toLowerCase().includes(searchString.toLowerCase())) {
+        //         returnString += `#${quote.id}, `;
+        //     }
+        // });
+        // if (returnString === '') {
+        //     return [];
+        // }
+        // returnString = returnString.slice(0, returnString.length - 2);
+        // return returnString;
+        const quotes: Quote[] = [];
+        this.db.prepare('select * from quotes').all().forEach((quote: Quote) => {
+            this.convertFields(quote);
+            quotes.push(quote);
         });
-        if (returnString === '') {
-            return 'no quotes found';
-        }
-        returnString = returnString.slice(0, returnString.length - 2);
-        return returnString;
+        return quotes;
     }
 
-    getLatestQuote() {
+    getLatestQuote(): Quote {
         return this.db.prepare('select * from quotes order by id desc limit 1').get();
     }
 
