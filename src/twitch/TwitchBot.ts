@@ -80,7 +80,7 @@ class TwitchBot {
                 handled = true;
                 this.client.say(
                     channel,
-                    await delegate(commandParts, user, mod, channel),
+                    await delegate(commandParts, user, mod, channel.substring(1)),
                 );
             }
         });
@@ -144,25 +144,25 @@ class TwitchBot {
                 channel,
                 `${multiResponse}`,
             );
-        } else if (commandName === 'floha') {
-            let quote;
-            if (commandParts.length > 1) {
-                const quoteNumber = parseInt(commandParts[1], 10);
-                if (Number.isNaN(quoteNumber)) {
-                    quote = await (
-                        await fetch(
-                            `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
-                        )
-                    ).json();
-                } else {
-                    quote = await (
-                        await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
-                    ).json();
-                }
-            } else {
-                quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
-            }
-            this.client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
+        // } else if (commandName === 'floha') {
+        //     let quote;
+        //     if (commandParts.length > 1) {
+        //         const quoteNumber = parseInt(commandParts[1], 10);
+        //         if (Number.isNaN(quoteNumber)) {
+        //             quote = await (
+        //                 await fetch(
+        //                   `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
+        //                 )
+        //             ).json();
+        //         } else {
+        //             quote = await (
+        //                 await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
+        //             ).json();
+        //         }
+        //     } else {
+        //         quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+        //     }
+        //     this.client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
         } else {
             this.client.say(channel, await handleCommand(commandParts, user, mod));
         }
