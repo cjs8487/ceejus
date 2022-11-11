@@ -33,6 +33,7 @@ export type QuoteResultMessage = {
 }
 
 export type QuoteResultError = {
+    isPermissionDenied: boolean,
     error: string;
 }
 
@@ -44,6 +45,7 @@ export type QuoteResult = Quote |
         QuoteResultError;
 
 const quotePermissionDenied: QuoteResultError = {
+    isPermissionDenied: true,
     error: 'You do not have permission to do that',
 };
 
@@ -67,6 +69,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
         const quoteNumber = parseInt(commandParts[1], 10);
         if (!quotesManager.deleteQuote(quoteNumber)) {
             return {
+                isPermissionDenied: false,
                 error: `Error: ${quoteNumber} is not a number`,
             };
         }
@@ -81,6 +84,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
         const quoteNumber = parseInt(commandParts[1], 10);
         if (Number.isNaN(quoteNumber)) {
             return {
+                isPermissionDenied: false,
                 error: `Error: ${quoteNumber} is not a number`,
             };
         }
@@ -100,6 +104,9 @@ export const handleQuoteCommand: HandlerDelegate = async (
     }
     if (quoteCommand === 'info') {
         if (commandParts[1] === 'edit') {
+            if (!mod) {
+                return quotePermissionDenied;
+            }
             const quoteNumber = parseInt(commandParts[2], 10);
             const quotedOn = commandParts[3];
             const quotedBy = commandParts.slice(4).join(' ');
@@ -112,6 +119,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
         const results = quotesManager.getQuoteInfo(quoteNumber);
         if (results === undefined) {
             return {
+                isPermissionDenied: false,
                 error: 'no quote found',
             };
         }
@@ -121,7 +129,10 @@ export const handleQuoteCommand: HandlerDelegate = async (
         const searchString = commandParts.slice(1).join(' ');
         const results = quotesManager.searchQuote(searchString);
         if ('error' in results) {
-            return results;
+            return {
+                isPermissionDenied: false,
+                error: results.error,
+            };
         }
         if (results.length === 1) {
             return results[0];
@@ -143,6 +154,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
             quote = quotesManager.getQuoteAlias(alias);
             if (_.isNil(quote)) {
                 return {
+                    isPermissionDenied: false,
                     error: `Quote with alias '${alias}' does not exist`,
                 };
             }
@@ -167,9 +179,11 @@ export const handleEconomyCommand: HandlerDelegate = async (
     ...metadata: string[]
 ): Promise<string> => {
     const command = commandParts.shift();
+    console.log(metadata);
     const [channelName] = metadata;
     const user = await getOrCreateUserName(sender);
     const owner = userManager.getUser(channelName).userId;
+    console.log(owner);
     const currencyName = 'BiTcoins';
     if (command === 'money') {
         let target: string;
@@ -178,6 +192,8 @@ export const handleEconomyCommand: HandlerDelegate = async (
         } else {
             target = sender;
         }
+        const name = await getOrCreateUserName(target);
+        console.log(name);
         return `${economyManager.getCurrency(await getOrCreateUserName(target), owner)} ${currencyName}`;
     }
     if (command === 'gamble') {

@@ -136,16 +136,6 @@ class QuotesManager {
                 error: 'no search string specified',
             };
         }
-        // this.db.prepare('select * from quotes').all().forEach((quote) => {
-        //     if (quote.quote.toLowerCase().includes(searchString.toLowerCase())) {
-        //         returnString += `#${quote.id}, `;
-        //     }
-        // });
-        // if (returnString === '') {
-        //     return [];
-        // }
-        // returnString = returnString.slice(0, returnString.length - 2);
-        // return returnString;
         const quotes: Quote[] = [];
         this.db.prepare('select * from quotes').all().forEach((quote: Quote) => {
             this.convertFields(quote);
