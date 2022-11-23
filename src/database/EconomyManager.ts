@@ -1,7 +1,7 @@
 import { Database } from 'better-sqlite3';
 
 class EconomyManager {
-    db: Database
+    db: Database;
 
     constructor(db: Database) {
         this.db = db;
@@ -38,7 +38,7 @@ class EconomyManager {
 
     getCurrency(user: number, owner: number): number {
         this.safeties(user, owner);
-        const data = this.db.prepare('select amount from economy where user=?').get(user);
+        const data = this.db.prepare('select amount from economy where user=? and owner=?').get(user, owner);
         return data.amount;
     }
 

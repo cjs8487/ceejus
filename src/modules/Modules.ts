@@ -179,11 +179,9 @@ export const handleEconomyCommand: HandlerDelegate = async (
     ...metadata: string[]
 ): Promise<string> => {
     const command = commandParts.shift();
-    console.log(metadata);
     const [channelName] = metadata;
     const user = await getOrCreateUserName(sender);
     const owner = userManager.getUser(channelName).userId;
-    console.log(owner);
     const currencyName = 'BiTcoins';
     if (command === 'money') {
         let target: string;
@@ -192,8 +190,6 @@ export const handleEconomyCommand: HandlerDelegate = async (
         } else {
             target = sender;
         }
-        const name = await getOrCreateUserName(target);
-        console.log(name);
         return `${economyManager.getCurrency(await getOrCreateUserName(target), owner)} ${currencyName}`;
     }
     if (command === 'gamble') {
