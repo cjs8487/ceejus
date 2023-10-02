@@ -79,10 +79,13 @@ class QuotesManager {
      *
      * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
      */
-    getRandomQuote(): Quote {
+    getRandomQuote(): Quote | undefined {
         const quote: Quote = this.db
             .prepare('select * from quotes order by random() limit 1')
             .get();
+        if (!quote) {
+            return undefined;
+        }
         this.convertFields(quote);
         return quote;
     }

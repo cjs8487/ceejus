@@ -15,6 +15,9 @@ const quotePermDenied = permissionDeniedEmbed(
 );
 
 export const formatQuoteResponse = (result: QuoteResult): MessageEmbed => {
+    if (!result) {
+        return quoteErrorEmbed('No quote found');
+    }
     if ('quotes' in result) {
         return quoteMultiEmbed(result.quotes);
     }
