@@ -23,12 +23,14 @@ declare module 'http' {
 }
 
 const app = express();
-app.use(bodyParser.json({
-    verify: (req, res, buf) => {
-        // expose the raw body of the request for signature verification
-        req.rawBody = buf;
-    },
-}));
+app.use(
+    bodyParser.json({
+        verify: (req, res, buf) => {
+            // expose the raw body of the request for signature verification
+            req.rawBody = buf;
+        },
+    }),
+);
 
 const port = 8001;
 
@@ -50,4 +52,4 @@ process.on('SIGHUP', () => process.exit(128 + 1));
 process.on('SIGINT', () => process.exit(128 + 2));
 process.on('SIGTERM', () => process.exit(128 + 15));
 
-export { };
+export {};
