@@ -23,7 +23,12 @@ class Aliaser {
      * @param {*} mod Whether or not the command has mod level permissions
      * @returns The output string
      */
-    handleRequest(requestType: string, quoteNumber: number, alias: string, mod: boolean) {
+    handleRequest(
+        requestType: string,
+        quoteNumber: number,
+        alias: string,
+        mod: boolean,
+    ) {
         if (!mod) return '';
         if (requestType === 'set') {
             return this.updateAlias(quoteNumber, alias);
@@ -38,7 +43,9 @@ class Aliaser {
      * @returns The output string
      */
     updateAlias(quoteNumber: number, alias: string) {
-        this.db.prepare('update quotes set alias=? where id=?').run(alias, quoteNumber);
+        this.db
+            .prepare('update quotes set alias=? where id=?')
+            .run(alias, quoteNumber);
         return `#${quoteNumber} aliased to ${alias}`;
     }
 
@@ -48,7 +55,9 @@ class Aliaser {
      * @returns The output string
      */
     removeAlias(quoteNumber: number) {
-        this.db.prepare('update quotes set alias=null where id=?').run(quoteNumber);
+        this.db
+            .prepare('update quotes set alias=null where id=?')
+            .run(quoteNumber);
         return `removed alias for #${quoteNumber}`;
     }
 }

@@ -3,23 +3,23 @@ import { GlobalUtils } from '../../util/GlobalUtils';
 import Aliaser from './Aliaser';
 
 export type Quote = {
-    id: number,
-    quote: string,
-    alias: string,
-    quotedBy: string,
-    quotedOn: string,
-}
+    id: number;
+    quote: string;
+    alias: string;
+    quotedBy: string;
+    quotedOn: string;
+};
 
 export type QuoteInfo = {
-    id: number,
-    alias: string,
-    quotedBy: string,
-    quotedOn: string,
-}
+    id: number;
+    alias: string;
+    quotedBy: string;
+    quotedOn: string;
+};
 
 export type QuoteError = {
-    error: string
-}
+    error: string;
+};
 
 /**
  * The shared quotes module across all platforms the bot operates on. All platform bots interact with this module to
@@ -41,8 +41,11 @@ class QuotesManager {
      * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
      */
     getQuote(quoteNumber: number) {
-        const quote = this.db.prepare('select * from quotes where id=?').get(quoteNumber);
-        if (quote === undefined) { // there is no quote with the given id
+        const quote = this.db
+            .prepare('select * from quotes where id=?')
+            .get(quoteNumber);
+        if (quote === undefined) {
+            // there is no quote with the given id
             // return 'that quote doesn\'t exist';
             return undefined;
         }
@@ -58,8 +61,11 @@ class QuotesManager {
      * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
      */
     getQuoteAlias(alias: string) {
-        const quote = this.db.prepare('select * from quotes where alias=?').get(alias);
-        if (quote === undefined) { // no quote with this alias exists
+        const quote = this.db
+            .prepare('select * from quotes where alias=?')
+            .get(alias);
+        if (quote === undefined) {
+            // no quote with this alias exists
             // return 'no quote with that alias exists';
             return undefined;
         }
@@ -74,7 +80,9 @@ class QuotesManager {
      * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
      */
     getRandomQuote(): Quote {
-        const quote: Quote = this.db.prepare('select * from quotes order by random() limit 1').get();
+        const quote: Quote = this.db
+            .prepare('select * from quotes order by random() limit 1')
+            .get();
         this.convertFields(quote);
         return quote;
     }
@@ -93,13 +101,18 @@ class QuotesManager {
     }
 
     addQuote(quote: string, quotedBy: string): number {
-        const addData = this.db.prepare('insert into quotes (quote, quotedBy, quotedOn) values (?, ?, ?)')
+        const addData = this.db
+            .prepare(
+                'insert into quotes (quote, quotedBy, quotedOn) values (?, ?, ?)',
+            )
             .run(quote, quotedBy, GlobalUtils.getTodaysDate());
         return addData.lastInsertRowid as number;
     }
 
     editQuote(quoteNumber: number, newQuote: string) {
-        this.db.prepare('update quotes set quote=? where id=?').run(newQuote, quoteNumber);
+        this.db
+            .prepare('update quotes set quote=? where id=?')
+            .run(newQuote, quoteNumber);
     }
 
     deleteQuote(quoteNumber: number) {
@@ -116,13 +129,19 @@ class QuotesManager {
      * @param {Number} quoteNumber the number (id) of the quote to retrieve the info for
      */
     getQuoteInfo(quoteNumber: number): QuoteInfo | undefined {
-        const quote = this.db.prepare('select id, alias, quotedOn, quotedBy from quotes where id=?').get(quoteNumber);
+        const quote = this.db
+            .prepare(
+                'select id, alias, quotedOn, quotedBy from quotes where id=?',
+            )
+            .get(quoteNumber);
         this.convertFields(quote);
         return quote;
     }
 
     editQuoteInfo(quoteNumber: number, quotedOn: string, quotedBy: string) {
-        this.db.prepare('update quotes set quotedOn=?, quotedBy=? where id=?').run(quotedOn, quotedBy, quoteNumber);
+        this.db
+            .prepare('update quotes set quotedOn=?, quotedBy=? where id=?')
+            .run(quotedOn, quotedBy, quoteNumber);
     }
 
     /**
@@ -137,22 +156,32 @@ class QuotesManager {
             };
         }
         const quotes: Quote[] = [];
-        this.db.prepare('select * from quotes').all().forEach((quote: Quote) => {
-            this.convertFields(quote);
-            quotes.push(quote);
-        });
+        this.db
+            .prepare('select * from quotes')
+            .all()
+            .forEach((quote: Quote) => {
+                this.convertFields(quote);
+                quotes.push(quote);
+            });
         return quotes;
     }
 
     getLatestQuote(): Quote {
-        return this.db.prepare('select * from quotes order by id desc limit 1').get();
+        return this.db
+            .prepare('select * from quotes order by id desc limit 1')
+            .get();
     }
 
     handleAliasRequest(messageParts: string[], mod: boolean) {
         const aliasCommand = messageParts[1];
         const quoteNumber = parseInt(messageParts[2], 10);
         const alias = messageParts.slice(3).join(' ');
-        return this.aliaser.handleRequest(aliasCommand, quoteNumber, alias, mod);
+        return this.aliaser.handleRequest(
+            aliasCommand,
+            quoteNumber,
+            alias,
+            mod,
+        );
     }
 }
 

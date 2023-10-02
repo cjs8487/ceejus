@@ -7,13 +7,13 @@ type WebhookTransport = {
     method: 'webhook';
     callback: string;
     secret: string;
-}
+};
 
 type ErrorResponse = {
     error: string;
     status: number;
     message: string;
-}
+};
 
 type CreateSubscriptionDataEntry = {
     id: string;
@@ -27,14 +27,16 @@ type CreateSubscriptionDataEntry = {
     cost: number;
 };
 
-export type CreateSubscriptionResponse = {
-    data: CreateSubscriptionDataEntry[];
-    total: number;
-    // eslint-disable-next-line camelcase
-    total_cost: number;
-    // eslint-disable-next-line camelcase
-    max_total_cost: number;
-} | ErrorResponse;
+export type CreateSubscriptionResponse =
+    | {
+          data: CreateSubscriptionDataEntry[];
+          total: number;
+          // eslint-disable-next-line camelcase
+          total_cost: number;
+          // eslint-disable-next-line camelcase
+          max_total_cost: number;
+      }
+    | ErrorResponse;
 
 export default class TwitchEventSubHandler {
     private clientId: string;
@@ -47,7 +49,7 @@ export default class TwitchEventSubHandler {
         clientId: string,
         apiClient: ApiClient,
         secret: string,
-        authProvider:AuthProvider,
+        authProvider: AuthProvider,
         urlBase: string,
     ) {
         this.clientId = clientId;
@@ -72,7 +74,9 @@ export default class TwitchEventSubHandler {
             headers: {
                 'Content-Type': 'application/json',
                 'Client-ID': this.clientId,
-                Authorization: `Bearer ${(await this.authProvider.getAccessToken())?.accessToken}`,
+                Authorization: `Bearer ${(
+                    await this.authProvider.getAccessToken()
+                )?.accessToken}`,
             },
         };
         const createWebHookBody = {
@@ -84,7 +88,10 @@ export default class TwitchEventSubHandler {
             },
             transport: this.transport,
         };
-        return this.doRequest<CreateSubscriptionResponse>(subscriptionCreationParams, createWebHookBody);
+        return this.doRequest<CreateSubscriptionResponse>(
+            subscriptionCreationParams,
+            createWebHookBody,
+        );
     }
 
     // eslint-disable-next-line class-methods-use-this
@@ -93,11 +100,13 @@ export default class TwitchEventSubHandler {
         return new Promise<T>((resolve, reject) => {
             const req = request(params, (result) => {
                 result.setEncoding('utf8');
-                result.on('data', (d) => {
-                    responseData += d;
-                }).on('end', () => {
-                    resolve(JSON.parse(responseData));
-                });
+                result
+                    .on('data', (d) => {
+                        responseData += d;
+                    })
+                    .on('end', () => {
+                        resolve(JSON.parse(responseData));
+                    });
             });
             req.on('error', (e) => {
                 logError(`Error during async request: ${e}`);

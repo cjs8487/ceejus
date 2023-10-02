@@ -13,7 +13,11 @@ class EconomyManager {
         }
     }
 
-    numberSafeties(user: number, owner: number, amount: number): boolean | string {
+    numberSafeties(
+        user: number,
+        owner: number,
+        amount: number,
+    ): boolean | string {
         this.safeties(user, owner);
         if (amount < 0) {
             return 'cannot use negative numbers as paramters';
@@ -21,8 +25,10 @@ class EconomyManager {
         return true;
     }
 
-    checkExists(user: number, owner: number) : boolean {
-        const amount = this.db.prepare('select amount from economy where user=? and owner=?').get(user, owner);
+    checkExists(user: number, owner: number): boolean {
+        const amount = this.db
+            .prepare('select amount from economy where user=? and owner=?')
+            .get(user, owner);
         if (amount === undefined) {
             return false;
         }
@@ -30,15 +36,19 @@ class EconomyManager {
     }
 
     createUser(user: number, owner: number) {
-        this.db.prepare(
-            'insert into economy (user, owner, amount, gamble_net, amount_given, amount_received)' +
-            ' values (?, ?, 0, 0, 0, 0)',
-        ).run(user, owner);
+        this.db
+            .prepare(
+                'insert into economy (user, owner, amount, gamble_net, amount_given, amount_received)' +
+                    ' values (?, ?, 0, 0, 0, 0)',
+            )
+            .run(user, owner);
     }
 
     getCurrency(user: number, owner: number): number {
         this.safeties(user, owner);
-        const data = this.db.prepare('select amount from economy where user=? and owner=?').get(user, owner);
+        const data = this.db
+            .prepare('select amount from economy where user=? and owner=?')
+            .get(user, owner);
         return data.amount;
     }
 
@@ -53,7 +63,9 @@ class EconomyManager {
         const currentAmount = this.getCurrency(user, owner);
         const newAmount = currentAmount + amount;
         this.safeties(user, owner);
-        this.db.prepare('update economy set amount=? where user=?').run(newAmount, user);
+        this.db
+            .prepare('update economy set amount=? where user=?')
+            .run(newAmount, user);
         return '';
     }
 
@@ -70,26 +82,34 @@ class EconomyManager {
         if (newAmount < 0) {
             newAmount = 0;
         }
-        this.db.prepare('update economy set amount=? where user=?').run(newAmount, user);
+        this.db
+            .prepare('update economy set amount=? where user=?')
+            .run(newAmount, user);
         return '';
     }
 
     getGambleNet(user: number, owner: number): number {
-        return this.db.prepare('select gamble_net from economy where user=? and owner=?').get(user, owner).gamble_net;
+        return this.db
+            .prepare('select gamble_net from economy where user=? and owner=?')
+            .get(user, owner).gamble_net;
     }
 
     gambleLoss(user: number, owner: number, amount: number): void {
         this.removeCurrency(user, owner, amount);
         const currNet = this.getGambleNet(user, owner);
         const newNet = currNet - amount;
-        this.db.prepare('update economy set gamble_net=? where user=? and owner=?').run(newNet, user, owner);
+        this.db
+            .prepare('update economy set gamble_net=? where user=? and owner=?')
+            .run(newNet, user, owner);
     }
 
     gambleWin(user: number, owner: number, amount: number): void {
         this.addCurrency(user, owner, amount);
         const currNet = this.getGambleNet(user, owner);
         const newNet = currNet + amount;
-        this.db.prepare('update economy set gamble_net=? where user=? and owner=?').run(newNet, user, owner);
+        this.db
+            .prepare('update economy set gamble_net=? where user=? and owner=?')
+            .run(newNet, user, owner);
     }
 }
 

@@ -18,29 +18,40 @@
     },
     "overrides": [
         {
-            "files": [
-                "src/**/*.js",
-                "src/**/*.ts"
-            ],
+            "files": ["src/**/*.js", "src/**/*.ts"],
             "rules": {
-                "indent": ["error", 4, {
-                    "SwitchCase": 1
-                }],
+                "indent": [
+                    "error",
+                    4,
+                    {
+                        "SwitchCase": 1
+                    }
+                ],
                 "max-len": ["error", 120],
                 "no-plusplus": ["off"],
-                "operator-linebreak": ["error", "after", {
-                    "overrides": {
-                        "?": "before",
-                        ":": "before"
+                "operator-linebreak": [
+                    "error",
+                    "after",
+                    {
+                        "overrides": {
+                            "?": "before",
+                            ":": "before"
+                        }
                     }
-                }],
-                "object-curly-newline": ["error", {
-                    "multiline": true,
-                    "consistent": true 
-                }],
-                "no-param-reassign": ["error", {
-                    "props": false
-                }],
+                ],
+                "object-curly-newline": [
+                    "error",
+                    {
+                        "multiline": true,
+                        "consistent": true
+                    }
+                ],
+                "no-param-reassign": [
+                    "error",
+                    {
+                        "props": false
+                    }
+                ],
                 "no-mixed-operators": ["off"],
                 "prefer-destructuring": ["off"],
                 "linebreak-style": ["off"],

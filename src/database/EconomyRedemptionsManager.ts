@@ -1,20 +1,20 @@
 import { Database } from 'better-sqlite3';
 
 export type EconomyRedemption = {
-    redemptionId: number,
-    owner: number,
-    twitchRewardId: string,
-    amount: number,
-}
+    redemptionId: number;
+    owner: number;
+    twitchRewardId: string;
+    amount: number;
+};
 
 type DBRedemption = {
     // eslint-disable-next-line camelcase
-    redemption_id: number,
-    owner: number,
+    redemption_id: number;
+    owner: number;
     // eslint-disable-next-line camelcase
-    twitch_reward_id: string,
-    amount: number,
-}
+    twitch_reward_id: string;
+    amount: number;
+};
 
 export class EconomyRedemptionsManager {
     db: Database;
@@ -24,9 +24,11 @@ export class EconomyRedemptionsManager {
     }
 
     addRedemption(owner: number, twitchId: string, amount: number) {
-        this.db.prepare(
-            'insert into economy_redemptions (owner, twitch_reward_id, amount) values (?, ?, ?)',
-        ).run(owner, twitchId, amount);
+        this.db
+            .prepare(
+                'insert into economy_redemptions (owner, twitch_reward_id, amount) values (?, ?, ?)',
+            )
+            .run(owner, twitchId, amount);
     }
 
     getRedemption(id: string): EconomyRedemption;
@@ -38,8 +40,7 @@ export class EconomyRedemptionsManager {
         } else {
             sql += 'where redemption_id=?';
         }
-        const redemption: DBRedemption = this.db.prepare(sql)
-            .get(id);
+        const redemption: DBRedemption = this.db.prepare(sql).get(id);
         return {
             redemptionId: redemption.redemption_id,
             owner: redemption.owner,
@@ -49,7 +50,9 @@ export class EconomyRedemptionsManager {
     }
 
     getAllRedemptions(): EconomyRedemption[] {
-        const results: DBRedemption[] = this.db.prepare('select * from economy_redmeptions').all();
+        const results: DBRedemption[] = this.db
+            .prepare('select * from economy_redmeptions')
+            .all();
         return results.map((result: DBRedemption) => ({
             redemptionId: result.redemption_id,
             owner: result.owner,
@@ -59,7 +62,8 @@ export class EconomyRedemptionsManager {
     }
 
     getAllRedemptionsForUser(id: number): EconomyRedemption[] {
-        const results: DBRedemption[] = this.db.prepare('select * from economy_redemptions where owner=?')
+        const results: DBRedemption[] = this.db
+            .prepare('select * from economy_redemptions where owner=?')
             .all(id);
         return results.map((result: DBRedemption) => ({
             redemptionId: result.redemption_id,
@@ -70,6 +74,8 @@ export class EconomyRedemptionsManager {
     }
 
     deleteRedemption(id: number) {
-        this.db.prepare('delete from economy_redemptions where redemption_id=?').run(id);
+        this.db
+            .prepare('delete from economy_redemptions where redemption_id=?')
+            .run(id);
     }
 }

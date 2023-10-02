@@ -62,21 +62,26 @@ class TwitchAPI {
             let responseData = '';
             const request = https.request(getUserParams, (result) => {
                 result.setEncoding('utf8');
-                result.on('data', (d) => {
-                    responseData += d;
-                }).on('end', () => {
-                    const responseBody = JSON.parse(responseData);
-                    resolve(responseBody);
-                }).on('error', (e) => {
-                    reject(e);
-                });
+                result
+                    .on('data', (d) => {
+                        responseData += d;
+                    })
+                    .on('end', () => {
+                        const responseBody = JSON.parse(responseData);
+                        resolve(responseBody);
+                    })
+                    .on('error', (e) => {
+                        reject(e);
+                    });
             });
             request.end();
         });
     }
 
     async markRedeemed(auth, id, broadcaster, rewardId) {
-        const params = new URLSearchParams(`id=${id}&broadcaster_id=${broadcaster}&reward_id=${rewardId}`);
+        const params = new URLSearchParams(
+            `id=${id}&broadcaster_id=${broadcaster}&reward_id=${rewardId}`,
+        );
         const path = `helix/channel_points/custom_rewards/redemptions?${params.toString()}`;
         const redeemParams = {
             host: 'api.twitch.tv',
@@ -92,16 +97,19 @@ class TwitchAPI {
             let responseData = '';
             const request = https.request(redeemParams, (result) => {
                 result.setEncoding('utf8');
-                result.on('data', (d) => {
-                    responseData += d;
-                }).on('end', () => {
-                    const responseBody = JSON.parse(responseData);
-                    console.log(responseBody);
-                    resolve(responseBody);
-                }).on('error', (e) => {
-                    console.log(e);
-                    reject(e);
-                });
+                result
+                    .on('data', (d) => {
+                        responseData += d;
+                    })
+                    .on('end', () => {
+                        const responseBody = JSON.parse(responseData);
+                        console.log(responseBody);
+                        resolve(responseBody);
+                    })
+                    .on('error', (e) => {
+                        console.log(e);
+                        reject(e);
+                    });
             });
             request.end(JSON.stringify({ status: 'FULFILLED' }));
         });

@@ -15,8 +15,8 @@ export type HandlerDelegate = (
 ) => Promise<any>;
 
 export type QuoteResultMultiple = {
-    quotes: Quote[]
-}
+    quotes: Quote[];
+};
 
 export enum SearchType {
     number,
@@ -30,19 +30,20 @@ export type QuoteResultNotFound = {
 
 export type QuoteResultMessage = {
     message: string;
-}
+};
 
 export type QuoteResultError = {
-    isPermissionDenied: boolean,
+    isPermissionDenied: boolean;
     error: string;
-}
+};
 
-export type QuoteResult = Quote |
-        QuoteResultMultiple |
-        QuoteInfo |
-        QuoteResultNotFound |
-        QuoteResultMessage |
-        QuoteResultError;
+export type QuoteResult =
+    | Quote
+    | QuoteResultMultiple
+    | QuoteInfo
+    | QuoteResultNotFound
+    | QuoteResultMessage
+    | QuoteResultError;
 
 const quotePermissionDenied: QuoteResultError = {
     isPermissionDenied: true,
@@ -146,7 +147,8 @@ export const handleQuoteCommand: HandlerDelegate = async (
     }
     // looking up a quote
     let quote;
-    if (commandParts.length > 0) { // looking for a specific quote
+    if (commandParts.length > 0) {
+        // looking for a specific quote
         const lookup = commandParts[0];
         const quoteNumber = parseInt(lookup, 10);
         if (Number.isNaN(quoteNumber)) {
@@ -190,7 +192,10 @@ export const handleEconomyCommand: HandlerDelegate = async (
         } else {
             target = sender;
         }
-        return `${economyManager.getCurrency(await getOrCreateUserName(target), owner)} ${currencyName}`;
+        return `${economyManager.getCurrency(
+            await getOrCreateUserName(target),
+            owner,
+        )} ${currencyName}`;
     }
     if (command === 'gamble') {
         const [amount] = commandParts;
@@ -204,10 +209,10 @@ export const handleEconomyCommand: HandlerDelegate = async (
                 return 'You must gamble with a number or "all"';
             }
             if (gambleAmount < 0) {
-                return 'Can\'t gamble a negative amount';
+                return "Can't gamble a negative amount";
             }
             if (gambleAmount > total) {
-                return 'Can\'t gamble more than you have';
+                return "Can't gamble more than you have";
             }
         }
         if (_.random(1) === 0) {
@@ -233,8 +238,13 @@ export const handleEconomyCommand: HandlerDelegate = async (
         } else {
             target = sender;
         }
-        const net = economyManager.getGambleNet(await getOrCreateUserName(target), owner);
-        return `${target} has net ${net} ${currencyName} from gambling${net < 0 ? '...f' : '...congrats'}`;
+        const net = economyManager.getGambleNet(
+            await getOrCreateUserName(target),
+            owner,
+        );
+        return `${target} has net ${net} ${currencyName} from gambling${
+            net < 0 ? '...f' : '...congrats'
+        }`;
     }
     return '';
 };
@@ -244,7 +254,10 @@ export const handleFlagCommand: HandlerDelegate = async (
 ): Promise<string> => {
     if (commandParts[1] === 'event') {
         try {
-            const event = flagToEvent(commandParts[2], commandParts.slice(3).join(' '));
+            const event = flagToEvent(
+                commandParts[2],
+                commandParts.slice(3).join(' '),
+            );
             if (event.length === 0) {
                 return 'flag does not exist on the specified map';
             }
@@ -268,7 +281,11 @@ export const handleFlagCommand: HandlerDelegate = async (
         }
     } else if (commandParts[1] === 'lookup') {
         try {
-            const results = lookupFlag(commandParts[2], commandParts.slice(3).join(' '), true);
+            const results = lookupFlag(
+                commandParts[2],
+                commandParts.slice(3).join(' '),
+                true,
+            );
             if (results.length === 0) {
                 return 'flag is not reachable in BiT';
             }

@@ -30,7 +30,7 @@ class TwitchOAuth {
      * @returns A promise for the data from the validation end point
      */
     // eslint-disable-next-line class-methods-use-this
-    validateToken(token: string): Promise<{statusCode: number}> {
+    validateToken(token: string): Promise<{ statusCode: number }> {
         const validateParams = {
             host: 'id.twitch.tv',
             path: '/oauth2/validate',
@@ -41,34 +41,43 @@ class TwitchOAuth {
         return new Promise((resolve, reject) => {
             let responseData = '';
             const request = https.request(validateParams, (result) => {
-                result.on('data', (d) => {
-                    responseData += d;
-                }).on('end', () => {
-                    const responseBody = JSON.parse(responseData);
-                    responseBody.statusCode = result.statusCode;
-                    resolve(responseBody);
-                }).on('error', (e) => {
-                    reject(e);
-                });
+                result
+                    .on('data', (d) => {
+                        responseData += d;
+                    })
+                    .on('end', () => {
+                        const responseBody = JSON.parse(responseData);
+                        responseBody.statusCode = result.statusCode;
+                        resolve(responseBody);
+                    })
+                    .on('error', (e) => {
+                        reject(e);
+                    });
             });
             request.end();
         });
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async doRequest(data: string, params: Record<string, unknown>): Promise<unknown> {
+    async doRequest(
+        data: string,
+        params: Record<string, unknown>,
+    ): Promise<unknown> {
         return new Promise((resolve, reject) => {
             let responseData = '';
             const request = https.request(params, (result) => {
                 result.setEncoding('utf8');
-                result.on('data', (d) => {
-                    responseData += d;
-                }).on('end', () => {
-                    const responseBody = JSON.parse(responseData);
-                    resolve(responseBody);
-                }).on('error', (e) => {
-                    reject(e);
-                });
+                result
+                    .on('data', (d) => {
+                        responseData += d;
+                    })
+                    .on('end', () => {
+                        const responseBody = JSON.parse(responseData);
+                        resolve(responseBody);
+                    })
+                    .on('error', (e) => {
+                        reject(e);
+                    });
             });
             request.write(data);
             request.end();
@@ -108,7 +117,10 @@ class TwitchOAuth {
             path: '/oauth2/token',
             method: 'POST',
         };
-        const response = await this.doRequest(authCodeData.toString(), getAuthCodeParams);
+        const response = await this.doRequest(
+            authCodeData.toString(),
+            getAuthCodeParams,
+        );
         console.log(response);
         return '';
     }

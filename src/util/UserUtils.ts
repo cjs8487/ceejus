@@ -10,7 +10,9 @@ export const getOrCreateUserId = async (twitchId: string): Promise<number> => {
     return user;
 };
 
-export const getOrCreateUserName = async (username: string): Promise<number> => {
+export const getOrCreateUserName = async (
+    username: string,
+): Promise<number> => {
     const twitchId = (await botApiClient.users.getUserByName(username))?.id;
     if (twitchId === undefined) return -1;
     const user = userManager.getUserByTwitchId(twitchId).userId;

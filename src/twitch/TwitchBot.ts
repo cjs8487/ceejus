@@ -7,7 +7,12 @@ import fetch from 'node-fetch';
 import { User } from '../database/UserManager';
 import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
 import { logInfo } from '../Logger';
-import { handleEconomyCommand, handleFlagCommand, handleQuoteCommand, HandlerDelegate } from '../modules/Modules';
+import {
+    handleEconomyCommand,
+    handleFlagCommand,
+    handleQuoteCommand,
+    HandlerDelegate,
+} from '../modules/Modules';
 import { userManager } from '../System';
 import { MultiTwitch } from './modules/MultiTwitch';
 import { TwitchQuotesModule } from './modules/TwitchQuotesModule';
@@ -34,10 +39,15 @@ class TwitchBot {
         this.quotesBot = new TwitchQuotesModule();
         this.multiModule = new MultiTwitch();
         this.modules = new Map();
-        this.modules.set(['money', 'gamble', 'give', 'net'], handleEconomyCommand);
+        this.modules.set(
+            ['money', 'gamble', 'give', 'net'],
+            handleEconomyCommand,
+        );
         this.modules.set(['flags'], handleFlagCommand);
 
-        const channels: string[] = userManager.getAllUsers(true).map((user: User) => user.username);
+        const channels: string[] = userManager
+            .getAllUsers(true)
+            .map((user: User) => user.username);
         this.client = new ChatClient({
             authProvider: new StaticAuthProvider(twitchClientId, botOAuthToken),
             channels,
@@ -80,7 +90,12 @@ class TwitchBot {
                 handled = true;
                 this.client.say(
                     channel,
-                    await delegate(commandParts, user, mod, channel.substring(1)),
+                    await delegate(
+                        commandParts,
+                        user,
+                        mod,
+                        channel.substring(1),
+                    ),
                 );
             }
         });
@@ -92,15 +107,16 @@ class TwitchBot {
                 `@${user} is lurking in the shadows, silently supporting the stream`,
             );
         } else if (commandName === 'unlurk') {
-            this.client.say(
-                channel,
-                `@${user} has returned from the shadows`,
-            );
+            this.client.say(channel, `@${user} has returned from the shadows`);
         } else if (commandName === 'addcomm') {
             if (!isUserMod(user, channel)) return;
             const newCommand = commandParts[1].toLowerCase();
             const output = commandParts.slice(2).join(' ');
-            this.db.prepare('insert into commands (command_string, output) values (?, ?)').run(newCommand, output);
+            this.db
+                .prepare(
+                    'insert into commands (command_string, output) values (?, ?)',
+                )
+                .run(newCommand, output);
             this.client.say(
                 channel,
                 `@${user} command !${newCommand} successfully created`,
@@ -109,7 +125,9 @@ class TwitchBot {
             if (!isUserMod(user, channel)) return;
             const editCommand = commandParts[1].toLowerCase();
             const output = commandParts.slice(2).join(' ');
-            this.db.prepare('update commands set output=? where command_string=?').run(output, editCommand);
+            this.db
+                .prepare('update commands set output=? where command_string=?')
+                .run(output, editCommand);
             this.client.say(
                 channel,
                 `@${user} command !${editCommand} editted successfully`,
@@ -117,7 +135,9 @@ class TwitchBot {
         } else if (commandName === 'deletecomm') {
             if (!isUserMod(user, channel)) return;
             const deleteCommand = commandParts[1].toLowerCase();
-            this.db.prepare('delete from commands where command_string=?').run(deleteCommand);
+            this.db
+                .prepare('delete from commands where command_string=?')
+                .run(deleteCommand);
             this.client.say(
                 channel,
                 `@${user} command !${deleteCommand} deleted sucessfully`,
@@ -125,46 +145,51 @@ class TwitchBot {
         } else if (commandName === 'quote') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
-            const quoteResponse = await handleQuoteCommand(commandParts.slice(1), user, mod);
+            const quoteResponse = await handleQuoteCommand(
+                commandParts.slice(1),
+                user,
+                mod,
+            );
             if (quoteResponse === '') {
                 return;
             }
-            this.client.say(
-                channel,
-                `@${user} ${quoteResponse}`,
-            );
+            this.client.say(channel, `@${user} ${quoteResponse}`);
         } else if (commandName === 'multi') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
-            const multiResponse = this.multiModule.handleCommand(commandParts.slice(1), user, mod);
+            const multiResponse = this.multiModule.handleCommand(
+                commandParts.slice(1),
+                user,
+                mod,
+            );
             if (multiResponse === '') {
                 return;
             }
+            this.client.say(channel, `${multiResponse}`);
+            // } else if (commandName === 'floha') {
+            //     let quote;
+            //     if (commandParts.length > 1) {
+            //         const quoteNumber = parseInt(commandParts[1], 10);
+            //         if (Number.isNaN(quoteNumber)) {
+            //             quote = await (
+            //                 await fetch(
+            //                   `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
+            //                 )
+            //             ).json();
+            //         } else {
+            //             quote = await (
+            //                 await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
+            //             ).json();
+            //         }
+            //     } else {
+            //         quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+            //     }
+            //     this.client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
+        } else {
             this.client.say(
                 channel,
-                `${multiResponse}`,
+                await handleCommand(commandParts, user, mod),
             );
-        // } else if (commandName === 'floha') {
-        //     let quote;
-        //     if (commandParts.length > 1) {
-        //         const quoteNumber = parseInt(commandParts[1], 10);
-        //         if (Number.isNaN(quoteNumber)) {
-        //             quote = await (
-        //                 await fetch(
-        //                   `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
-        //                 )
-        //             ).json();
-        //         } else {
-        //             quote = await (
-        //                 await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
-        //             ).json();
-        //         }
-        //     } else {
-        //         quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
-        //     }
-        //     this.client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
-        } else {
-            this.client.say(channel, await handleCommand(commandParts, user, mod));
         }
     }
 
@@ -184,7 +209,10 @@ class TwitchBot {
     setupDb() {
         const commands = this.db.prepare('select * from commands');
         if (commands === undefined) {
-            const setupScript = fs.readFileSync('src/twitch/initalCommandSetup.sql', 'utf-8');
+            const setupScript = fs.readFileSync(
+                'src/twitch/initalCommandSetup.sql',
+                'utf-8',
+            );
             this.db.exec(setupScript);
         }
     }

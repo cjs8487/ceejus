@@ -1,26 +1,39 @@
 import { createHmac } from 'crypto';
 import { Request, Response } from 'express';
-import { economyManager, economyRedemptionsManager, redemptionsManager, tokenManager, userManager } from '../System';
+import {
+    economyManager,
+    economyRedemptionsManager,
+    redemptionsManager,
+    tokenManager,
+    userManager,
+} from '../System';
 import { secret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';
 import { logError, logInfo, logWarn } from '../Logger';
 
-const verifySignature = (messageSignature: string, messageID: string, messageTimestamp: string, body: string) => {
+const verifySignature = (
+    messageSignature: string,
+    messageID: string,
+    messageTimestamp: string,
+    body: string,
+) => {
     const message = messageID + messageTimestamp + body;
     const signature = createHmac('sha256', secret).update(message);
     const expectedSignature = `sha256=${signature.digest('hex')}`;
     return expectedSignature === messageSignature;
 };
 
-export const handleEconomyRedemption = async (
-    data: any,
-) => {
-    const owner = userManager.getUserByTwitchId(data.broadcaster_user_id).userId;
+export const handleEconomyRedemption = async (data: any) => {
+    const owner = userManager.getUserByTwitchId(
+        data.broadcaster_user_id,
+    ).userId;
     const userApiClient = tokenManager.getApiClient(owner);
     if (userApiClient === undefined) {
         logWarn('received a notification for a channel with no user record');
     } else {
-        const { amount } = economyRedemptionsManager.getRedemption(data.reward.id);
+        const { amount } = economyRedemptionsManager.getRedemption(
+            data.reward.id,
+        );
         const twitchId = data.user_id;
         const user = await getOrCreateUserId(twitchId);
         economyManager.addCurrency(user, owner, amount);
@@ -38,7 +51,11 @@ export const notification = async (req: Request, res: Response) => {
     const signature = req.header('Twitch-Eventsub-Message-Signature');
     const messageId = req.header('Twitch-Eventsub-Message-Id');
     const timestamp = req.header('Twitch-Eventsub-Message-Timestamp');
-    if (signature === undefined || messageId === undefined || timestamp === undefined) {
+    if (
+        signature === undefined ||
+        messageId === undefined ||
+        timestamp === undefined
+    ) {
         logWarn('Missing a required header element');
         res.status(403).send('Forbidden');
         return;
@@ -56,7 +73,9 @@ export const notification = async (req: Request, res: Response) => {
         const { id, status } = req.body;
         redemptionsManager.deleteMetadata(id);
         if (status === 'notification_failures_exceeded') {
-            logError(`Subscription with ID ${id} revoked due to callback failures`);
+            logError(
+                `Subscription with ID ${id} revoked due to callback failures`,
+            );
         } else {
             logInfo(`Subscripion with ID ${id} revoked with status ${status}`);
         }
@@ -64,13 +83,17 @@ export const notification = async (req: Request, res: Response) => {
         const { event } = req.body;
         try {
             // TODO: handle event based on type and metadata and call appropriate delegate
-            const { module, type } = redemptionsManager.getMetadata(event.reward.id);
+            const { module, type } = redemptionsManager.getMetadata(
+                event.reward.id,
+            );
             switch (module) {
                 case 'economy':
                     handleEconomyRedemption(event);
                     break;
                 default:
-                    logError('received a notification for a redemption with no associtaed handler');
+                    logError(
+                        'received a notification for a redemption with no associtaed handler',
+                    );
             }
         } catch (e: any) {
             logError(`Error while handling an EventSub notification ${e}`);

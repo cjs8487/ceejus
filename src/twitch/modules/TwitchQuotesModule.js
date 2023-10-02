@@ -41,14 +41,21 @@ class TwitchQuotesModule extends BotModule {
             if (!mod) {
                 return 'You do not have permission to do that';
             }
-            return QuotesCore.getInstance().handleAliasRequest(commandParts, mod);
+            return QuotesCore.getInstance().handleAliasRequest(
+                commandParts,
+                mod,
+            );
         }
         if (quoteCommand === 'info') {
             if (commandParts[1] === 'edit') {
                 const quoteNumber = parseInt(commandParts[2], 10);
                 const quotedOn = commandParts[3];
                 const quotedBy = commandParts.slice(4).join(' ');
-                QuotesCore.getInstance().editQuoteInfo(quoteNumber, quotedOn, quotedBy);
+                QuotesCore.getInstance().editQuoteInfo(
+                    quoteNumber,
+                    quotedOn,
+                    quotedBy,
+                );
                 return `info for #${quoteNumber} updated`;
             }
             const quoteNumber = parseInt(commandParts[1], 10);
@@ -60,7 +67,9 @@ class TwitchQuotesModule extends BotModule {
             const results = QuotesCore.getInstance().searchQuote(searchString);
             if (!results.includes(',') && results.includes('#')) {
                 // if there is exactly one result and a result was found
-                const quote = QuotesCore.getInstance().getQuote(parseInt(results.slice(1), 10));
+                const quote = QuotesCore.getInstance().getQuote(
+                    parseInt(results.slice(1), 10),
+                );
                 return `Search result: #${quote.id}: ${quote.quote}`;
             }
             return results;
@@ -71,7 +80,8 @@ class TwitchQuotesModule extends BotModule {
         }
         // looking up a quote
         let quote;
-        if (commandParts.length > 0) { // looking for a specific quote
+        if (commandParts.length > 0) {
+            // looking for a specific quote
             const lookup = commandParts[0];
             const quoteNumber = parseInt(lookup, 10);
             if (Number.isNaN(quoteNumber)) {

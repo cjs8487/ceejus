@@ -1,22 +1,22 @@
 import { Database } from 'better-sqlite3';
 
 export type RedemptionMetadata = {
-    metaId: number,
-    owner: number,
-    twitchRewardId: string,
-    module: string,
-    type?: string,
-}
+    metaId: number;
+    owner: number;
+    twitchRewardId: string;
+    module: string;
+    type?: string;
+};
 
 type DBMetadata = {
     // eslint-disable-next-line camelcase
-    meta_id: number,
-    owner: number,
+    meta_id: number;
+    owner: number;
     // eslint-disable-next-line camelcase
-    twitch_reward_id: string,
-    module: string,
-    type?: string,
-}
+    twitch_reward_id: string;
+    module: string;
+    type?: string;
+};
 
 export class RedemptionsManager {
     db: Database;
@@ -45,7 +45,9 @@ export class RedemptionsManager {
     }
 
     getAllMetadataForUser(id: number): RedemptionMetadata[] {
-        const redemptions: DBMetadata[] = this.db.prepare('select * from redemption_metadata where owner=?').all(id);
+        const redemptions: DBMetadata[] = this.db
+            .prepare('select * from redemption_metadata where owner=?')
+            .all(id);
         if (redemptions === undefined) {
             return [];
         }
@@ -58,8 +60,16 @@ export class RedemptionsManager {
         }));
     }
 
-    createMetadata(owner: number, twitchRewardId: string, module: string, type?: string): void {
-        this.db.prepare('insert into redemption_metadata (owner, twitch_reward_id, module, type) values (?, ?, ?, ?)')
+    createMetadata(
+        owner: number,
+        twitchRewardId: string,
+        module: string,
+        type?: string,
+    ): void {
+        this.db
+            .prepare(
+                'insert into redemption_metadata (owner, twitch_reward_id, module, type) values (?, ?, ?, ?)',
+            )
             .run(owner, twitchRewardId, module, type);
     }
 

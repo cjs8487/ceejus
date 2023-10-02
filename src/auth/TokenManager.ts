@@ -1,22 +1,33 @@
 import { ApiClient } from '@twurple/api';
-import { AccessToken, exchangeCode, RefreshingAuthProvider } from '@twurple/auth';
+import {
+    AccessToken,
+    exchangeCode,
+    RefreshingAuthProvider,
+} from '@twurple/auth';
 import UserManager, { User } from 'src/database/UserManager';
 
 class TokenManager {
-    clientId: string
-    clientSecret: string
+    clientId: string;
+    clientSecret: string;
     userManager: UserManager;
     authProviders: Map<number, RefreshingAuthProvider>;
-    apiClients: Map<number, ApiClient>
+    apiClients: Map<number, ApiClient>;
 
-    constructor(clientId: string, clientSecret: string, userManager: UserManager) {
+    constructor(
+        clientId: string,
+        clientSecret: string,
+        userManager: UserManager,
+    ) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.userManager = userManager;
         this.authProviders = new Map();
         this.apiClients = new Map();
         this.userManager.getAllUsers().forEach((user: User) => {
-            this.registerUser(user.userId, userManager.getAccessToken(user.userId));
+            this.registerUser(
+                user.userId,
+                userManager.getAccessToken(user.userId),
+            );
         });
     }
 
@@ -33,6 +44,7 @@ class TokenManager {
         );
         this.authProviders.set(user, provider);
         this.apiClients.set(user, new ApiClient({ authProvider: provider }));
+        console.log(`registered ${user}`);
     }
 
     getApiClient(user: number): ApiClient | undefined {
@@ -44,7 +56,12 @@ class TokenManager {
     }
 
     async exchangeCode(code: string): Promise<AccessToken> {
-        return exchangeCode(this.clientId, this.clientSecret, code, 'http://localhost:3000');
+        return exchangeCode(
+            this.clientId,
+            this.clientSecret,
+            code,
+            'http://localhost:3000',
+        );
     }
 }
 

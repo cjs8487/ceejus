@@ -49,41 +49,59 @@ class PublicQuotesBot {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
             const mod = false;
-            const quoteResponse = this.quotesBot.handleCommand(commandParts.slice(1), user.username, mod);
+            const quoteResponse = this.quotesBot.handleCommand(
+                commandParts.slice(1),
+                user.username,
+                mod,
+            );
             if (quoteResponse === '') {
                 return;
             }
-            this.client.say(
-                channel,
-                `@${user.username} ${quoteResponse}`,
-            );
+            this.client.say(channel, `@${user.username} ${quoteResponse}`);
         } else if (commandName === 'multi') {
             // pass the message on to the quotes bot to handle
             // we remove the !quote because the bot assumes that the message has already been parsed
             const mod = false;
-            const multiResponse = MultiTwitch.INSTANCE.handleCommand(commandParts.slice(1), user.username, mod);
+            const multiResponse = MultiTwitch.INSTANCE.handleCommand(
+                commandParts.slice(1),
+                user.username,
+                mod,
+            );
             if (multiResponse === '') {
                 return;
             }
-            this.client.say(
-                channel, `${multiResponse}`,
-            );
+            this.client.say(channel, `${multiResponse}`);
         } else if (commandName === 'flags') {
             if (commandParts[1] === 'event') {
                 try {
-                    const event = flagToEvent(commandParts[2], commandParts.slice(3).join(' '));
+                    const event = flagToEvent(
+                        commandParts[2],
+                        commandParts.slice(3).join(' '),
+                    );
                     if (event.length === 0) {
-                        this.client.say(channel, `@${user.username} flag does not exist on the specified map`);
+                        this.client.say(
+                            channel,
+                            `@${user.username} flag does not exist on the specified map`,
+                        );
                     }
                     this.client.say(channel, `@${user.username} ${event}`);
                 } catch (e) {
-                    this.client.say(channel, `@${user.username} invalid map or flag specified`);
+                    this.client.say(
+                        channel,
+                        `@${user.username} invalid map or flag specified`,
+                    );
                 }
             } else if (commandParts[1] === 'bit') {
                 try {
-                    const info = getBiTInfo(commandParts[2], commandParts.slice(3).join(' '));
+                    const info = getBiTInfo(
+                        commandParts[2],
+                        commandParts.slice(3).join(' '),
+                    );
                     if (info.length === 0) {
-                        this.client.say(channel, `@${user.username} flag is not reachable in BiT`);
+                        this.client.say(
+                            channel,
+                            `@${user.username} flag is not reachable in BiT`,
+                        );
                     }
                     let response = `@${user.username}`;
                     _.forEach(info, (infoString) => {
@@ -91,13 +109,23 @@ class PublicQuotesBot {
                     });
                     this.client.say(channel, response);
                 } catch (e) {
-                    this.client.say(channel, `@${user.username} invalid flag specified`);
+                    this.client.say(
+                        channel,
+                        `@${user.username} invalid flag specified`,
+                    );
                 }
             } else if (commandParts[1] === 'lookup') {
                 try {
-                    const results = lookupFlag(commandParts[2], commandParts.slice(3).join(' '), true);
+                    const results = lookupFlag(
+                        commandParts[2],
+                        commandParts.slice(3).join(' '),
+                        true,
+                    );
                     if (results.length === 0) {
-                        this.client.say(channel, `@${user.username} flag is not reachable in BiT`);
+                        this.client.say(
+                            channel,
+                            `@${user.username} flag is not reachable in BiT`,
+                        );
                     }
                     let response = `@${user.username}`;
                     _.forEach(results, (result) => {
@@ -105,7 +133,10 @@ class PublicQuotesBot {
                     });
                     this.client.say(channel, response);
                 } catch (e) {
-                    this.client.say(channel, `@${user.username} invalid map specified`);
+                    this.client.say(
+                        channel,
+                        `@${user.username} invalid map specified`,
+                    );
                 }
             }
         }

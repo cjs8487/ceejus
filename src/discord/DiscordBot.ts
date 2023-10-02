@@ -33,16 +33,20 @@ class DiscordBot {
             if (testing) {
                 client.user?.setPresence({
                     status: 'online',
-                    activities: [{
-                        name: `Test Mode (v${process.env.npm_package_version})`,
-                    }],
+                    activities: [
+                        {
+                            name: `Test Mode (v${process.env.npm_package_version})`,
+                        },
+                    ],
                 });
             } else {
                 client.user?.setPresence({
                     status: 'online',
-                    activities: [{
-                        name: `Ceejus v${process.env.npm_package_version}`,
-                    }],
+                    activities: [
+                        {
+                            name: `Ceejus v${process.env.npm_package_version}`,
+                        },
+                    ],
                 });
             }
         });
@@ -74,7 +78,15 @@ class DiscordBot {
             message.channel.send(
                 {
                     content: `${message.author}`,
-                    embeds: [formatQuoteResponse(await handleQuoteCommand(args, message.author.username, false))],
+                    embeds: [
+                        formatQuoteResponse(
+                            await handleQuoteCommand(
+                                args,
+                                message.author.username,
+                                false,
+                            ),
+                        ),
+                    ],
                 },
                 // await handleQuoteCommand(args, message.author.username, false),
             );
@@ -196,7 +208,9 @@ class DiscordBot {
                     message.channel.send(d);
                 });
                 result.on('error', () => {
-                    message.channel.send('Failed to fetch inforation from the server. Try gain later.');
+                    message.channel.send(
+                        'Failed to fetch inforation from the server. Try gain later.',
+                    );
                 });
             });
         }

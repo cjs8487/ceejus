@@ -12,8 +12,10 @@ class DiscordQuotesModule extends BotModule {
             .setColor('#ff0000')
             .setAuthor(this.author)
             .setTitle('Permission Denied')
-            .setDescription('You don\'t have permission to do that.')
-            .setFooter({ text: 'Mod permission check for quotes module failed' });
+            .setDescription("You don't have permission to do that.")
+            .setFooter({
+                text: 'Mod permission check for quotes module failed',
+            });
     }
 
     handleCommand(commandParts, sender, mod) {
@@ -65,7 +67,10 @@ class DiscordQuotesModule extends BotModule {
             if (!mod) {
                 return this.permissionDeniedEmbed;
             }
-            const result = QuotesCore.getInstance().handleAliasRequest(commandParts, mod);
+            const result = QuotesCore.getInstance().handleAliasRequest(
+                commandParts,
+                mod,
+            );
             return new Discord.MessageEmbed()
                 .setColor('#0099ff')
                 .setAuthor(this.author)
@@ -85,15 +90,27 @@ class DiscordQuotesModule extends BotModule {
             const results = QuotesCore.getInstance().searchQuote(searchString);
             if (!results.includes(',') && results.includes('#')) {
                 // if there is exactly one result and a result was found
-                const quote = QuotesCore.getInstance().getQuote(parseInt(results.slice(1), 10));
+                const quote = QuotesCore.getInstance().getQuote(
+                    parseInt(results.slice(1), 10),
+                );
                 return new Discord.MessageEmbed()
                     .setColor('#0099ff')
                     .setAuthor(this.author)
-                    .setTitle(`Search result for '${searchString}': Quote #${quote.id}`)
+                    .setTitle(
+                        `Search result for '${searchString}': Quote #${quote.id}`,
+                    )
                     .setDescription(quote.quote)
                     .addFields(
-                        { name: 'Quoted by', value: quote.quotedBy, inline: true },
-                        { name: 'Quoted on', value: quote.quotedOn, inline: true },
+                        {
+                            name: 'Quoted by',
+                            value: quote.quotedBy,
+                            inline: true,
+                        },
+                        {
+                            name: 'Quoted on',
+                            value: quote.quotedOn,
+                            inline: true,
+                        },
                         { name: 'Requested by', value: sender, inline: true },
                     )
                     .setFooter(`Also known as: ${quote.alias}`);
@@ -103,9 +120,11 @@ class DiscordQuotesModule extends BotModule {
                 .setAuthor(this.author)
                 .setTitle(`Search results for '${searchString}'`)
                 .setDescription(results)
-                .addFields(
-                    { name: 'Requested by', value: sender, inline: true },
-                );
+                .addFields({
+                    name: 'Requested by',
+                    value: sender,
+                    inline: true,
+                });
         }
         if (quoteCommand === 'latest') {
             const quote = QuotesCore.getInstance().getLatestQuote();
@@ -122,7 +141,8 @@ class DiscordQuotesModule extends BotModule {
         }
         // looking up a quote
         let quote;
-        if (commandParts.length > 0) { // looking for a specific quote
+        if (commandParts.length > 0) {
+            // looking for a specific quote
             const lookup = commandParts[0];
             const quoteNumber = parseInt(lookup, 10);
             if (Number.isNaN(quoteNumber)) {
@@ -133,9 +153,11 @@ class DiscordQuotesModule extends BotModule {
                         .setColor('#0099ff')
                         .setAuthor(this.author)
                         .setTitle(`Quote with alias '${alias}' does not exist`)
-                        .addFields(
-                            { name: 'Requested by', value: sender, inline: true },
-                        );
+                        .addFields({
+                            name: 'Requested by',
+                            value: sender,
+                            inline: true,
+                        });
                 }
             } else {
                 quote = QuotesCore.getInstance().getQuote(quoteNumber);

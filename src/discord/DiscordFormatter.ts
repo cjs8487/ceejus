@@ -1,9 +1,18 @@
 import { MessageEmbed } from 'discord.js';
 import { QuoteResult } from 'src/modules/Modules';
 import { Quote } from '../database/quotes/QuotesManager';
-import { permissionDeniedEmbed, quoteEmbed, quoteErrorEmbed, quoteMessageEmbed, quoteMultiEmbed } from './Embeds';
+import {
+    permissionDeniedEmbed,
+    quoteEmbed,
+    quoteErrorEmbed,
+    quoteMessageEmbed,
+    quoteMultiEmbed,
+} from './Embeds';
 
-const quotePermDenied = permissionDeniedEmbed('Ceejus - Quotes', 'Mod permission check for quotes module failed');
+const quotePermDenied = permissionDeniedEmbed(
+    'Ceejus - Quotes',
+    'Mod permission check for quotes module failed',
+);
 
 export const formatQuoteResponse = (result: QuoteResult): MessageEmbed => {
     if ('quotes' in result) {

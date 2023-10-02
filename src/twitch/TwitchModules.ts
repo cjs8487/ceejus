@@ -12,16 +12,21 @@ export const handleCommand: HandlerDelegate = async (
 ): Promise<string> => {
     // standard text commands
     const commandName = commandParts.shift();
-    const response = db.prepare('select output from commands where command_string=?').get(commandName);
+    const response = db
+        .prepare('select output from commands where command_string=?')
+        .get(commandName);
     if (response === undefined) return ''; // invalid command
     // parse argument based commands
     let success = true;
-    const parsed = response.output.replaceAll(paramRegex, (match: string, p1: string) => {
-        if (p1 === 'undefined') {
-            success = false;
-        }
-        return commandParts[_.toNumber(p1) + 1];
-    });
+    const parsed = response.output.replaceAll(
+        paramRegex,
+        (match: string, p1: string) => {
+            if (p1 === 'undefined') {
+                success = false;
+            }
+            return commandParts[_.toNumber(p1) + 1];
+        },
+    );
     if (success) {
         return parsed;
     }

@@ -2,10 +2,10 @@ import { AccessToken } from '@twurple/auth';
 import { Database, RunResult } from 'better-sqlite3';
 
 export type User = {
-    userId: number,
-    username: string,
-    active: boolean,
-}
+    userId: number;
+    username: string;
+    active: boolean;
+};
 
 export const NO_USER: User = {
     userId: -1,
@@ -23,10 +23,10 @@ export const NO_TOKEN: AccessToken = {
 
 type DBUser = {
     // eslint-disable-next-line camelcase
-    user_id: number,
-    username: string,
-    active: number,
-}
+    user_id: number;
+    username: string;
+    active: number;
+};
 
 const toExternalForm = (user: DBUser): User => ({
     userId: user.user_id,
@@ -41,39 +41,57 @@ class UserManager {
         this.db = db;
     }
 
-    registerUser(username: string, twitchId: string, accessToken: AccessToken): number {
-        const addData: RunResult =
-            this.db.prepare('insert into users (username, twitch_id, active) values (?, ?, 1)').run(username, twitchId);
-        this.db.prepare(
-            // eslint-disable-next-line max-len
-            'insert into oauth (owner, access_token, refresh_token, scopes, expires_in, obtained) values (?, ?, ?, ?, ?, ?)',
-        ).run(
-            addData.lastInsertRowid,
-            accessToken.accessToken,
-            accessToken.refreshToken,
-            accessToken.scope.join(','),
-            accessToken.expiresIn,
-            accessToken.obtainmentTimestamp,
-        );
+    registerUser(
+        username: string,
+        twitchId: string,
+        accessToken: AccessToken,
+    ): number {
+        const addData: RunResult = this.db
+            .prepare(
+                'insert into users (username, twitch_id, active) values (?, ?, 1)',
+            )
+            .run(username, twitchId);
+        this.db
+            .prepare(
+                // eslint-disable-next-line max-len
+                'insert into oauth (owner, access_token, refresh_token, scopes, expires_in, obtained) values (?, ?, ?, ?, ?, ?)',
+            )
+            .run(
+                addData.lastInsertRowid,
+                accessToken.accessToken,
+                accessToken.refreshToken,
+                accessToken.scope.join(','),
+                accessToken.expiresIn,
+                accessToken.obtainmentTimestamp,
+            );
         return addData.lastInsertRowid as number;
     }
 
     registerUserWithoutAuth(username: string, twitchId: string): number {
-        const addData: RunResult =
-            this.db.prepare('insert into users (username, twitch_id, active) values (?, ?, 1)').run(username, twitchId);
+        const addData: RunResult = this.db
+            .prepare(
+                'insert into users (username, twitch_id, active) values (?, ?, 1)',
+            )
+            .run(username, twitchId);
         return addData.lastInsertRowid as number;
     }
 
     updateUser(userId: number, username: string) {
-        this.db.prepare('update users set username=? where user_id=?').run(username, userId);
+        this.db
+            .prepare('update users set username=? where user_id=?')
+            .run(username, userId);
     }
 
     activateUser(userId: number) {
-        this.db.prepare('update users set active=1 where user_id=?').run(userId);
+        this.db
+            .prepare('update users set active=1 where user_id=?')
+            .run(userId);
     }
 
     deactivateUser(userId: number) {
-        this.db.prepare('update users set active=0 where user_id=?').run(userId);
+        this.db
+            .prepare('update users set active=0 where user_id=?')
+            .run(userId);
     }
 
     getAllUsers(active?: boolean): User[] {
@@ -104,19 +122,33 @@ class UserManager {
     }
 
     getUserByTwitchId(twitchId: string): User {
-        const user: DBUser = this.db.prepare('select * from users where twitch_id=?').get(twitchId);
+        const user: DBUser = this.db
+            .prepare('select * from users where twitch_id=?')
+            .get(twitchId);
         if (user === undefined) return NO_USER;
         return toExternalForm(user);
     }
 
     updateAuth(userId: number, accessTokenObj: AccessToken) {
-        const { accessToken, refreshToken, expiresIn, obtainmentTimestamp } = accessTokenObj;
-        this.db.prepare('update oauth set access_token=?, refresh_token=?, expires_in=?, obtained=? where owner=?')
-            .run(accessToken, refreshToken, expiresIn, obtainmentTimestamp, userId);
+        const { accessToken, refreshToken, expiresIn, obtainmentTimestamp } =
+            accessTokenObj;
+        this.db
+            .prepare(
+                'update oauth set access_token=?, refresh_token=?, expires_in=?, obtained=? where owner=?',
+            )
+            .run(
+                accessToken,
+                refreshToken,
+                expiresIn,
+                obtainmentTimestamp,
+                userId,
+            );
     }
 
     getAccessToken(userId: number): AccessToken {
-        const data = this.db.prepare('select * from oauth where owner=?').get(userId);
+        const data = this.db
+            .prepare('select * from oauth where owner=?')
+            .get(userId);
         if (data === undefined) return NO_TOKEN;
         return {
             accessToken: data.access_token,
@@ -128,7 +160,9 @@ class UserManager {
     }
 
     userExists(username: string) {
-        const result = this.db.prepare('select user_id from users where username=?').all(username);
+        const result = this.db
+            .prepare('select user_id from users where username=?')
+            .all(username);
         return result.length > 0;
     }
 }
