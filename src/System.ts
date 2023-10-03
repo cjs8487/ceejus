@@ -2,7 +2,6 @@ import { ApiClient } from '@twurple/api';
 import { StaticAuthProvider } from '@twurple/auth';
 import Database, { Database as DB } from 'better-sqlite3';
 import fs from 'fs';
-import TokenManager from './auth/TokenManager';
 import EconomyManager from './database/EconomyManager';
 import { EconomyRedemptionsManager } from './database/EconomyRedemptionsManager';
 import QuotesManager from './database/quotes/QuotesManager';
@@ -40,18 +39,12 @@ export const botAuthProvider = new StaticAuthProvider(
     twitchClientId,
     twitchAuthToken,
     undefined,
-    'app',
 );
 export const botApiClient = new ApiClient({ authProvider: botAuthProvider });
 
 export const userManager = new UserManager(db);
 export const economyRedemptionsManager = new EconomyRedemptionsManager(db);
 export const redemptionsManager = new RedemptionsManager(db);
-export const tokenManager = new TokenManager(
-    twitchClientId,
-    twitchClientSecret,
-    userManager,
-);
 export const eventSubManager = new TwitchEventSubHandler(
     twitchClientId,
     botApiClient,

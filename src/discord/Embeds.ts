@@ -1,4 +1,4 @@
-import { EmbedAuthorData, EmbedFooterData, MessageEmbed } from 'discord.js';
+import { EmbedAuthorData, EmbedFooterData, EmbedBuilder } from 'discord.js';
 import { Quote } from 'src/database/quotes/QuotesManager';
 
 export const author = (name: string): EmbedAuthorData => ({ name });
@@ -6,7 +6,7 @@ export const author = (name: string): EmbedAuthorData => ({ name });
 export const footer = (text: string): EmbedFooterData => ({ text });
 
 export const permissionDeniedEmbed = (authorName: string, message: string) =>
-    new MessageEmbed()
+    new EmbedBuilder()
         .setColor('#ff0000')
         .setAuthor(author(authorName))
         .setTitle('Permission Denied')
@@ -15,10 +15,10 @@ export const permissionDeniedEmbed = (authorName: string, message: string) =>
 
 const quotesAuthor = author('Ceejus - Quotes');
 
-export const quoteCreateEmbed = () => new MessageEmbed();
+export const quoteCreateEmbed = () => new EmbedBuilder();
 
 export const quoteEmbed = (quote: Quote) =>
-    new MessageEmbed()
+    new EmbedBuilder()
         .setColor('#0099ff')
         .setAuthor(quotesAuthor)
         .setTitle(`Quote #${quote.id}`)
@@ -30,14 +30,14 @@ export const quoteEmbed = (quote: Quote) =>
         .setFooter({ text: `Also known as: ${quote.alias}` });
 
 export const quoteMessageEmbed = (message: string) =>
-    new MessageEmbed()
+    new EmbedBuilder()
         .setColor('#0099ff')
         .setAuthor(quotesAuthor)
         .setTitle('Results')
         .setDescription(message);
 
 export const quoteErrorEmbed = (error: string) =>
-    new MessageEmbed()
+    new EmbedBuilder()
         .setColor('#ff0000')
         .setAuthor(quotesAuthor)
         .setTitle('Something went wrong')
@@ -49,7 +49,7 @@ export const quoteMultiEmbed = (quotes: Quote[]) => {
         returnString += `#${quote.id}, `;
     });
     returnString = returnString.slice(0, returnString.length - 2);
-    return new MessageEmbed()
+    return new EmbedBuilder()
         .setColor('#0099ff')
         .setAuthor(quotesAuthor)
         .setTitle('Search results')

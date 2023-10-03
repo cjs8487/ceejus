@@ -4,12 +4,12 @@ import {
     economyManager,
     economyRedemptionsManager,
     redemptionsManager,
-    tokenManager,
     userManager,
 } from '../System';
 import { secret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';
 import { logError, logInfo, logWarn } from '../Logger';
+import { apiClient, isUserRegistered } from '../auth/TwitchAuth';
 
 const verifySignature = (
     messageSignature: string,
@@ -24,11 +24,8 @@ const verifySignature = (
 };
 
 export const handleEconomyRedemption = async (data: any) => {
-    const owner = userManager.getUserByTwitchId(
-        data.broadcaster_user_id,
-    ).userId;
-    const userApiClient = tokenManager.getApiClient(owner);
-    if (userApiClient === undefined) {
+    const owner = data.broadcaster_user_id;
+    if (!isUserRegistered(owner)) {
         logWarn('received a notification for a channel with no user record');
     } else {
         const { amount } = economyRedemptionsManager.getRedemption(
@@ -37,11 +34,13 @@ export const handleEconomyRedemption = async (data: any) => {
         const twitchId = data.user_id;
         const user = await getOrCreateUserId(twitchId);
         economyManager.addCurrency(user, owner, amount);
-        userApiClient.channelPoints.updateRedemptionStatusByIds(
-            data.broadcaster_user_id,
-            data.reward.id,
-            [data.id],
-            'FULFILLED',
+        apiClient.asUser(owner, (ctx) =>
+            ctx.channelPoints.updateRedemptionStatusByIds(
+                data.broadcaster_user_id,
+                data.reward.id,
+                [data.id],
+                'FULFILLED',
+            ),
         );
     }
 };

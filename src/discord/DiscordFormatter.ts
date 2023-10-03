@@ -1,4 +1,4 @@
-import { MessageEmbed } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { QuoteResult } from 'src/modules/Modules';
 import { Quote } from '../database/quotes/QuotesManager';
 import {
@@ -14,7 +14,7 @@ const quotePermDenied = permissionDeniedEmbed(
     'Mod permission check for quotes module failed',
 );
 
-export const formatQuoteResponse = (result: QuoteResult): MessageEmbed => {
+export const formatQuoteResponse = (result: QuoteResult): EmbedBuilder => {
     if (!result) {
         return quoteErrorEmbed('No quote found');
     }

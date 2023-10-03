@@ -129,6 +129,23 @@ class UserManager {
         return toExternalForm(user);
     }
 
+    updateTwitchAuth(twitchId: string, token: AccessToken) {
+        const { accessToken, refreshToken, expiresIn, obtainmentTimestamp } =
+            token;
+        const owner = this.getUserByTwitchId(twitchId);
+        this.db
+            .prepare(
+                'update oauth set access_token=?, refresh_token=?, expires_in=?, obtained=? where owner=?',
+            )
+            .run(
+                accessToken,
+                refreshToken,
+                expiresIn,
+                obtainmentTimestamp,
+                owner.userId,
+            );
+    }
+
     updateAuth(userId: number, accessTokenObj: AccessToken) {
         const { accessToken, refreshToken, expiresIn, obtainmentTimestamp } =
             accessTokenObj;
