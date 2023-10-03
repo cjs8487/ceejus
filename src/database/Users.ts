@@ -8,12 +8,6 @@ export type User = {
     active: boolean;
 };
 
-export const NO_USER: User = {
-    userId: -1,
-    username: '',
-    active: false,
-};
-
 export const NO_TOKEN: AccessToken = {
     accessToken: '',
     refreshToken: '',
@@ -96,37 +90,38 @@ export const getAllUsers = (active?: boolean): User[] => {
     return users.map((user: DBUser) => toExternalForm(user));
 };
 
-export const getUser = (userId: number): User => {
+export const getUser = (userId: number): User | undefined => {
     const selectedUser: DBUser = db
         .prepare('select * from users where user_id=?')
         .get(userId);
     if (selectedUser === undefined) {
-        return NO_USER;
+        return undefined;
     }
     return toExternalForm(selectedUser);
 };
 
-export const getUserByName = (username: string): User => {
+export const getUserByName = (username: string): User | undefined => {
     const selectedUser: DBUser = db
         .prepare('select * from users where username=?')
         .get(username);
     if (selectedUser === undefined) {
-        return NO_USER;
+        return undefined;
     }
     return toExternalForm(selectedUser);
 };
 
-export const getUserByTwitchId = (twitchId: string): User => {
+export const getUserByTwitchId = (twitchId: string): User | undefined => {
     const user: DBUser = db
         .prepare('select * from users where twitch_id=?')
         .get(twitchId);
-    if (user === undefined) return NO_USER;
+    if (user === undefined) return undefined;
     return toExternalForm(user);
 };
 
 export const updateTwitchAuth = (twitchId: string, token: AccessToken) => {
     const { accessToken, refreshToken, expiresIn, obtainmentTimestamp } = token;
     const owner = getUserByTwitchId(twitchId);
+    if (!owner) return;
     db.prepare(
         'update oauth set access_token=?, refresh_token=?, expires_in=?, obtained=? where owner=?',
     ).run(

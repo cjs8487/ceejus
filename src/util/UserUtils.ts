@@ -2,13 +2,13 @@ import { apiClient } from '../auth/TwitchAuth';
 import { getUserByTwitchId, registerUserWithoutAuth } from '../database/Users';
 
 export const getOrCreateUserId = async (twitchId: string): Promise<number> => {
-    const user = getUserByTwitchId(twitchId).userId;
-    if (user === -1) {
+    const user = getUserByTwitchId(twitchId);
+    if (!user) {
         const username = (await apiClient.users.getUserById(twitchId))?.name;
-        if (username === undefined) return -1;
+        if (!username) return -1;
         return registerUserWithoutAuth(username, twitchId);
     }
-    return user;
+    return user.userId;
 };
 
 export const getOrCreateUserName = async (
@@ -16,9 +16,9 @@ export const getOrCreateUserName = async (
 ): Promise<number> => {
     const twitchId = (await apiClient.users.getUserByName(username))?.id;
     if (twitchId === undefined) return -1;
-    const user = getUserByTwitchId(twitchId).userId;
-    if (user === -1) {
+    const user = getUserByTwitchId(twitchId);
+    if (!user) {
         return registerUserWithoutAuth(username, twitchId);
     }
-    return user;
+    return user.userId;
 };

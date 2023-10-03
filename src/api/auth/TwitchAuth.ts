@@ -30,7 +30,7 @@ twitchAuth.post(
             if (!userExists(user.displayName)) {
                 userId = registerUser(user.displayName, user.id, firstToken);
             } else {
-                userId = getUserByName(user.displayName).userId;
+                userId = getUserByName(user.displayName)!.userId;
             }
             req.session.regenerate((err) => {
                 if (err) {

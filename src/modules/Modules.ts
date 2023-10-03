@@ -3,7 +3,7 @@ import { Quote, QuoteInfo } from 'src/database/quotes/QuotesManager';
 import { flagToEvent, getBiTInfo, lookupFlag } from 'ss-scene-flags';
 import { economyManager, quotesManager } from '../System';
 import { getOrCreateUserName } from '../util/UserUtils';
-import { getUser, getUserByName } from '../database/Users';
+import { getUserByName } from '../database/Users';
 
 /**
  * Represents a function that handles a given command or subset of commands
@@ -184,7 +184,8 @@ export const handleEconomyCommand: HandlerDelegate = async (
     const command = commandParts.shift();
     const [channelName] = metadata;
     const user = await getOrCreateUserName(sender);
-    const owner = getUserByName(channelName).userId;
+    const owner = getUserByName(channelName);
+    if (!owner) return 'economy is not configured';
     const currencyName = 'BiTcoins';
     if (command === 'money') {
         let target: string;
@@ -195,12 +196,12 @@ export const handleEconomyCommand: HandlerDelegate = async (
         }
         return `${economyManager.getCurrency(
             await getOrCreateUserName(target),
-            owner,
+            owner.userId,
         )} ${currencyName}`;
     }
     if (command === 'gamble') {
         const [amount] = commandParts;
-        const total = economyManager.getCurrency(user, owner);
+        const total = economyManager.getCurrency(user, owner.userId);
         let gambleAmount: number;
         if (amount === 'all') {
             gambleAmount = total;
@@ -217,17 +218,17 @@ export const handleEconomyCommand: HandlerDelegate = async (
             }
         }
         if (_.random(1) === 0) {
-            economyManager.gambleLoss(user, owner, gambleAmount);
+            economyManager.gambleLoss(user, owner.userId, gambleAmount);
             return `You lost ${gambleAmount} ${currencyName}`;
         }
-        economyManager.gambleWin(user, owner, gambleAmount);
+        economyManager.gambleWin(user, owner.userId, gambleAmount);
         return `You won ${gambleAmount} ${currencyName}`;
     }
     if (command === 'give' && mod) {
         const [receiver, amount] = commandParts;
         economyManager.addCurrency(
             await getOrCreateUserName(receiver),
-            getUserByName(channelName).userId,
+            owner.userId,
             Number(amount),
         );
         return `gave ${receiver} ${amount} ${currencyName}`;
@@ -241,7 +242,7 @@ export const handleEconomyCommand: HandlerDelegate = async (
         }
         const net = economyManager.getGambleNet(
             await getOrCreateUserName(target),
-            owner,
+            owner.userId,
         );
         return `${target} has net ${net} ${currencyName} from gambling${
             net < 0 ? '...f' : '...congrats'
