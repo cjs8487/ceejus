@@ -6,15 +6,14 @@ import EconomyManager from './database/EconomyManager';
 import { EconomyRedemptionsManager } from './database/EconomyRedemptionsManager';
 import QuotesManager from './database/quotes/QuotesManager';
 import { RedemptionsManager } from './database/RedemptionsManager';
-import UserManager from './database/UserManager';
 import {
     ngrokUrl,
     secret,
     testing,
     twitchAuthToken,
     twitchClientId,
-    twitchClientSecret,
 } from './Environment';
+// eslint-disable-next-line import/no-cycle
 import TwitchEventSubHandler from './lib/TwitchEventSub';
 import { logInfo, logVerbose } from './Logger';
 
@@ -42,7 +41,6 @@ export const botAuthProvider = new StaticAuthProvider(
 );
 export const botApiClient = new ApiClient({ authProvider: botAuthProvider });
 
-export const userManager = new UserManager(db);
 export const economyRedemptionsManager = new EconomyRedemptionsManager(db);
 export const redemptionsManager = new RedemptionsManager(db);
 export const eventSubManager = new TwitchEventSubHandler(

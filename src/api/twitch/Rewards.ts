@@ -1,10 +1,8 @@
-import { ApiClient } from '@twurple/api';
 import { Router } from 'express';
 import {
     economyRedemptionsManager,
     eventSubManager,
     redemptionsManager,
-    userManager,
 } from '../../System';
 import { isAuthenticated } from '../APICore';
 import { apiClient } from '../../auth/TwitchAuth';
