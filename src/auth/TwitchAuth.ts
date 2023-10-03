@@ -1,13 +1,7 @@
 import { ApiClient } from '@twurple/api';
-import {
-    AccessToken,
-    exchangeCode,
-    RefreshingAuthProvider,
-} from '@twurple/auth';
-import UserManager, { User } from 'src/database/UserManager';
+import { AccessToken, RefreshingAuthProvider } from '@twurple/auth';
 import { twitchClientId, twitchClientSecret } from '../Environment';
-// eslint-disable-next-line import/no-cycle
-import { userManager } from '../System';
+import { updateTwitchAuth } from '../database/Users';
 
 const authProvider = new RefreshingAuthProvider({
     clientId: twitchClientId,
@@ -15,12 +9,15 @@ const authProvider = new RefreshingAuthProvider({
     redirectUri: 'http://localhost:3000',
 });
 authProvider.onRefresh((userId, newToken) => {
-    userManager.updateTwitchAuth(userId, newToken);
+    updateTwitchAuth(userId, newToken);
 });
 
 export const apiClient = new ApiClient({ authProvider });
 
-export const registerUser = (token: AccessToken, twitchId?: string): void => {
+export const registerUserAuth = (
+    token: AccessToken,
+    twitchId?: string,
+): void => {
     if (twitchId) {
         authProvider.addUser(twitchId, token);
     } else {

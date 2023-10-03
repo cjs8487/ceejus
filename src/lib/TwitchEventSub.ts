@@ -2,7 +2,6 @@ import { request } from 'https';
 import { AuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api/lib';
 import { logError } from '../Logger';
-// eslint-disable-next-line import/no-cycle
 import { getAppToken } from '../auth/TwitchAuth';
 
 type WebhookTransport = {

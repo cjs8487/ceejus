@@ -1,10 +1,11 @@
 import { NextFunction, Request, Response, Router } from 'express';
-import { ApiClient } from '@twurple/api';
-import { AccessToken, StaticAuthProvider } from '@twurple/auth';
-import { userManager } from '../../System';
-import { twitchClientId } from '../../Environment';
 import { logError } from '../../Logger';
-import { apiClient, doCodeExchange, registerUser } from '../../auth/TwitchAuth';
+import {
+    apiClient,
+    doCodeExchange,
+    registerUserAuth,
+} from '../../auth/TwitchAuth';
+import { getUser, registerUser, userExists } from '../../database/Users';
 
 const twitchAuth = Router();
 
@@ -20,20 +21,16 @@ twitchAuth.post(
                 );
                 return;
             }
-            registerUser(firstToken);
+            registerUserAuth(firstToken);
             const user = await apiClient.users.getAuthenticatedUser(
                 firstToken.userId,
             );
 
             let userId: number;
-            if (!userManager.userExists(user.displayName)) {
-                userId = userManager.registerUser(
-                    user.displayName,
-                    user.id,
-                    firstToken,
-                );
+            if (!userExists(user.displayName)) {
+                userId = registerUser(user.displayName, user.id, firstToken);
             } else {
-                userId = userManager.getUser(user.displayName).userId;
+                userId = getUser(user.displayName).userId;
             }
             req.session.regenerate((err) => {
                 if (err) {

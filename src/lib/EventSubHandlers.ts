@@ -4,7 +4,6 @@ import {
     economyManager,
     economyRedemptionsManager,
     redemptionsManager,
-    userManager,
 } from '../System';
 import { secret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';

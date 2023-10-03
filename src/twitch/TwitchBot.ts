@@ -3,8 +3,7 @@ import { ChatClient } from '@twurple/chat';
 import { Database } from 'better-sqlite3';
 import fs from 'fs';
 import _ from 'lodash';
-import fetch from 'node-fetch';
-import { User } from '../database/UserManager';
+import { User, getAllUsers } from '../database/Users';
 import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
 import { logInfo } from '../Logger';
 import {
@@ -13,7 +12,6 @@ import {
     handleQuoteCommand,
     HandlerDelegate,
 } from '../modules/Modules';
-import { userManager } from '../System';
 import { MultiTwitch } from './modules/MultiTwitch';
 import { TwitchQuotesModule } from './modules/TwitchQuotesModule';
 import { isUserMod } from './TwitchHelper';
@@ -45,9 +43,9 @@ class TwitchBot {
         );
         this.modules.set(['flags'], handleFlagCommand);
 
-        const channels: string[] = userManager
-            .getAllUsers(true)
-            .map((user: User) => user.username);
+        const channels: string[] = getAllUsers(true).map(
+            (user: User) => user.username,
+        );
         this.client = new ChatClient({
             authProvider: new StaticAuthProvider(twitchClientId, botOAuthToken),
             channels,
@@ -173,6 +171,7 @@ class TwitchBot {
             //         if (Number.isNaN(quoteNumber)) {
             //             quote = await (
             //                 await fetch(
+            // eslint-disable-next-line max-len
             //                   `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
             //                 )
             //             ).json();
