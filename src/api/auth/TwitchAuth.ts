@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { ApiClient } from '@twurple/api';
 import { AccessToken, StaticAuthProvider } from '@twurple/auth';
-import { tokenManager, userManager } from '../../System';
+import { userManager } from '../../System';
 import { twitchClientId } from '../../Environment';
 import { logError } from '../../Logger';
+import { apiClient, doCodeExchange, registerUser } from '../../auth/TwitchAuth';
 
 const twitchAuth = Router();
 
@@ -12,20 +13,17 @@ twitchAuth.post(
     async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { code } = req.body;
-            const firstToken: AccessToken | undefined =
-                await tokenManager?.exchangeCode(code);
-            if (firstToken === undefined) {
+            const firstToken = await doCodeExchange(code);
+            if (!firstToken) {
                 res.status(500).send(
-                    'An unknown error courred while processing the request. You have not been authorized',
+                    'An unknown error ocurred while processing the request. You have not been authorized',
                 );
                 return;
             }
-            const authProvider = new StaticAuthProvider(
-                twitchClientId,
-                firstToken.accessToken,
+            registerUser(firstToken);
+            const user = await apiClient.users.getAuthenticatedUser(
+                firstToken.userId,
             );
-            const apiClient = new ApiClient({ authProvider });
-            const user = await apiClient.users.getMe();
 
             let userId: number;
             if (!userManager.userExists(user.displayName)) {
@@ -34,7 +32,6 @@ twitchAuth.post(
                     user.id,
                     firstToken,
                 );
-                tokenManager.registerUser(userId, firstToken);
             } else {
                 userId = userManager.getUser(user.displayName).userId;
             }

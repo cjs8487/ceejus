@@ -4,19 +4,16 @@ import {
     economyRedemptionsManager,
     eventSubManager,
     redemptionsManager,
-    tokenManager,
     userManager,
 } from '../../System';
 import { isAuthenticated } from '../APICore';
+import { apiClient } from '../../auth/TwitchAuth';
 
 const rewards = Router();
 
 rewards.post('/create', async (req, res) => {
     const { cost, title, amount } = req.body;
     try {
-        const apiClient: ApiClient | undefined = tokenManager.getApiClient(
-            userManager.getUser('cjs0789').userId,
-        );
         if (apiClient === undefined) {
             res.status(404).send('User is not registered');
             return;
