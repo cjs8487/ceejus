@@ -5,7 +5,7 @@ import {
     doCodeExchange,
     registerUserAuth,
 } from '../../auth/TwitchAuth';
-import { getUser, registerUser, userExists } from '../../database/Users';
+import { getUserByName, registerUser, userExists } from '../../database/Users';
 
 const twitchAuth = Router();
 
@@ -30,7 +30,7 @@ twitchAuth.post(
             if (!userExists(user.displayName)) {
                 userId = registerUser(user.displayName, user.id, firstToken);
             } else {
-                userId = getUser(user.displayName).userId;
+                userId = getUserByName(user.displayName).userId;
             }
             req.session.regenerate((err) => {
                 if (err) {

@@ -3,7 +3,7 @@ import { Quote, QuoteInfo } from 'src/database/quotes/QuotesManager';
 import { flagToEvent, getBiTInfo, lookupFlag } from 'ss-scene-flags';
 import { economyManager, quotesManager } from '../System';
 import { getOrCreateUserName } from '../util/UserUtils';
-import { getUser } from '../database/Users';
+import { getUser, getUserByName } from '../database/Users';
 
 /**
  * Represents a function that handles a given command or subset of commands
@@ -184,7 +184,7 @@ export const handleEconomyCommand: HandlerDelegate = async (
     const command = commandParts.shift();
     const [channelName] = metadata;
     const user = await getOrCreateUserName(sender);
-    const owner = getUser(channelName).userId;
+    const owner = getUserByName(channelName).userId;
     const currencyName = 'BiTcoins';
     if (command === 'money') {
         let target: string;
@@ -227,7 +227,7 @@ export const handleEconomyCommand: HandlerDelegate = async (
         const [receiver, amount] = commandParts;
         economyManager.addCurrency(
             await getOrCreateUserName(receiver),
-            getUser(channelName).userId,
+            getUserByName(channelName).userId,
             Number(amount),
         );
         return `gave ${receiver} ${amount} ${currencyName}`;

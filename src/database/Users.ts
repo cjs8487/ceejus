@@ -96,14 +96,20 @@ export const getAllUsers = (active?: boolean): User[] => {
     return users.map((user: DBUser) => toExternalForm(user));
 };
 
-export const getUser = (user: number | string): User => {
-    let sql = 'select * from users where ';
-    if (typeof user === 'number') {
-        sql += 'user_id=?';
-    } else {
-        sql += 'username=?';
+export const getUser = (userId: number): User => {
+    const selectedUser: DBUser = db
+        .prepare('select * from users where user_id=?')
+        .get(userId);
+    if (selectedUser === undefined) {
+        return NO_USER;
     }
-    const selectedUser: DBUser = db.prepare(sql).get(user);
+    return toExternalForm(selectedUser);
+};
+
+export const getUserByName = (username: string): User => {
+    const selectedUser: DBUser = db
+        .prepare('select * from users where username=?')
+        .get(username);
     if (selectedUser === undefined) {
         return NO_USER;
     }
