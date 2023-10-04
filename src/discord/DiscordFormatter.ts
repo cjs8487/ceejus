@@ -1,6 +1,6 @@
 import { EmbedBuilder } from 'discord.js';
 import { QuoteResult } from 'src/modules/Modules';
-import { Quote } from '../database/quotes/QuotesManager';
+import { Quote } from '../database/quotes/Quotes';
 import {
     permissionDeniedEmbed,
     quoteEmbed,

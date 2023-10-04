@@ -1,8 +1,7 @@
 import { request } from 'https';
-import { AuthProvider } from '@twurple/auth';
-import { ApiClient } from '@twurple/api/lib';
 import { logError } from '../Logger';
 import { getAppToken } from '../auth/TwitchAuth';
+import { ngrokUrl, twitchClientId, twitchClientSecret } from '../Environment';
 
 type WebhookTransport = {
     method: 'webhook';
@@ -39,80 +38,59 @@ export type CreateSubscriptionResponse =
       }
     | ErrorResponse;
 
-export default class TwitchEventSubHandler {
-    private clientId: string;
-    private apiClient: ApiClient;
-    private secret: string;
-    private authProvider: AuthProvider;
-    private transport: WebhookTransport;
+const transport = {
+    method: 'webhook',
+    callback: `${ngrokUrl}/notification`,
+    secret: twitchClientSecret,
+};
 
-    constructor(
-        clientId: string,
-        apiClient: ApiClient,
-        secret: string,
-        authProvider: AuthProvider,
-        urlBase: string,
-    ) {
-        this.clientId = clientId;
-        this.apiClient = apiClient;
-        this.secret = secret;
-        this.authProvider = authProvider;
-        this.transport = {
-            method: 'webhook',
-            callback: `${urlBase}/notification`,
-            secret: this.secret,
-        };
-    }
-
-    public async subscribeToRedemptionAddEvent(
-        broadcasterId: string,
-        rewardId: string,
-    ): Promise<CreateSubscriptionResponse> {
-        const subscriptionCreationParams = {
-            host: 'api.twitch.tv',
-            path: 'helix/eventsub/subscriptions',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Client-ID': this.clientId,
-                Authorization: `Bearer ${(await getAppToken())?.accessToken}`,
-            },
-        };
-        const createWebHookBody = {
-            type: 'channel.channel_points_custom_reward_redemption.add',
-            version: '1',
-            condition: {
-                broadcaster_user_id: broadcasterId,
-                reward_id: rewardId,
-            },
-            transport: this.transport,
-        };
-        return this.doRequest<CreateSubscriptionResponse>(
-            subscriptionCreationParams,
-            createWebHookBody,
-        );
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    private async doRequest<T>(params: any, body: any): Promise<T> {
-        let responseData = '';
-        return new Promise<T>((resolve, reject) => {
-            const req = request(params, (result) => {
-                result.setEncoding('utf8');
-                result
-                    .on('data', (d) => {
-                        responseData += d;
-                    })
-                    .on('end', () => {
-                        resolve(JSON.parse(responseData));
-                    });
-            });
-            req.on('error', (e) => {
-                logError(`Error during async request: ${e}`);
-                reject(e);
-            });
-            req.write(JSON.stringify(body));
-            req.end();
+const doRequest = <T>(params: any, body: any): Promise<T> => {
+    let responseData = '';
+    return new Promise<T>((resolve, reject) => {
+        const req = request(params, (result) => {
+            result.setEncoding('utf8');
+            result
+                .on('data', (d) => {
+                    responseData += d;
+                })
+                .on('end', () => {
+                    resolve(JSON.parse(responseData));
+                });
         });
-    }
-}
+        req.on('error', (e) => {
+            logError(`Error during async request: ${e}`);
+            reject(e);
+        });
+        req.write(JSON.stringify(body));
+        req.end();
+    });
+};
+
+export const subscribeToRedemptionAddEvent = async (
+    broadcasterId: string,
+    rewardId: string,
+): Promise<CreateSubscriptionResponse> => {
+    const subscriptionCreationParams = {
+        host: 'api.twitch.tv',
+        path: 'helix/eventsub/subscriptions',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Client-ID': twitchClientId,
+            Authorization: `Bearer ${(await getAppToken())?.accessToken}`,
+        },
+    };
+    const createWebHookBody = {
+        type: 'channel.channel_points_custom_reward_redemption.add',
+        version: '1',
+        condition: {
+            broadcaster_user_id: broadcasterId,
+            reward_id: rewardId,
+        },
+        transport,
+    };
+    return doRequest<CreateSubscriptionResponse>(
+        subscriptionCreationParams,
+        createWebHookBody,
+    );
+};

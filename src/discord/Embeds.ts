@@ -1,5 +1,5 @@
 import { EmbedAuthorData, EmbedFooterData, EmbedBuilder } from 'discord.js';
-import { Quote } from 'src/database/quotes/QuotesManager';
+import { Quote } from 'src/database/quotes/Quotes';
 
 export const author = (name: string): EmbedAuthorData => ({ name });
 

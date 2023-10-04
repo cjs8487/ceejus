@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const { BotModule } = require('../../modules/BotModule');
-const { QuotesCore } = require('../../database/quotes/QuotesManager');
+const { QuotesCore } = require('../../database/quotes/Quotes');
 
 class TwitchQuotesModule extends BotModule {
     constructor() {

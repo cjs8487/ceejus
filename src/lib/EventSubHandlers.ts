@@ -1,14 +1,12 @@
 import { createHmac } from 'crypto';
 import { Request, Response } from 'express';
-import {
-    economyManager,
-    economyRedemptionsManager,
-    redemptionsManager,
-} from '../System';
 import { secret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';
 import { logError, logInfo, logWarn } from '../Logger';
 import { apiClient, isUserRegistered } from '../auth/TwitchAuth';
+import { getRedemption } from '../database/EconomyRedemptions';
+import { addCurrency } from '../database/Economy';
+import { deleteMetadata, getMetadata } from '../database/Redemptions';
 
 const verifySignature = (
     messageSignature: string,
@@ -27,12 +25,10 @@ export const handleEconomyRedemption = async (data: any) => {
     if (!isUserRegistered(owner)) {
         logWarn('received a notification for a channel with no user record');
     } else {
-        const { amount } = economyRedemptionsManager.getRedemption(
-            data.reward.id,
-        );
+        const { amount } = getRedemption(data.reward.id);
         const twitchId = data.user_id;
         const user = await getOrCreateUserId(twitchId);
-        economyManager.addCurrency(user, owner, amount);
+        addCurrency(user, owner, amount);
         apiClient.asUser(owner, (ctx) =>
             ctx.channelPoints.updateRedemptionStatusByIds(
                 data.broadcaster_user_id,
@@ -69,7 +65,7 @@ export const notification = async (req: Request, res: Response) => {
         res.send(req.body.challenge);
     } else if (messageType === 'revocation') {
         const { id, status } = req.body;
-        redemptionsManager.deleteMetadata(id);
+        deleteMetadata(id);
         if (status === 'notification_failures_exceeded') {
             logError(
                 `Subscription with ID ${id} revoked due to callback failures`,
@@ -81,9 +77,7 @@ export const notification = async (req: Request, res: Response) => {
         const { event } = req.body;
         try {
             // TODO: handle event based on type and metadata and call appropriate delegate
-            const { module, type } = redemptionsManager.getMetadata(
-                event.reward.id,
-            );
+            const { module } = getMetadata(event.reward.id);
             switch (module) {
                 case 'economy':
                     handleEconomyRedemption(event);

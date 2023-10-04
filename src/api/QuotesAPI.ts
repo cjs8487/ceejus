@@ -1,5 +1,9 @@
 import express from 'express';
-import { quotesManager } from '../System';
+import {
+    getQuote,
+    getQuoteAlias,
+    getRandomQuote,
+} from '../database/quotes/Quotes';
 
 const quotes = express.Router();
 
@@ -10,13 +14,13 @@ quotes.get('/quote', (req, res) => {
         const num = Number(quoteNumber);
         if (Number.isNaN(num)) {
             res.status(400);
-            res.send('invalid number specfied');
+            res.send('invalid number specified');
         }
-        quote = quotesManager.getQuote(num);
+        quote = getQuote(num);
     } else if (alias) {
-        quote = quotesManager.getQuoteAlias(alias as string);
+        quote = getQuoteAlias(alias as string);
     } else {
-        quote = quotesManager.getRandomQuote();
+        quote = getRandomQuote();
     }
     res.send(quote);
 });
