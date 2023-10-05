@@ -2,19 +2,7 @@ import { ApiClient } from '@twurple/api';
 import { StaticAuthProvider } from '@twurple/auth';
 import Database, { Database as DB } from 'better-sqlite3';
 import fs from 'fs';
-import EconomyManager from './database/EconomyManager';
-import { EconomyRedemptionsManager } from './database/EconomyRedemptionsManager';
-import QuotesManager from './database/quotes/QuotesManager';
-import { RedemptionsManager } from './database/RedemptionsManager';
-import {
-    ngrokUrl,
-    secret,
-    testing,
-    twitchAuthToken,
-    twitchClientId,
-} from './Environment';
-// eslint-disable-next-line import/no-cycle
-import TwitchEventSubHandler from './lib/TwitchEventSub';
+import { testing, twitchAuthToken, twitchClientId } from './Environment';
 import { logInfo, logVerbose } from './Logger';
 
 // set up the databse
@@ -40,15 +28,3 @@ export const botAuthProvider = new StaticAuthProvider(
     undefined,
 );
 export const botApiClient = new ApiClient({ authProvider: botAuthProvider });
-
-export const economyRedemptionsManager = new EconomyRedemptionsManager(db);
-export const redemptionsManager = new RedemptionsManager(db);
-export const eventSubManager = new TwitchEventSubHandler(
-    twitchClientId,
-    botApiClient,
-    secret,
-    botAuthProvider,
-    ngrokUrl,
-);
-export const quotesManager = new QuotesManager(db);
-export const economyManager = new EconomyManager(db);

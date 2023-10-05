@@ -1,9 +1,29 @@
 import _ from 'lodash';
-import { Quote, QuoteInfo } from 'src/database/quotes/QuotesManager';
 import { flagToEvent, getBiTInfo, lookupFlag } from 'ss-scene-flags';
-import { economyManager, quotesManager } from '../System';
 import { getOrCreateUserName } from '../util/UserUtils';
 import { getUserByName } from '../database/Users';
+import {
+    Quote,
+    QuoteInfo,
+    addQuote,
+    deleteQuote,
+    editQuote,
+    editQuoteInfo,
+    getLatestQuote,
+    getQuote,
+    getQuoteAlias,
+    getQuoteInfo,
+    getRandomQuote,
+    handleAliasRequest,
+    searchQuote,
+} from '../database/quotes/Quotes';
+import {
+    getCurrency,
+    gambleLoss,
+    gambleWin,
+    addCurrency,
+    getGambleNet,
+} from '../database/Economy';
 
 /**
  * Represents a function that handles a given command or subset of commands
@@ -59,7 +79,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
     const quoteCommand = commandParts[0];
     if (quoteCommand === 'add') {
         const quote = commandParts.slice(1).join(' ');
-        const number = quotesManager.addQuote(quote, sender);
+        const number = addQuote(quote, sender);
         return {
             message: `Added quote #${number}`,
         };
@@ -69,7 +89,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
             return quotePermissionDenied;
         }
         const quoteNumber = parseInt(commandParts[1], 10);
-        if (!quotesManager.deleteQuote(quoteNumber)) {
+        if (!deleteQuote(quoteNumber)) {
             return {
                 isPermissionDenied: false,
                 error: `Error: ${quoteNumber} is not a number`,
@@ -91,7 +111,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
             };
         }
         const newQuote = commandParts.splice(2).join(' ');
-        quotesManager.editQuote(quoteNumber, newQuote);
+        editQuote(quoteNumber, newQuote);
         return {
             message: `#${quoteNumber} edited`,
         };
@@ -101,7 +121,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
             return quotePermissionDenied;
         }
         return {
-            message: quotesManager.handleAliasRequest(commandParts, mod),
+            message: handleAliasRequest(commandParts, mod),
         };
     }
     if (quoteCommand === 'info') {
@@ -112,13 +132,13 @@ export const handleQuoteCommand: HandlerDelegate = async (
             const quoteNumber = parseInt(commandParts[2], 10);
             const quotedOn = commandParts[3];
             const quotedBy = commandParts.slice(4).join(' ');
-            quotesManager.editQuoteInfo(quoteNumber, quotedOn, quotedBy);
+            editQuoteInfo(quoteNumber, quotedOn, quotedBy);
             return {
                 message: `info for #${quoteNumber} updated`,
             };
         }
         const quoteNumber = parseInt(commandParts[1], 10);
-        const results = quotesManager.getQuoteInfo(quoteNumber);
+        const results = getQuoteInfo(quoteNumber);
         if (results === undefined) {
             return {
                 isPermissionDenied: false,
@@ -129,7 +149,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
     }
     if (quoteCommand === 'search') {
         const searchString = commandParts.slice(1).join(' ');
-        const results = quotesManager.searchQuote(searchString);
+        const results = searchQuote(searchString);
         if ('error' in results) {
             return {
                 isPermissionDenied: false,
@@ -144,7 +164,14 @@ export const handleQuoteCommand: HandlerDelegate = async (
         };
     }
     if (quoteCommand === 'latest') {
-        return quotesManager.getLatestQuote();
+        const quote = getLatestQuote();
+        if (!quote) {
+            return {
+                isPermissionDenied: false,
+                error: 'There are no quotes',
+            };
+        }
+        return quote;
     }
     // looking up a quote
     let quote;
@@ -154,7 +181,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
         const quoteNumber = parseInt(lookup, 10);
         if (Number.isNaN(quoteNumber)) {
             const alias = commandParts.join(' ');
-            quote = quotesManager.getQuoteAlias(alias);
+            quote = getQuoteAlias(alias);
             if (_.isNil(quote)) {
                 return {
                     isPermissionDenied: false,
@@ -163,14 +190,14 @@ export const handleQuoteCommand: HandlerDelegate = async (
             }
             return quote;
         }
-        quote = quotesManager.getQuote(quoteNumber);
+        quote = getQuote(quoteNumber);
         if (_.isNil(quote)) {
             return {
                 type: SearchType.number,
             };
         }
     } else {
-        quote = quotesManager.getRandomQuote();
+        quote = getRandomQuote();
     }
     return quote;
 };
@@ -194,14 +221,14 @@ export const handleEconomyCommand: HandlerDelegate = async (
         } else {
             target = sender;
         }
-        return `${economyManager.getCurrency(
+        return `${getCurrency(
             await getOrCreateUserName(target),
             owner.userId,
         )} ${currencyName}`;
     }
     if (command === 'gamble') {
         const [amount] = commandParts;
-        const total = economyManager.getCurrency(user, owner.userId);
+        const total = getCurrency(user, owner.userId);
         let gambleAmount: number;
         if (amount === 'all') {
             gambleAmount = total;
@@ -218,15 +245,15 @@ export const handleEconomyCommand: HandlerDelegate = async (
             }
         }
         if (_.random(1) === 0) {
-            economyManager.gambleLoss(user, owner.userId, gambleAmount);
+            gambleLoss(user, owner.userId, gambleAmount);
             return `You lost ${gambleAmount} ${currencyName}`;
         }
-        economyManager.gambleWin(user, owner.userId, gambleAmount);
+        gambleWin(user, owner.userId, gambleAmount);
         return `You won ${gambleAmount} ${currencyName}`;
     }
     if (command === 'give' && mod) {
         const [receiver, amount] = commandParts;
-        economyManager.addCurrency(
+        addCurrency(
             await getOrCreateUserName(receiver),
             owner.userId,
             Number(amount),
@@ -240,7 +267,7 @@ export const handleEconomyCommand: HandlerDelegate = async (
         } else {
             target = sender;
         }
-        const net = economyManager.getGambleNet(
+        const net = getGambleNet(
             await getOrCreateUserName(target),
             owner.userId,
         );

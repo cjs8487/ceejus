@@ -1,11 +1,14 @@
 import { Router } from 'express';
-import {
-    economyRedemptionsManager,
-    eventSubManager,
-    redemptionsManager,
-} from '../../System';
 import { isAuthenticated } from '../APICore';
 import { apiClient } from '../../auth/TwitchAuth';
+import {
+    addRedemption,
+    getRedemption,
+    getAllRedemptionsForUser,
+    deleteRedemption,
+} from '../../database/EconomyRedemptions';
+import { createMetadata, deleteMetadata } from '../../database/Redemptions';
+import { subscribeToRedemptionAddEvent } from '../../lib/TwitchEventSub';
 
 const rewards = Router();
 
@@ -25,18 +28,15 @@ rewards.post('/create', async (req, res) => {
             cost,
             title,
         });
-        economyRedemptionsManager.addRedemption(1, reward.id, amount);
-        const sub = await eventSubManager.subscribeToRedemptionAddEvent(
-            user.id,
-            reward.id,
-        );
+        addRedemption(1, reward.id, amount);
+        const sub = await subscribeToRedemptionAddEvent(user.id, reward.id);
         if ('error' in sub) {
             await apiClient.channelPoints.deleteCustomReward(user, reward.id);
             res.status(sub.status);
             res.send(sub.message);
             return;
         }
-        redemptionsManager.createMetadata(1, reward.id, 'economy');
+        createMetadata(1, reward.id, 'economy');
         res.status(200).send('Reward created and listener attached');
     } catch (e: any) {
         if (e.status === 400) {
@@ -55,7 +55,7 @@ rewards.get('/:id', (req, res) => {
         res.status(400).send('Bad request');
         return;
     }
-    const meta = economyRedemptionsManager.getRedemption(realId);
+    const meta = getRedemption(realId);
     res.status(200).send(meta);
 });
 
@@ -66,7 +66,7 @@ rewards.get('/all/:id', (req, res) => {
         res.status(400).send('Bad request');
         return;
     }
-    const metas = economyRedemptionsManager.getAllRedemptionsForUser(realId);
+    const metas = getAllRedemptionsForUser(realId);
     res.status(200).send(metas);
 });
 
@@ -77,8 +77,8 @@ rewards.delete('/:id', isAuthenticated, (req, res) => {
         res.status(400).send('Bad request');
         return;
     }
-    economyRedemptionsManager.deleteRedemption(realId);
-    redemptionsManager.deleteMetadata(realId);
+    deleteRedemption(realId);
+    deleteMetadata(realId);
     res.sendStatus(200);
 });
 
