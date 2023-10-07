@@ -26,7 +26,7 @@ export const getHandler = (name: string) => {
     }
     return (interaction: ChatInputCommandInteraction) => {
         logError(
-            `Received interaction for unregistered command ${name}. Discord is probably out of date with local data`,
+            `Received interaction for unregistered command ${name}. Discord is probably out of sync with local data`,
         );
         interaction.reply({
             content:
