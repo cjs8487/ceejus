@@ -1,15 +1,15 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { Command } from './SlashCommand';
+import { SlashCommand } from './SlashCommand';
 import { logError } from '../../../Logger';
 
-const commandList: Command[] = [];
-const commandMap: Map<string, Command> = new Map();
+const commandList: SlashCommand[] = [];
+const commandMap: Map<string, SlashCommand> = new Map();
 const commandHandlers: Map<
     string,
     (interaction: ChatInputCommandInteraction) => void
 > = new Map();
 
-export const registerCommand = (command: Command) => {
+export const registerCommand = (command: SlashCommand) => {
     commandList.push(command);
     commandMap.set(command.data.name, command);
     commandHandlers.set(command.data.name, command.run);

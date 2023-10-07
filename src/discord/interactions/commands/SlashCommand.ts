@@ -16,7 +16,7 @@ import {
 } from 'discord.js';
 import { logWarn } from '../../../Logger';
 
-export interface Command {
+export interface SlashCommand {
     data:
         | Omit<SlashCommandBuilder, 'addSubcommandGroup' | 'addSubcommand'>
         | SlashCommandSubcommandsOnlyBuilder;
@@ -100,7 +100,7 @@ type SlashCommandSubcommandGroup = {
     subcommands: SlashCommandSubcommand[];
 };
 
-type SlashCommand = {
+type SlashCommandData = {
     name: string;
     description: string;
     options?: SlashCommandOption[];
@@ -251,7 +251,7 @@ const createSubcommand = (
 };
 
 export const createSlashCommand = (
-    command: SlashCommand,
+    command: SlashCommandData,
 ): SlashCommandBuilder => {
     const builder = new SlashCommandBuilder();
     builder.setName(command.name).setDescription(command.description);
