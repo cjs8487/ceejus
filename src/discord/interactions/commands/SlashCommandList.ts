@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction } from 'discord.js';
 import { SlashCommand } from './SlashCommand';
 import { logError } from '../../../Logger';
 
-const commandList: SlashCommand[] = [];
+export const commandList: SlashCommand[] = [];
 const commandMap: Map<string, SlashCommand> = new Map();
 const commandHandlers: Map<
     string,
