@@ -6,6 +6,7 @@ import { logInfo } from '../Logger';
 import { discordToken, testing } from '../Environment';
 import { handleQuoteCommand } from '../modules/Modules';
 import { formatQuoteResponse } from './DiscordFormatter';
+import onInteraction from './handlers/Interactionhandler';
 
 const prefix = '!';
 const testChannel = '755894973987291176';
@@ -55,6 +56,7 @@ class DiscordBot {
         this.handleMessage = this.handleMessage.bind(this);
 
         client.on('message', this.handleMessage);
+        client.on('interactionCreate', onInteraction);
     }
 
     /**
