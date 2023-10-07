@@ -1,5 +1,5 @@
 import { Database } from 'better-sqlite3';
-import Discord, { Client, Message } from 'discord.js';
+import Discord, { Client, GatewayIntentBits, Message } from 'discord.js';
 import https from 'https';
 import fetch from 'node-fetch';
 import { logInfo } from '../Logger';
@@ -26,7 +26,10 @@ class DiscordBot {
     constructor(db: Database) {
         this.db = db;
         const client = new Client({
-            intents: 32767,
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages,
+            ],
         });
 
         client.once('ready', () => {
