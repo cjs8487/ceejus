@@ -194,6 +194,54 @@ const quoteCommand: SlashCommand = createSlashCommand({
             },
         },
     ],
+    subcommandGroups: [
+        {
+            name: 'alias',
+            description: 'Manage quote aliases',
+            subcommands: [
+                {
+                    name: 'set',
+                    description: 'Add or change the alias for a quote',
+                    options: [
+                        {
+                            name: 'number',
+                            description: 'Quote number set the alias for',
+                            type: 'integer',
+                            required: true,
+                        },
+                        {
+                            type: 'string',
+                            name: 'alias',
+                            description: 'The desired alias',
+                            required: true,
+                        },
+                    ],
+                    run: async (interaction) => {
+                        await interaction.reply({
+                            embeds: [quotePermDenied],
+                        });
+                    },
+                },
+                {
+                    name: 'remove',
+                    description: 'Remove an alias from a quote',
+                    options: [
+                        {
+                            name: 'number',
+                            description: 'Quote number remove an alias from',
+                            type: 'integer',
+                            required: true,
+                        },
+                    ],
+                    run: async (interaction) => {
+                        await interaction.reply({
+                            embeds: [quotePermDenied],
+                        });
+                    },
+                },
+            ],
+        },
+    ],
 });
 
 export default quoteCommand;
