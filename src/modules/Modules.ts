@@ -182,7 +182,7 @@ export const handleQuoteCommand: HandlerDelegate = async (
         if (Number.isNaN(quoteNumber)) {
             const alias = commandParts.join(' ');
             quote = getQuoteAlias(alias);
-            if (_.isNil(quote)) {
+            if (!quote) {
                 return {
                     isPermissionDenied: false,
                     error: `Quote with alias '${alias}' does not exist`,
@@ -191,13 +191,19 @@ export const handleQuoteCommand: HandlerDelegate = async (
             return quote;
         }
         quote = getQuote(quoteNumber);
-        if (_.isNil(quote)) {
+        if (!quote) {
             return {
                 type: SearchType.number,
             };
         }
     } else {
         quote = getRandomQuote();
+        if (!quote) {
+            return {
+                isPermissionDenied: false,
+                error: 'There are no quotes',
+            };
+        }
     }
     return quote;
 };

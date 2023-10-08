@@ -1,6 +1,26 @@
+import {
+    addQuote,
+    getLatestQuote,
+    getQuote,
+    getQuoteAlias,
+    getRandomQuote,
+    searchQuote,
+} from '../../../database/quotes/Quotes';
+import {
+    permissionDeniedEmbed,
+    quoteCreateEmbed,
+    quoteEmbed,
+    quoteErrorEmbed,
+    quoteMultiEmbed,
+} from '../../Embeds';
 import { SlashCommand, createSlashCommand } from './SlashCommand';
 
-const quote: SlashCommand = createSlashCommand({
+const quotePermDenied = permissionDeniedEmbed(
+    'Ceejus - Quotes',
+    'Mod permission check for quotes module failed',
+);
+
+const quoteCommand: SlashCommand = createSlashCommand({
     name: 'quote',
     description: 'Quotes commands',
     subcommands: [
@@ -13,7 +33,6 @@ const quote: SlashCommand = createSlashCommand({
                     name: 'number',
                     description: 'Quote number to retrieve',
                     type: 'integer',
-                    required: true,
                 },
                 {
                     type: 'string',
@@ -22,7 +41,49 @@ const quote: SlashCommand = createSlashCommand({
                 },
             ],
             run: async (interaction) => {
-                await interaction.reply('found your quote');
+                await interaction.deferReply();
+                const num = interaction.options.getInteger('number');
+                const alias = interaction.options.getString('alias');
+                if (num) {
+                    const quote = getQuote(num);
+                    if (quote) {
+                        await interaction.editReply({
+                            embeds: [quoteEmbed(quote)],
+                        });
+                    } else {
+                        await interaction.editReply({
+                            embeds: [
+                                quoteErrorEmbed(`Quote #${num} does not exist`),
+                            ],
+                        });
+                    }
+                } else if (alias) {
+                    const quote = getQuoteAlias(alias);
+                    if (quote) {
+                        await interaction.editReply({
+                            embeds: [quoteEmbed(quote)],
+                        });
+                    } else {
+                        await interaction.editReply({
+                            embeds: [
+                                quoteErrorEmbed(
+                                    `Quote with alias "${alias}" does not exist`,
+                                ),
+                            ],
+                        });
+                    }
+                } else {
+                    const quote = getRandomQuote();
+                    if (quote) {
+                        await interaction.editReply({
+                            embeds: [quoteEmbed(quote)],
+                        });
+                    } else {
+                        await interaction.editReply({
+                            embeds: [quoteErrorEmbed(`There are no quotes`)],
+                        });
+                    }
+                }
             },
         },
         {
@@ -37,7 +98,12 @@ const quote: SlashCommand = createSlashCommand({
                 },
             ],
             run: async (interaction) => {
-                await interaction.reply('quote added');
+                await interaction.deferReply();
+                const quote = interaction.options.getString('quote', true);
+                const result = addQuote(quote, interaction.user.username);
+                await interaction.editReply({
+                    embeds: [quoteCreateEmbed(result, quote)],
+                });
             },
         },
         {
@@ -52,7 +118,9 @@ const quote: SlashCommand = createSlashCommand({
                 },
             ],
             run: async (interaction) => {
-                await interaction.reply('quote deleted');
+                await interaction.reply({
+                    embeds: [quotePermDenied],
+                });
             },
         },
         {
@@ -73,7 +141,9 @@ const quote: SlashCommand = createSlashCommand({
                 },
             ],
             run: async (interaction) => {
-                await interaction.reply('quote edited');
+                await interaction.reply({
+                    embeds: [quotePermDenied],
+                });
             },
         },
         {
@@ -88,17 +158,42 @@ const quote: SlashCommand = createSlashCommand({
                 },
             ],
             run: async (interaction) => {
-                await interaction.reply('search results');
+                await interaction.deferReply();
+                const search = interaction.options.getString('search', true);
+                const results = searchQuote(search);
+                if ('error' in results) {
+                    await interaction.editReply({
+                        embeds: [quoteErrorEmbed(results.error)],
+                    });
+                } else if (results.length === 1) {
+                    await interaction.editReply({
+                        embeds: [quoteEmbed(results[0])],
+                    });
+                } else {
+                    await interaction.editReply({
+                        embeds: [quoteMultiEmbed(results)],
+                    });
+                }
             },
         },
         {
             name: 'latest',
             description: 'Get the most recent quote',
             run: async (interaction) => {
-                await interaction.reply('latest quote');
+                await interaction.deferReply();
+                const quote = getLatestQuote();
+                if (quote) {
+                    await interaction.editReply({
+                        embeds: [quoteEmbed(quote)],
+                    });
+                } else {
+                    await interaction.editReply({
+                        embeds: [quoteErrorEmbed('There are no quotes')],
+                    });
+                }
             },
         },
     ],
 });
 
-export default quote;
+export default quoteCommand;

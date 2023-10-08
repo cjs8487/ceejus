@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import { SlashCommand } from './SlashCommand';
 import { logError } from '../../../Logger';
-import quote from './Quote';
+import quoteCommand from './Quote';
 
 export const commandList: SlashCommand[] = [];
 const commandMap: Map<string, SlashCommand> = new Map();
@@ -37,4 +37,4 @@ export const getHandler = (name: string) => {
     };
 };
 
-registerCommand(quote);
+registerCommand(quoteCommand);
