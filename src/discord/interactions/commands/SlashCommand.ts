@@ -14,7 +14,11 @@ import {
     SlashCommandSubcommandsOnlyBuilder,
     SlashCommandUserOption,
 } from 'discord.js';
-import { logWarn } from '../../../Logger';
+import { logError, logWarn } from '../../../Logger';
+
+type SlashCommandRun = (
+    interaction: ChatInputCommandInteraction,
+) => Promise<void>;
 
 export interface SlashCommand {
     data:
@@ -92,6 +96,7 @@ type SlashCommandSubcommand = {
     name: string;
     description: string;
     options?: SlashCommandOption[];
+    run: SlashCommandRun;
 };
 
 type SlashCommandSubcommandGroup = {
@@ -106,6 +111,7 @@ type SlashCommandData = {
     options?: SlashCommandOption[];
     subcommands?: SlashCommandSubcommand[];
     subcommandGroups?: SlashCommandSubcommandGroup[];
+    run?: SlashCommandRun;
 };
 
 const createOptions = (
@@ -250,15 +256,14 @@ const createSubcommand = (
     return builder;
 };
 
-export const createSlashCommand = (
-    command: SlashCommandData,
-): SlashCommandBuilder => {
+export const createSlashCommand = (command: SlashCommandData): SlashCommand => {
     const builder = new SlashCommandBuilder();
     builder.setName(command.name).setDescription(command.description);
 
     if (command.options) {
         createOptions(builder, command.options);
     }
+
     command.subcommands?.forEach((subcommand) => {
         builder.addSubcommand(createSubcommand(subcommand));
     });
@@ -274,5 +279,52 @@ export const createSlashCommand = (
         builder.addSubcommandGroup(groupBuilder);
     });
 
-    return builder;
+    const run = async (interaction: ChatInputCommandInteraction) => {
+        const group = interaction.options.getSubcommandGroup();
+        const subcommand = interaction.options.getSubcommand();
+        if (group) {
+            const foundGroup = command.subcommandGroups?.find(
+                (g) => g.name === group,
+            );
+            if (foundGroup) {
+                const foundSub = foundGroup.subcommands.find(
+                    (s) => s.name === subcommand,
+                );
+                if (foundSub) {
+                    foundSub.run(interaction);
+                } else {
+                    logError(
+                        `Unable to handle interaction for ${interaction.commandName}. No matching subcommand found`,
+                    );
+                }
+            } else {
+                logError(
+                    `Unable to handle interaction for ${interaction.commandName}. No matching subcommand group found`,
+                );
+            }
+            return;
+        }
+        if (subcommand) {
+            const foundSub = command.subcommands?.find(
+                (s) => s.name === subcommand,
+            );
+            if (foundSub) {
+                foundSub.run(interaction);
+            } else {
+                logError(
+                    `Unable to handle interaction for ${interaction.commandName}. No matching subcommand found`,
+                );
+            }
+            return;
+        }
+        if (command.run) {
+            command.run(interaction);
+            return;
+        }
+        logError(
+            `Unable to handle interaction for ${interaction.commandName}. No top level handler specified`,
+        );
+    };
+
+    return { data: builder, run };
 };
