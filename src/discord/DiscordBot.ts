@@ -1,6 +1,5 @@
 import { Database } from 'better-sqlite3';
 import Discord, { Client, GatewayIntentBits, Message } from 'discord.js';
-import https from 'https';
 import { logInfo } from '../Logger';
 import { discordToken, testing } from '../Environment';
 import { handleQuoteCommand } from '../modules/Modules';
@@ -68,34 +67,6 @@ class DiscordBot {
      */
     // eslint-disable-next-line class-methods-use-this
     async handleMessage(message: Message) {
-        if (!message.content.startsWith(prefix) || message.author.bot) return;
-        if (testing) {
-            if (message.channel.id !== testChannel) {
-                logInfo('testing is enabled, ignoring normal usage');
-                return;
-            }
-        }
-        const args = message.content.slice(prefix.length).trim().split(' ');
-        const command = args.shift()?.toLowerCase();
-
-        if (command === 'quote') {
-            message.channel.send(
-                {
-                    content: `${message.author}`,
-                    embeds: [
-                        formatQuoteResponse(
-                            await handleQuoteCommand(
-                                args,
-                                message.author.username,
-                                false,
-                            ),
-                        ),
-                    ],
-                },
-                // await handleQuoteCommand(args, message.author.username, false),
-            );
-        }
-
         // if (command === 'floha') {
         //     let quote;
         //     if (args.length > 0) {

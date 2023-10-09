@@ -1,3 +1,5 @@
+import axios from 'axios';
+import { EmbedBuilder } from 'discord.js';
 import {
     addQuote,
     getLatestQuote,
@@ -7,6 +9,7 @@ import {
     searchQuote,
 } from '../../../database/quotes/Quotes';
 import {
+    author,
     permissionDeniedEmbed,
     quoteCreateEmbed,
     quoteEmbed,
@@ -19,6 +22,19 @@ const quotePermDenied = permissionDeniedEmbed(
     'Ceejus - Quotes',
     'Mod permission check for quotes module failed',
 );
+
+const flohaQuoteEmbed = (data: any) =>
+    new EmbedBuilder()
+        .setColor('#0099ff')
+        .setAuthor(author('Flohabot - Quotes'))
+        .setTitle(`Quote #${data.id}`)
+        .setDescription(data.quote_text)
+        .setFields({
+            name: 'Quoted on',
+            value: data.creation_date,
+            inline: true,
+        })
+        .setFooter({ text: `Also known as: ${data.alias}` });
 
 const quoteCommand: SlashCommand = createSlashCommand({
     name: 'quote',
@@ -189,6 +205,93 @@ const quoteCommand: SlashCommand = createSlashCommand({
                 } else {
                     await interaction.editReply({
                         embeds: [quoteErrorEmbed('There are no quotes')],
+                    });
+                }
+            },
+        },
+        {
+            name: 'remote',
+            description: 'Gets quotes from an external quote database',
+            options: [
+                {
+                    type: 'string',
+                    name: 'source',
+                    description: 'The remote source to retrieve from',
+                    choices: [{ name: 'Flohabot', value: 'floha' }],
+                    required: true,
+                },
+                {
+                    name: 'number',
+                    description: 'Quote number to retrieve',
+                    type: 'integer',
+                },
+                {
+                    type: 'string',
+                    name: 'alias',
+                    description: 'Alias of the desired quote',
+                },
+            ],
+            run: async (interaction) => {
+                await interaction.deferReply();
+                const source = interaction.options.getString('source', true);
+                const num = interaction.options.getInteger('number');
+                const alias = interaction.options.getString('alias');
+                if (source === 'floha') {
+                    if (num) {
+                        const { data, status } = await axios.get(
+                            `https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${num}`,
+                        );
+                        if (status === 200) {
+                            await interaction.editReply({
+                                embeds: [flohaQuoteEmbed(data)],
+                            });
+                        } else {
+                            await interaction.editReply({
+                                embeds: [
+                                    quoteErrorEmbed(
+                                        'The remote source returned an error. Please try again later ',
+                                    ),
+                                ],
+                            });
+                        }
+                    } else if (alias) {
+                        const { data, status } = await axios.get(
+                            `https://flohabot.bingothon.com/api/quotes/quote?alias=${alias}`,
+                        );
+                        if (status === 200) {
+                            await interaction.editReply({
+                                embeds: [flohaQuoteEmbed(data)],
+                            });
+                        } else {
+                            await interaction.editReply({
+                                embeds: [
+                                    quoteErrorEmbed(
+                                        'The remote source returned an error. Please try again later ',
+                                    ),
+                                ],
+                            });
+                        }
+                    } else {
+                        const { data, status } = await axios.get(
+                            `https://flohabot.bingothon.com/api/quotes/quote`,
+                        );
+                        if (status === 200) {
+                            await interaction.editReply({
+                                embeds: [flohaQuoteEmbed(data)],
+                            });
+                        } else {
+                            await interaction.editReply({
+                                embeds: [
+                                    quoteErrorEmbed(
+                                        'The remote source returned an error. Please try again later ',
+                                    ),
+                                ],
+                            });
+                        }
+                    }
+                } else {
+                    await interaction.editReply({
+                        embeds: [quoteErrorEmbed('That source is not valid')],
                     });
                 }
             },
