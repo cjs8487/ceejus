@@ -5,7 +5,7 @@ import { apiEnabled } from './Environment';
 import { notification } from './lib/EventSubHandlers';
 import { logInfo } from './Logger';
 import { db } from './System';
-import DiscordBot from './discord/DiscordBot';
+import { initDiscordBot } from './discord/DiscordBot';
 // import { PublicQuotesBot } from './twitch/PublicQuotesBot';
 import api from './api/API';
 import TwitchBot from './twitch/TwitchBot';
@@ -37,7 +37,7 @@ const port = 8001;
 const twitchBot = new TwitchBot(db);
 // const publicQuotesBot = new PublicQuotesBot(db);
 // twitchBot.setupDb(db);
-const discordBot = new DiscordBot(db);
+initDiscordBot();
 
 if (apiEnabled) {
     app.use('/api', api);
