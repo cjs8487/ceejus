@@ -1,11 +1,12 @@
 import { Database } from 'better-sqlite3';
-import Discord, { Client, Message } from 'discord.js';
+import Discord, { Client, GatewayIntentBits, Message } from 'discord.js';
 import https from 'https';
 import fetch from 'node-fetch';
 import { logInfo } from '../Logger';
 import { discordToken, testing } from '../Environment';
 import { handleQuoteCommand } from '../modules/Modules';
 import { formatQuoteResponse } from './DiscordFormatter';
+import onInteraction from './handlers/Interactionhandler';
 
 const prefix = '!';
 const testChannel = '755894973987291176';
@@ -25,7 +26,10 @@ class DiscordBot {
     constructor(db: Database) {
         this.db = db;
         const client = new Client({
-            intents: 32767,
+            intents: [
+                GatewayIntentBits.Guilds,
+                GatewayIntentBits.GuildMessages,
+            ],
         });
 
         client.once('ready', () => {
@@ -55,6 +59,7 @@ class DiscordBot {
         this.handleMessage = this.handleMessage.bind(this);
 
         client.on('message', this.handleMessage);
+        client.on('interactionCreate', onInteraction);
     }
 
     /**

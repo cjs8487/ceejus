@@ -39,7 +39,7 @@ const convertFields = (quote: Quote) => {
  * @param {Number} quoteNumber the number of the quote to find
  * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
  */
-export const getQuote = (quoteNumber: number) => {
+export const getQuote = (quoteNumber: number): Quote | undefined => {
     const quote = db
         .prepare('select * from quotes where id=?')
         .get(quoteNumber);
@@ -59,7 +59,7 @@ export const getQuote = (quoteNumber: number) => {
  * @param {String} alias the alias of the quote to find
  * @returns The quote object for the retrieved quote, or undefined if it doesn't exist
  */
-export const getQuoteAlias = (alias: string) => {
+export const getQuoteAlias = (alias: string): Quote | undefined => {
     const quote = db.prepare('select * from quotes where alias=?').get(alias);
     if (quote === undefined) {
         // no quote with alias exists
@@ -150,6 +150,7 @@ export const searchQuote = (searchString: string): Quote[] | QuoteError => {
     const quotes: Quote[] = [];
     db.prepare('select * from quotes')
         .all()
+        .filter((quote: Quote) => quote.quote.includes(searchString))
         .forEach((quote: Quote) => {
             convertFields(quote);
             quotes.push(quote);

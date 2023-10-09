@@ -15,7 +15,12 @@ export const permissionDeniedEmbed = (authorName: string, message: string) =>
 
 const quotesAuthor = author('Ceejus - Quotes');
 
-export const quoteCreateEmbed = () => new EmbedBuilder();
+export const quoteCreateEmbed = (num: number, quote: string) =>
+    new EmbedBuilder()
+        .setColor('#0099ff')
+        .setAuthor(quotesAuthor)
+        .setTitle(`Added quote #${num}`)
+        .setDescription(quote);
 
 export const quoteEmbed = (quote: Quote) =>
     new EmbedBuilder()
