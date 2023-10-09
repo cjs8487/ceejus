@@ -1,7 +1,6 @@
 import { Database } from 'better-sqlite3';
 import Discord, { Client, GatewayIntentBits, Message } from 'discord.js';
 import https from 'https';
-import fetch from 'node-fetch';
 import { logInfo } from '../Logger';
 import { discordToken, testing } from '../Environment';
 import { handleQuoteCommand } from '../modules/Modules';
