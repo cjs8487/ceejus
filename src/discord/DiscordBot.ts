@@ -204,20 +204,6 @@ class DiscordBot {
         //         }
         //     }
         // }
-
-        if (command === 'gdq') {
-            https.get('https://taskinoz.com/gdq/api/', (result) => {
-                result.setEncoding('utf8');
-                result.on('data', (d) => {
-                    message.channel.send(d);
-                });
-                result.on('error', () => {
-                    message.channel.send(
-                        'Failed to fetch inforation from the server. Try gain later.',
-                    );
-                });
-            });
-        }
     }
 }
 

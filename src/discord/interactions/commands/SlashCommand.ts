@@ -280,14 +280,36 @@ export const createSlashCommand = (command: SlashCommandData): SlashCommand => {
     });
 
     const run = async (interaction: ChatInputCommandInteraction) => {
-        const group = interaction.options.getSubcommandGroup();
-        const subcommand = interaction.options.getSubcommand();
-        if (group) {
-            const foundGroup = command.subcommandGroups?.find(
-                (g) => g.name === group,
-            );
-            if (foundGroup) {
-                const foundSub = foundGroup.subcommands.find(
+        if (command.subcommandGroups) {
+            const group = interaction.options.getSubcommandGroup();
+            const subcommand = interaction.options.getSubcommand();
+            if (group) {
+                const foundGroup = command.subcommandGroups?.find(
+                    (g) => g.name === group,
+                );
+                if (foundGroup) {
+                    const foundSub = foundGroup.subcommands.find(
+                        (s) => s.name === subcommand,
+                    );
+                    if (foundSub) {
+                        foundSub.run(interaction);
+                    } else {
+                        logError(
+                            `Unable to handle interaction for ${interaction.commandName}. No matching subcommand.`,
+                        );
+                    }
+                } else {
+                    logError(
+                        `Unable to handle interaction for ${interaction.commandName}. No matching subcommand group.`,
+                    );
+                }
+                return;
+            }
+        }
+        if (command.subcommands) {
+            const subcommand = interaction.options.getSubcommand();
+            if (subcommand) {
+                const foundSub = command.subcommands?.find(
                     (s) => s.name === subcommand,
                 );
                 if (foundSub) {
@@ -297,25 +319,8 @@ export const createSlashCommand = (command: SlashCommandData): SlashCommand => {
                         `Unable to handle interaction for ${interaction.commandName}. No matching subcommand found`,
                     );
                 }
-            } else {
-                logError(
-                    `Unable to handle interaction for ${interaction.commandName}. No matching subcommand group found`,
-                );
+                return;
             }
-            return;
-        }
-        if (subcommand) {
-            const foundSub = command.subcommands?.find(
-                (s) => s.name === subcommand,
-            );
-            if (foundSub) {
-                foundSub.run(interaction);
-            } else {
-                logError(
-                    `Unable to handle interaction for ${interaction.commandName}. No matching subcommand found`,
-                );
-            }
-            return;
         }
         if (command.run) {
             command.run(interaction);
