@@ -1,8 +1,6 @@
-import { ApiClient } from '@twurple/api';
-import { StaticAuthProvider } from '@twurple/auth';
 import Database, { Database as DB } from 'better-sqlite3';
 import fs from 'fs';
-import { testing, twitchAuthToken, twitchClientId } from './Environment';
+import { testing } from './Environment';
 import { logInfo, logVerbose } from './Logger';
 
 // set up the databse
@@ -22,9 +20,4 @@ db.exec(setupScript);
 // Ensure that the database connection is closed when the process terminates
 process.on('exit', () => db.close());
 
-export const botAuthProvider = new StaticAuthProvider(
-    twitchClientId,
-    twitchAuthToken,
-    undefined,
-);
-export const botApiClient = new ApiClient({ authProvider: botAuthProvider });
+export default {};
