@@ -1,22 +1,14 @@
 import { StaticAuthProvider } from '@twurple/auth';
 import { ChatClient, ChatMessage } from '@twurple/chat';
 import fs from 'fs';
-import _ from 'lodash';
 import { db } from '../System';
 import { User, getAllUsers } from '../database/Users';
 import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
-import {
-    handleEconomyCommand,
-    handleFlagCommand,
-    handleQuoteCommand,
-    HandlerDelegate,
-} from '../modules/Modules';
-import { MultiTwitch } from './modules/MultiTwitch';
+// import { MultiTwitch } from './modules/MultiTwitch';
 import { isUserMod } from './TwitchUtils';
-import { handleCommand } from './TwitchModules';
+import { handleCommand, registerAllModules } from './modules/TwitchModules';
 
-const multiModule = new MultiTwitch();
-const modules = new Map<string[], HandlerDelegate>();
+// const multiModule = new MultiTwitch();
 
 const channels: string[] = getAllUsers(true).map((user: User) => user.username);
 const client = new ChatClient({
@@ -55,15 +47,16 @@ const onMessageHandler = async (
 
     const mod = isUserMod(message.userInfo);
     let handled = false;
-    modules.forEach(async (delegate, commands) => {
-        if (_.includes(commands, commandName)) {
-            handled = true;
-            client.say(
-                channel,
-                await delegate(commandParts, user, mod, channel.substring(1)),
-            );
-        }
-    });
+    const modulesResponse = await handleCommand(
+        commandParts,
+        user,
+        mod,
+        channel,
+    );
+    if (modulesResponse) {
+        client.say(channel, modulesResponse);
+        handled = true;
+    }
     if (handled) return;
     if (commandName === 'addcomm') {
         if (!isUserMod(message.userInfo)) return;
@@ -98,30 +91,18 @@ const onMessageHandler = async (
             channel,
             `@${user} command !${deleteCommand} deleted sucessfully`,
         );
-    } else if (commandName === 'quote') {
-        // pass the message on to the quotes bot to handle
-        // we remove the !quote because the bot assumes that the message has already been parsed
-        const quoteResponse = await handleQuoteCommand(
-            commandParts.slice(1),
-            user,
-            mod,
-        );
-        if (quoteResponse === '') {
-            return;
-        }
-        client.say(channel, `@${user} ${quoteResponse}`);
     } else if (commandName === 'multi') {
         // pass the message on to the quotes bot to handle
         // we remove the !quote because the bot assumes that the message has already been parsed
-        const multiResponse = multiModule.handleCommand(
-            commandParts.slice(1),
-            user,
-            mod,
-        );
-        if (multiResponse === '') {
-            return;
-        }
-        client.say(channel, `${multiResponse}`);
+        // const multiResponse = multiModule.handleCommand(
+        //     commandParts.slice(1),
+        //     user,
+        //     mod,
+        // );
+        // if (multiResponse === '') {
+        //     return;
+        // }
+        // client.say(channel, `${multiResponse}`);
         // } else if (commandName === 'floha') {
         //     let quote;
         //     if (commandParts.length > 1) {
@@ -143,7 +124,10 @@ const onMessageHandler = async (
         //     }
         //     client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
     } else {
-        client.say(channel, await handleCommand(commandParts, user, mod));
+        const response = await handleCommand(commandParts, user, mod);
+        if (response) {
+            client.say(channel, response);
+        }
     }
 };
 
@@ -162,8 +146,7 @@ export const setupDb = () => {
 };
 
 export const initTwitchBot = () => {
-    modules.set(['money', 'gamble', 'give', 'net'], handleEconomyCommand);
-    modules.set(['flags'], handleFlagCommand);
+    registerAllModules();
 
     client.onMessage(onMessageHandler);
     client.connect();

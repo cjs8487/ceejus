@@ -7,4 +7,5 @@ import { ChatUser } from '@twurple/chat';
  */
 export const isUserMod = (user: ChatUser) => user.isMod || user.isBroadcaster;
 
-export default {};
+export const replyTo = (response: string, user: string) =>
+    `@${user} ${response}`;
