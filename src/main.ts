@@ -5,7 +5,6 @@ import { apiEnabled } from './Environment';
 import { notification } from './lib/EventSubHandlers';
 import { logInfo } from './Logger';
 import { initDiscordBot } from './discord/DiscordBot';
-// import { PublicQuotesBot } from './twitch/PublicQuotesBot';
 import api from './api/API';
 import { initTwitchBot } from './twitch/TwitchBot';
 
@@ -34,8 +33,6 @@ app.use(
 const port = 8001;
 
 initTwitchBot();
-// const publicQuotesBot = new PublicQuotesBot(db);
-// twitchBot.setupDb(db);
 initDiscordBot();
 
 if (apiEnabled) {

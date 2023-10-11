@@ -91,17 +91,7 @@ const onMessageHandler = async (
             channel,
             `@${user} command !${deleteCommand} deleted sucessfully`,
         );
-    } else if (commandName === 'multi') {
-        // pass the message on to the quotes bot to handle
-        // we remove the !quote because the bot assumes that the message has already been parsed
-        // const multiResponse = multiModule.handleCommand(
-        //     commandParts.slice(1),
-        //     user,
-        //     mod,
-        // );
-        // if (multiResponse === '') {
-        //     return;
-        // }
+
         // client.say(channel, `${multiResponse}`);
         // } else if (commandName === 'floha') {
         //     let quote;
@@ -123,11 +113,6 @@ const onMessageHandler = async (
         //         quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
         //     }
         //     client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
-    } else {
-        const response = await handleCommand(commandParts, user, mod);
-        if (response) {
-            client.say(channel, response);
-        }
     }
 };
 
