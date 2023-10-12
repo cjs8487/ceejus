@@ -8,7 +8,7 @@
         "run": "node src/main.ts",
         "twitch": "node src/twitch/TwitchBot.js",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "lint": "eslint --max-warnings 0 \"src/**/*.js\" \"*.js\"",
+        "lint": "eslint --max-warnings 0 \"src/**/*.ts\"",
         "discord:deploy-commands": "ts-node src/scripts/DeployDiscordCommands.ts"
     },
     "repository": {
