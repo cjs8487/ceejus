@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createSlashCommand } from './commands/SlashCommand';
+import { createSlashCommand } from './SlashCommand';
 
 const gdqCommand = createSlashCommand({
     name: 'gdq',
