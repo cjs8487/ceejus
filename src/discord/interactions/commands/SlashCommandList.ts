@@ -3,6 +3,8 @@ import { SlashCommand } from './SlashCommand';
 import { logError } from '../../../Logger';
 import quoteCommand from './Quote';
 import gdqCommand from './GDQ';
+import moneyCommand from './economy/Money';
+import gambleCommand from './economy/Gamble';
 
 export const commandList: SlashCommand[] = [];
 const commandMap: Map<string, SlashCommand> = new Map();
@@ -40,3 +42,5 @@ export const getHandler = (name: string) => {
 
 registerCommand(quoteCommand);
 registerCommand(gdqCommand);
+registerCommand(moneyCommand);
+registerCommand(gambleCommand);

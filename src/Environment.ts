@@ -14,3 +14,4 @@ export const sessionSecret = process.env.SESSION_SECRET ?? '';
 export const discordToken = process.env.DISCORD_TOKEN ?? '';
 export const discordCommandGuild = process.env.DISCORD_COMMAND_GUILD ?? '';
 export const discordClientId = process.env.DISCORD_CLIENT_ID ?? '';
+export const discordAuthUrl = process.env.DISCORD_AUTH_URL ?? '';
