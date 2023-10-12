@@ -20,13 +20,6 @@
         {
             "files": ["src/**/*.js", "src/**/*.ts"],
             "rules": {
-                "indent": [
-                    "error",
-                    4,
-                    {
-                        "SwitchCase": 1
-                    }
-                ],
                 "max-len": ["error", 120],
                 "no-plusplus": ["off"],
                 "operator-linebreak": [

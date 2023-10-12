@@ -1,4 +1,5 @@
 import { ChatUser } from '@twurple/chat';
+import { HandlerDelegate } from '../modules/Modules';
 
 /**
  * Checks if a given user is mod. Requires a message and channel context to properly make the determination
@@ -7,5 +8,14 @@ import { ChatUser } from '@twurple/chat';
  */
 export const isUserMod = (user: ChatUser) => user.isMod || user.isBroadcaster;
 
-export const replyTo = (response: string, user: string) =>
-    `@${user} ${response}`;
+type DelegateModifer = (delegate: HandlerDelegate) => HandlerDelegate;
+
+export const replyTo: DelegateModifer =
+    (delegate: HandlerDelegate) =>
+    async (commandParts, user, mod, ...metadata) => {
+        const response = await delegate(commandParts, user, mod, ...metadata);
+        if (!response) {
+            return undefined;
+        }
+        return `@${user} ${response}`;
+    };

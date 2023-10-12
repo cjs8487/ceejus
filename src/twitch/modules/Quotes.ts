@@ -129,21 +129,7 @@ const handleQuote: HandlerDelegate = async (
 };
 
 const commandHandlers = new Map<string, HandlerDelegate>();
-commandHandlers.set(
-    'quote',
-    async (commandParts, user, isQuoteMod, ...metadata) => {
-        const response = await handleQuote(
-            commandParts,
-            user,
-            isQuoteMod,
-            ...metadata,
-        );
-        if (response) {
-            return replyTo(response, user);
-        }
-        return undefined;
-    },
-);
+commandHandlers.set('quote', replyTo(handleQuote));
 
 const quotesModule: TwitchModule = {
     name: 'Quotes',

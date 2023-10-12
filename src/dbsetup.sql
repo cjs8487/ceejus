@@ -73,14 +73,7 @@ create TABLE if not exists COMMANDS (
     owner number not null,
     command_string text not NULL,
     output text not null,
-    active integer not null,
-    permission integer not null,
-    primary key(id, owner)
-);
-create TABLE if not exists DISCORD_COMMANDS (
-    id integer,
-    owner number not null,
-    command_string text not NULL,
-    output text not null,
+    active integer not null default 1,
+    permission integer not null default 0,
     primary key(id, owner)
 );

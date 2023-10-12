@@ -44,7 +44,7 @@ export const handleCommand = async (
                 mod,
                 ...metadata,
             );
-            if (response) {
+            if (res) {
                 response = res;
                 break;
             }
