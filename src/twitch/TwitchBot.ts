@@ -1,220 +1,138 @@
 import { StaticAuthProvider } from '@twurple/auth';
-import { ChatClient } from '@twurple/chat';
-import { Database } from 'better-sqlite3';
+import { ChatClient, ChatMessage } from '@twurple/chat';
 import fs from 'fs';
-import _ from 'lodash';
+import { db } from '../System';
 import { User, getAllUsers } from '../database/Users';
 import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
-import { logInfo } from '../Logger';
-import {
-    handleEconomyCommand,
-    handleFlagCommand,
-    handleQuoteCommand,
-    HandlerDelegate,
-} from '../modules/Modules';
-import { MultiTwitch } from './modules/MultiTwitch';
-import { TwitchQuotesModule } from './modules/TwitchQuotesModule';
-import { isUserMod } from './TwitchHelper';
-import { handleCommand } from './TwitchModules';
+// import { MultiTwitch } from './modules/MultiTwitch';
+import { isUserMod } from './TwitchUtils';
+import { handleCommand, registerAllModules } from './modules/TwitchModules';
+
+// const multiModule = new MultiTwitch();
+
+const channels: string[] = getAllUsers(true).map((user: User) => user.username);
+const client = new ChatClient({
+    authProvider: new StaticAuthProvider(twitchClientId, botOAuthToken),
+    channels,
+});
 
 /**
- * IRC Chatbot run through Twitch. This serves as the main entry point into the Twitch modules of the bot, but most
- * functionality is broken out into those modules.
+ * Handles an incoming chat messsage
+ * @param {*} channel The channel the message was sent in
+ * @param {*} user The user who sent the message
+ * @param {*} messageText The message that was sent
  */
-class TwitchBot {
-    db: Database;
-    quotesBot: TwitchQuotesModule;
-    multiModule: MultiTwitch;
-    modules: Map<string[], HandlerDelegate>;
-    client: ChatClient;
+const onMessageHandler = async (
+    channel: string,
+    user: string,
+    messageText: string,
+    message: ChatMessage,
+) => {
+    if (user === botUsername) {
+        return;
+    }
 
-    /**
-     * Constructs a new Twitch bot isntance, using the environment variables to contruct the instance
-     * @param {*} db The database to use when looking up information for the bot (commands, quotes, etc.)
-     */
-    constructor(db: Database) {
-        this.db = db;
-        this.quotesBot = new TwitchQuotesModule();
-        this.multiModule = new MultiTwitch();
-        this.modules = new Map();
-        this.modules.set(
-            ['money', 'gamble', 'give', 'net'],
-            handleEconomyCommand,
+    // TODO: TIMED MESSAGE HANDLING
+
+    let commandName = messageText.trim();
+
+    if (!commandName.startsWith('!')) {
+        // not a command
+        // TODO: MODERATION?
+        return;
+    }
+
+    const commandParts = messageText.substring(1).split(' ');
+    commandName = commandParts[0].toLowerCase();
+
+    const mod = isUserMod(message.userInfo);
+    let handled = false;
+    const modulesResponse = await handleCommand(
+        commandParts,
+        user,
+        mod,
+        channel,
+    );
+    if (modulesResponse) {
+        client.say(channel, modulesResponse);
+        handled = true;
+    }
+    if (handled) return;
+    if (commandName === 'addcomm') {
+        if (!isUserMod(message.userInfo)) return;
+        const newCommand = commandParts[1].toLowerCase();
+        const output = commandParts.slice(2).join(' ');
+        db.prepare(
+            'insert into commands (command_string, output) values (?, ?)',
+        ).run(newCommand, output);
+        client.say(
+            channel,
+            `@${user} command !${newCommand} successfully created`,
         );
-        this.modules.set(['flags'], handleFlagCommand);
-
-        const channels: string[] = getAllUsers(true).map(
-            (user: User) => user.username,
+    } else if (commandName === 'editcomm') {
+        if (!isUserMod(message.userInfo)) return;
+        const editCommand = commandParts[1].toLowerCase();
+        const output = commandParts.slice(2).join(' ');
+        db.prepare('update commands set output=? where command_string=?').run(
+            output,
+            editCommand,
         );
-        this.client = new ChatClient({
-            authProvider: new StaticAuthProvider(twitchClientId, botOAuthToken),
-            channels,
-        });
+        client.say(
+            channel,
+            `@${user} command !${editCommand} editted successfully`,
+        );
+    } else if (commandName === 'deletecomm') {
+        if (!isUserMod(message.userInfo)) return;
+        const deleteCommand = commandParts[1].toLowerCase();
+        db.prepare('delete from commands where command_string=?').run(
+            deleteCommand,
+        );
+        client.say(
+            channel,
+            `@${user} command !${deleteCommand} deleted sucessfully`,
+        );
 
-        this.onMessageHandler = this.onMessageHandler.bind(this);
-
-        this.client.onMessage(this.onMessageHandler);
-        this.client.connect();
+        // client.say(channel, `${multiResponse}`);
+        // } else if (commandName === 'floha') {
+        //     let quote;
+        //     if (commandParts.length > 1) {
+        //         const quoteNumber = parseInt(commandParts[1], 10);
+        //         if (Number.isNaN(quoteNumber)) {
+        //             quote = await (
+        //                 await fetch(
+        // eslint-disable-next-line max-len
+        //                   `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
+        //                 )
+        //             ).json();
+        //         } else {
+        //             quote = await (
+        //                 await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
+        //             ).json();
+        //         }
+        //     } else {
+        //         quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+        //     }
+        //     client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
     }
+};
 
-    /**
-     * Handles an incoming chat messsage
-     * @param {*} channel The channel the message was sent in
-     * @param {*} user The user who sent the message
-     * @param {*} message The message that was sent
-     */
-    async onMessageHandler(channel: string, user: string, message: string) {
-        if (user === botUsername) {
-            return;
-        }
-
-        // TODO: TIMED MESSAGE HANDLING
-
-        let commandName = message.trim();
-
-        if (!commandName.startsWith('!')) {
-            // not a command
-            // TODO: MODERATION?
-            return;
-        }
-
-        const commandParts = message.substring(1).split(' ');
-        commandName = commandParts[0].toLowerCase();
-
-        const mod = isUserMod(user, channel);
-        let handled = false;
-        this.modules.forEach(async (delegate, commands) => {
-            if (_.includes(commands, commandName)) {
-                handled = true;
-                this.client.say(
-                    channel,
-                    await delegate(
-                        commandParts,
-                        user,
-                        mod,
-                        channel.substring(1),
-                    ),
-                );
-            }
-        });
-        if (handled) return;
-
-        if (commandName === 'lurk') {
-            this.client.say(
-                channel,
-                `@${user} is lurking in the shadows, silently supporting the stream`,
-            );
-        } else if (commandName === 'unlurk') {
-            this.client.say(channel, `@${user} has returned from the shadows`);
-        } else if (commandName === 'addcomm') {
-            if (!isUserMod(user, channel)) return;
-            const newCommand = commandParts[1].toLowerCase();
-            const output = commandParts.slice(2).join(' ');
-            this.db
-                .prepare(
-                    'insert into commands (command_string, output) values (?, ?)',
-                )
-                .run(newCommand, output);
-            this.client.say(
-                channel,
-                `@${user} command !${newCommand} successfully created`,
-            );
-        } else if (commandName === 'editcomm') {
-            if (!isUserMod(user, channel)) return;
-            const editCommand = commandParts[1].toLowerCase();
-            const output = commandParts.slice(2).join(' ');
-            this.db
-                .prepare('update commands set output=? where command_string=?')
-                .run(output, editCommand);
-            this.client.say(
-                channel,
-                `@${user} command !${editCommand} editted successfully`,
-            );
-        } else if (commandName === 'deletecomm') {
-            if (!isUserMod(user, channel)) return;
-            const deleteCommand = commandParts[1].toLowerCase();
-            this.db
-                .prepare('delete from commands where command_string=?')
-                .run(deleteCommand);
-            this.client.say(
-                channel,
-                `@${user} command !${deleteCommand} deleted sucessfully`,
-            );
-        } else if (commandName === 'quote') {
-            // pass the message on to the quotes bot to handle
-            // we remove the !quote because the bot assumes that the message has already been parsed
-            const quoteResponse = await handleQuoteCommand(
-                commandParts.slice(1),
-                user,
-                mod,
-            );
-            if (quoteResponse === '') {
-                return;
-            }
-            this.client.say(channel, `@${user} ${quoteResponse}`);
-        } else if (commandName === 'multi') {
-            // pass the message on to the quotes bot to handle
-            // we remove the !quote because the bot assumes that the message has already been parsed
-            const multiResponse = this.multiModule.handleCommand(
-                commandParts.slice(1),
-                user,
-                mod,
-            );
-            if (multiResponse === '') {
-                return;
-            }
-            this.client.say(channel, `${multiResponse}`);
-            // } else if (commandName === 'floha') {
-            //     let quote;
-            //     if (commandParts.length > 1) {
-            //         const quoteNumber = parseInt(commandParts[1], 10);
-            //         if (Number.isNaN(quoteNumber)) {
-            //             quote = await (
-            //                 await fetch(
-            // eslint-disable-next-line max-len
-            //                   `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
-            //                 )
-            //             ).json();
-            //         } else {
-            //             quote = await (
-            //                 await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
-            //             ).json();
-            //         }
-            //     } else {
-            //         quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
-            //     }
-            //     this.client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
-        } else {
-            this.client.say(
-                channel,
-                await handleCommand(commandParts, user, mod),
-            );
-        }
+/**
+ * Checks the database for existing data and loads the initial dataset if the is no data present
+ */
+export const setupDb = () => {
+    const commands = db.prepare('select * from commands');
+    if (commands === undefined) {
+        const setupScript = fs.readFileSync(
+            'src/twitch/initalCommandSetup.sql',
+            'utf-8',
+        );
+        db.exec(setupScript);
     }
+};
 
-    /**
-     * Callback for a successful connection to the irc server
-     * @param {*} addr The address of the irc server the bot connected to
-     * @param {*} port The port on the server we are connected through
-     */
-    // eslint-disable-next-line class-methods-use-this
-    onConnectedHandler(addr: string, port: number) {
-        logInfo(`* Connected to ${addr}:${port}`);
-    }
+export const initTwitchBot = () => {
+    registerAllModules();
 
-    /**
-     * Checks the database for existing data and loads the initial dataset if the is no data present
-     */
-    setupDb() {
-        const commands = this.db.prepare('select * from commands');
-        if (commands === undefined) {
-            const setupScript = fs.readFileSync(
-                'src/twitch/initalCommandSetup.sql',
-                'utf-8',
-            );
-            this.db.exec(setupScript);
-        }
-    }
-}
-
-export default TwitchBot;
+    client.onMessage(onMessageHandler);
+    client.connect();
+};

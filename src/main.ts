@@ -4,11 +4,9 @@ import 'http';
 import { apiEnabled } from './Environment';
 import { notification } from './lib/EventSubHandlers';
 import { logInfo } from './Logger';
-import { db } from './System';
-import DiscordBot from './discord/DiscordBot';
-// import { PublicQuotesBot } from './twitch/PublicQuotesBot';
+import { initDiscordBot } from './discord/DiscordBot';
 import api from './api/API';
-import TwitchBot from './twitch/TwitchBot';
+import { initTwitchBot } from './twitch/TwitchBot';
 
 declare module 'express' {
     interface Request {
@@ -34,10 +32,8 @@ app.use(
 
 const port = 8001;
 
-const twitchBot = new TwitchBot(db);
-// const publicQuotesBot = new PublicQuotesBot(db);
-// twitchBot.setupDb(db);
-const discordBot = new DiscordBot(db);
+initTwitchBot();
+initDiscordBot();
 
 if (apiEnabled) {
     app.use('/api', api);
