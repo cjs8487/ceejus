@@ -1,6 +1,6 @@
 import { createHmac } from 'crypto';
 import { Request, Response } from 'express';
-import { secret } from '../Environment';
+import { eventSubSecret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';
 import { logError, logInfo, logWarn } from '../Logger';
 import { apiClient, isUserRegistered } from '../auth/TwitchAuth';
@@ -15,7 +15,7 @@ const verifySignature = (
     body: string,
 ) => {
     const message = messageID + messageTimestamp + body;
-    const signature = createHmac('sha256', secret).update(message);
+    const signature = createHmac('sha256', eventSubSecret).update(message);
     const expectedSignature = `sha256=${signature.digest('hex')}`;
     return expectedSignature === messageSignature;
 };
