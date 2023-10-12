@@ -1,5 +1,5 @@
 import { db } from '../../System';
-import { GlobalUtils } from '../../util/GlobalUtils';
+import { getTodaysDate } from '../../util/GlobalUtils';
 import { handleRequest } from './Aliases';
 
 export type Quote = {
@@ -92,7 +92,7 @@ export const addQuote = (quote: string, quotedBy: string): number => {
         .prepare(
             'insert into quotes (quote, quotedBy, quotedOn) values (?, ?, ?)',
         )
-        .run(quote, quotedBy, GlobalUtils.getTodaysDate());
+        .run(quote, quotedBy, getTodaysDate());
     return addData.lastInsertRowid as number;
 };
 
