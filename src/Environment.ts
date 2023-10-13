@@ -15,3 +15,6 @@ export const discordToken = process.env.DISCORD_TOKEN ?? '';
 export const discordCommandGuild = process.env.DISCORD_COMMAND_GUILD ?? '';
 export const discordClientId = process.env.DISCORD_CLIENT_ID ?? '';
 export const discordAuthUrl = process.env.DISCORD_AUTH_URL ?? '';
+export const discordRedirect = process.env.DISCORD_REDIRECT ?? '';
+export const discordClientSecret = process.env.DISCORD_CLIENT_SECRET ?? '';
+export const port = process.env.PORT || 8000;
