@@ -56,7 +56,6 @@ discordAuth.get('/redirect', async (req, res, next) => {
     try {
         const token = await exchangeCode(code);
 
-        // fetch data from discord api for db cache
         const { data }: { data: APIUser } = await axios.get(
             'https://discord.com/api/v10/users/@me',
             {
@@ -80,6 +79,66 @@ discordAuth.get('/redirect', async (req, res, next) => {
             (connection) => connection.type === ConnectionService.Twitch,
         );
         console.log(twitchConnections);
+
+        if (req.session.user) {
+            const user = req.session.user;
+            console.log(`${user.username} is currently logged in`);
+            console.log(
+                `Found ${twitchConnections.length} twitch connections for Discord user ${data.global_name}`,
+            );
+            if (twitchConnections.length === 0) {
+                console.log('ERROR NO CONNECTIONS');
+                res.status(400).send(
+                    'No Twitch connections on supplied account.',
+                );
+                return;
+            }
+            const matchingConnections = twitchConnections.filter(
+                (connection) => connection.name === user.username,
+            );
+            if (matchingConnections.length === 0) {
+                console.log('ERROR NO MATCHING CONNECTION');
+                res.status(400).send(
+                    'No Twitch connection on the supplied account matches the current user.',
+                );
+                return;
+            }
+            console.log(
+                `Connecting Discord-${data.global_name} to Twitch-${user.username}`,
+            );
+            res.status(200).send(
+                `Successfully connected Discord-${data.global_name} to Twitch-${twitchConnections[0].name}`,
+            );
+        } else {
+            console.log('No logged in user');
+
+            if (twitchConnections.length === 0) {
+                console.log('ERROR NO CONNECTIONS');
+                res.status(400).send(
+                    'No Twitch connections on supplied account.',
+                );
+                return;
+            }
+
+            if (twitchConnections.length > 1) {
+                console.log(
+                    'Multiple connections found. Unable to create account without further input',
+                );
+                console.log('Redirecting to account setup');
+                console.log('Chaching data in session');
+                res.status(200).send('Redirected to account setup');
+                return;
+            }
+            console.log('One connection found');
+            console.log('Creating base user record');
+            console.log('Creating Discord auth data and connecting it to user');
+            console.log(
+                `Discord-${data.global_name} to Twitch-${twitchConnections[0].name}`,
+            );
+            res.status(200).send(
+                `Successfully connected Discord-${data.global_name} to Twitch-${twitchConnections[0].name}`,
+            );
+        }
 
         // get user if it exists, otherwise register them internally
 
