@@ -5,7 +5,7 @@ import {
     twitchClientSecret,
     twitchRedirect,
 } from '../Environment';
-import { updateTwitchAuth } from '../database/Users';
+import { getUserByTwitchId, updateAuth } from '../database/Users';
 
 const authProvider = new RefreshingAuthProvider({
     clientId: twitchClientId,
@@ -13,7 +13,9 @@ const authProvider = new RefreshingAuthProvider({
     redirectUri: twitchRedirect,
 });
 authProvider.onRefresh((userId, newToken) => {
-    updateTwitchAuth(userId, newToken);
+    const user = getUserByTwitchId(userId);
+    if (!user) return;
+    updateAuth(user.userId, 'twitch', newToken.refreshToken ?? '');
 });
 
 export const apiClient = new ApiClient({ authProvider });

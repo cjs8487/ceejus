@@ -6,8 +6,13 @@ import {
     doCodeExchange,
     registerUserAuth,
 } from '../../auth/TwitchAuth';
-import { getUserByName, registerUser, userExists } from '../../database/Users';
 import { twitchClientId, twitchRedirect } from '../../Environment';
+import {
+    addAuthToUser,
+    getUserByName,
+    registerUser,
+    userExists,
+} from '../../database/Users';
 
 const twitchAuth = Router();
 
@@ -61,13 +66,14 @@ twitchAuth.get('/redirect', async (req, res, next) => {
 
         let userId: number;
         if (!userExists(user.displayName)) {
-            userId = registerUser(user.displayName, user.id, firstToken);
+            userId = registerUser(user.displayName, user.id);
+            addAuthToUser(userId, 'twitch', firstToken.refreshToken ?? '');
         } else {
             userId = getUserByName(user.displayName)!.userId;
         }
-        req.session.regenerate((err) => {
-            if (err) {
-                next(err);
+        req.session.regenerate((genErr) => {
+            if (genErr) {
+                next(genErr);
                 return;
             }
             req.session.user = { userId, username: user.displayName };

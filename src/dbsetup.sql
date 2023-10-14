@@ -11,19 +11,18 @@ create table if not exists users (
     user_id integer primary key autoincrement,
     username text not null,
     twitch_id text not null,
+    discord_id text not null,
     active integer not null
 );
 create unique index if not exists user_username_index on users(username);
 create unique index if not exists user_twitchid_index on users(twitch_id);
+create unique index if not exists user_discordid_index on users(discord_id);
 
 create table if not exists oauth (
     auth_id integer primary key autoincrement,
     owner integer not null,
-    access_token text not null,
+    service text not null,
     refresh_token text not null,
-    scopes text not null,
-    expires_in integer,
-    obtained date,
     foreign key(owner) references users(user_id)
 );
 
@@ -75,5 +74,6 @@ create TABLE if not exists COMMANDS (
     output text not null,
     active integer not null default 1,
     permission integer not null default 0,
-    primary key(id, owner)
+    primary key(id, owner),
+    foreign key(owner) references users(user_id)
 );

@@ -6,6 +6,8 @@ export type User = {
     userId: number;
     username: string;
     active: boolean;
+    twitchId: string;
+    discordId?: string;
 };
 
 export const NO_TOKEN: AccessToken = {
@@ -17,52 +19,42 @@ export const NO_TOKEN: AccessToken = {
 };
 
 type DBUser = {
-    // eslint-disable-next-line camelcase
     user_id: number;
     username: string;
     active: number;
+    twitch_id: string;
+    discord_id?: string;
 };
 
 const toExternalForm = (user: DBUser): User => ({
     userId: user.user_id,
     username: user.username,
     active: !!user.active,
+    twitchId: user.twitch_id,
+    discordId: user.discord_id,
 });
 
 export const registerUser = (
     username: string,
     twitchId: string,
-    accessToken: AccessToken,
+    discordId?: string,
 ): number => {
     const addData: RunResult = db
         .prepare(
-            'insert into users (username, twitch_id, active) values (?, ?, 1)',
+            'insert into users (username, twitch_id, active, discord_id) values (?, ?, 1, ?)',
         )
-        .run(username, twitchId);
-    db.prepare(
-        // eslint-disable-next-line max-len
-        'insert into oauth (owner, access_token, refresh_token, scopes, expires_in, obtained) values (?, ?, ?, ?, ?, ?)',
-    ).run(
-        addData.lastInsertRowid,
-        accessToken.accessToken,
-        accessToken.refreshToken,
-        accessToken.scope.join(','),
-        accessToken.expiresIn,
-        accessToken.obtainmentTimestamp,
-    );
+        .run(username, twitchId, discordId);
     return addData.lastInsertRowid as number;
 };
 
-export const registerUserWithoutAuth = (
-    username: string,
-    twitchId: string,
-): number => {
-    const addData: RunResult = db
-        .prepare(
-            'insert into users (username, twitch_id, active) values (?, ?, 1)',
-        )
-        .run(username, twitchId);
-    return addData.lastInsertRowid as number;
+export const addAuthToUser = (
+    userId: number,
+    service: string,
+    refreshToken: string,
+) => {
+    db.prepare(
+        'insert into oauth (owner, refresh_token, service) values (?, ?, ?)',
+    ).run(userId, refreshToken, service);
 };
 
 export const updateUser = (userId: number, username: string) => {
@@ -118,39 +110,22 @@ export const getUserByTwitchId = (twitchId: string): User | undefined => {
     return toExternalForm(user);
 };
 
-export const updateTwitchAuth = (twitchId: string, token: AccessToken) => {
-    const { accessToken, refreshToken, expiresIn, obtainmentTimestamp } = token;
-    const owner = getUserByTwitchId(twitchId);
-    if (!owner) return;
-    db.prepare(
-        'update oauth set access_token=?, refresh_token=?, expires_in=?, obtained=? where owner=?',
-    ).run(
-        accessToken,
-        refreshToken,
-        expiresIn,
-        obtainmentTimestamp,
-        owner.userId,
-    );
+export const getUserByDiscordId = (discordId: string): User | undefined => {
+    const user: DBUser | undefined = db
+        .prepare('select * from users where discord_id=?')
+        .get(discordId);
+    if (!user) return undefined;
+    return toExternalForm(user);
 };
 
-export const updateAuth = (userId: number, accessTokenObj: AccessToken) => {
-    const { accessToken, refreshToken, expiresIn, obtainmentTimestamp } =
-        accessTokenObj;
+export const updateAuth = (
+    userId: number,
+    service: string,
+    refreshToken: string,
+) => {
     db.prepare(
-        'update oauth set access_token=?, refresh_token=?, expires_in=?, obtained=? where owner=?',
-    ).run(accessToken, refreshToken, expiresIn, obtainmentTimestamp, userId);
-};
-
-export const getAccessToken = (userId: number): AccessToken => {
-    const data = db.prepare('select * from oauth where owner=?').get(userId);
-    if (data === undefined) return NO_TOKEN;
-    return {
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token,
-        expiresIn: data.expires_in,
-        obtainmentTimestamp: data.obtained,
-        scope: data.scopes.split(','),
-    };
+        'update oauth set refresh_token=? where owner=? and service=?',
+    ).run(refreshToken, userId, service);
 };
 
 export const userExists = (username: string) => {
