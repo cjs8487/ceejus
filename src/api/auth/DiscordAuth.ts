@@ -122,7 +122,7 @@ discordAuth.get('/redirect', async (req, res, next) => {
 
             if (twitchConnections.length > 1) {
                 console.log(
-                    'Multiple connections found. Unable to create account without further input',
+                    'ERROR MULTIPLE CONNECTIONS',
                 );
                 res.status(400).send(
                     'Discord account has multiple Twitch connections. Unable to create connection',
