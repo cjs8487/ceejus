@@ -64,6 +64,13 @@ export const updateUser = (userId: number, username: string) => {
     );
 };
 
+export const updateUserDiscordId = (userId: number, discordId: string) => {
+    db.prepare('update users set discord_id=? where user_id=?').run(
+        discordId,
+        userId,
+    );
+};
+
 export const activateUser = (userId: number) => {
     db.prepare('update users set active=1 where user_id=?').run(userId);
 };
