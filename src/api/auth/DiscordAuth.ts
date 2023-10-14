@@ -32,16 +32,28 @@ discordAuth.get('/authorize', (req, res) => {
 
 // redirect flow
 // 1. check state
-//      - Fail, reject immediately, redirect to error page
+//      - Fail, reject immediately, error
 // 2. Exchange the received code for an access token
+// 3. Use token to grab Discord user data and connection data
+// 4. Check if this discord user is already registered, if so error
 // 3. Check session for a user
 //  - If user found
-//      1. Write auth data to database, flagging as needing setup
-//      2. Redirect to setup page
+//      1. Check connections data
+//          - If none, error
+//      2. Look for a connection that matches the logged in user data
+//          - If none are found, error
+//      3. Save discord id to user record and add new auth record, success
 //  - If no user
-//      1. Retrieve shell data from Twitch
-//      2. Create user record
-//      3.
+//      1. Check connections data
+//          - If none, error
+//          - If more than one, error
+//      2. Check if Twitch data matches a registered user
+//          - If match, set discord id on user and add auth record, success
+//      3. Retrieve data from Twitch
+//      4. Create user, add discord auth, success
+//
+// Discord auth is not currently a valid way to log in to the system, so this does not update the session,
+// outside of protective measures. This will likely change in the future.
 
 discordAuth.get('/redirect', async (req, res, next) => {
     res.status(200);
@@ -172,37 +184,6 @@ discordAuth.get('/redirect', async (req, res, next) => {
                 `Successfully created account for Twitch-${connection.name} and connected Discord-${data.global_name}`,
             );
         }
-
-        // get user if it exists, otherwise register them internally
-
-        // const user = await getOrCreateUser(data, true, token);
-        // check the refresh flag - this should never be set on newly created users, so this check, while wasting a few
-        // cycles if the user is newly created, is completely safe regardless of which code path obtained the user
-        // if the flag is set, update the stored oauth data and clear the flag
-        // if (!user) {
-        //     logError(
-        //         `Find or create user resulted in an undefined user. Search for id ${
-        //             data.id
-        //         }} failed while using the ${typeof data.id} overload`,
-        //     );
-        //     res.status(500).send(
-        //         'An unknown error ocurred during authorization',
-        //     );
-        //     return;
-        // }
-
-        // load data into session and send
-        req.session.regenerate((err) => {
-            if (err) next(err);
-
-            // req.session.loggedIn = true;
-            // req.session.user = user.id;
-
-            req.session.save((saveErr) => {
-                if (saveErr) next(saveErr);
-                // res.redirect('/');
-            });
-        });
     } catch (e) {
         if (isAxiosError(e)) {
             logError(
