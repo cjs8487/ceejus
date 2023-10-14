@@ -25,7 +25,7 @@ discordAuth.get('/authorize', (req, res) => {
 // redirect flow
 // 1. check state
 //      - Fail, reject immediately, redirect to error page
-// 2. Exchange the recieved code for an access token
+// 2. Exchange the received code for an access token
 // 3. Check session for a user
 //  - If user found
 //      1. Write auth data to database, flagging as needing setup
@@ -107,7 +107,7 @@ discordAuth.get('/redirect', async (req, res, next) => {
                 `Connecting Discord-${data.global_name} to Twitch-${user.username}`,
             );
             res.status(200).send(
-                `Successfully connected Discord-${data.global_name} to Twitch-${twitchConnections[0].name}`,
+                `Successfully connected Discord-${data.global_name} to Twitch-${matchingConnections[0].name}`,
             );
         } else {
             console.log('No logged in user');
@@ -124,16 +124,16 @@ discordAuth.get('/redirect', async (req, res, next) => {
                 console.log(
                     'Multiple connections found. Unable to create account without further input',
                 );
-                console.log('Redirecting to account setup');
-                console.log('Chaching data in session');
-                res.status(200).send('Redirected to account setup');
+                res.status(400).send(
+                    'Discord account has multiple Twitch connections. Unable to create connection',
+                );
                 return;
             }
             console.log('One connection found');
             console.log('Creating base user record');
             console.log('Creating Discord auth data and connecting it to user');
             console.log(
-                `Discord-${data.global_name} to Twitch-${twitchConnections[0].name}`,
+                `Connected Discord-${data.global_name} to Twitch-${twitchConnections[0].name}`,
             );
             res.status(200).send(
                 `Successfully connected Discord-${data.global_name} to Twitch-${twitchConnections[0].name}`,
@@ -167,7 +167,7 @@ discordAuth.get('/redirect', async (req, res, next) => {
 
             req.session.save((saveErr) => {
                 if (saveErr) next(saveErr);
-                res.redirect('/');
+                // res.redirect('/');
             });
         });
     } catch (e) {
