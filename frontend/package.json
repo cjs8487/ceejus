@@ -2,6 +2,7 @@
     "name": "frontend",
     "version": "0.1.0",
     "private": true,
+    "proxy": "http://localhost:8000",
     "dependencies": {
         "@floating-ui/react": "^0.26.1",
         "@fortawesome/fontawesome-svg-core": "^6.4.2",
