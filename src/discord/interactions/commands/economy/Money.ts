@@ -1,3 +1,6 @@
+import { logError } from '../../../../Logger';
+import { getCurrency } from '../../../../database/Economy';
+import { getUserByDiscordId } from '../../../../database/Users';
 import { authCheck } from '../../../DiscordUtils';
 import { createSlashCommand } from '../SlashCommand';
 
@@ -16,7 +19,19 @@ const moneyCommand = createSlashCommand({
         await interaction.deferReply();
         const authorized = await authCheck(interaction);
         if (authorized) {
-            //
+            const user = getUserByDiscordId(interaction.user.id);
+            if (!user) {
+                logError(
+                    'Unable to retrieve user data despite a valid auth check',
+                );
+                await interaction.editReply(
+                    'An error occurred, try again later.',
+                );
+                return;
+            }
+            await interaction.editReply(
+                `${getCurrency(user.userId, 1)} BiTcoins`,
+            );
         }
     },
 });

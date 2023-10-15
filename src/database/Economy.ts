@@ -93,7 +93,9 @@ export const gambleLoss = (
     owner: number,
     amount: number,
 ): void => {
-    removeCurrency(user, owner, amount);
+    if (removeCurrency(user, owner, amount) === '') {
+        return;
+    }
     const currNet = getGambleNet(user, owner);
     const newNet = currNet - amount;
     db.prepare('update economy set gamble_net=? where user=? and owner=?').run(
@@ -108,7 +110,9 @@ export const gambleWin = (
     owner: number,
     amount: number,
 ): void => {
-    addCurrency(user, owner, amount);
+    if (addCurrency(user, owner, amount) === '') {
+        return;
+    }
     const currNet = getGambleNet(user, owner);
     const newNet = currNet + amount;
     db.prepare('update economy set gamble_net=? where user=? and owner=?').run(

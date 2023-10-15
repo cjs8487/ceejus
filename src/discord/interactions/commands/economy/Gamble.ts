@@ -1,5 +1,13 @@
+import _ from 'lodash';
 import { createSlashCommand } from '../SlashCommand';
 import { authCheck } from '../../../DiscordUtils';
+import {
+    gambleLoss,
+    gambleWin,
+    getCurrency,
+} from '../../../../database/Economy';
+import { getUserByDiscordId } from '../../../../database/Users';
+import { logError } from '../../../../Logger';
 
 const gambleCommand = createSlashCommand({
     name: 'gamble',
@@ -9,6 +17,7 @@ const gambleCommand = createSlashCommand({
             name: 'amount',
             description: 'the amount of currency to wager',
             type: 'integer',
+            min: 0,
         },
         {
             name: 'all',
@@ -28,12 +37,39 @@ const gambleCommand = createSlashCommand({
                 );
                 return;
             }
+            const user = getUserByDiscordId(interaction.user.id);
+            if (!user) {
+                logError(
+                    'Unable to retrieve user data despite a valid auth check',
+                );
+                await interaction.editReply(
+                    'An error occurred, try again later.',
+                );
+                return;
+            }
+            const total = getCurrency(user.userId, 1);
+            let gambleAmount: number = 0;
             if (all) {
-                //
+                gambleAmount = total;
             }
             if (amount) {
-                //
+                if (amount > total) {
+                    await interaction.editReply(
+                        'Cannot gamble more currency than you have',
+                    );
+                    return;
+                }
+                gambleAmount = amount;
             }
+            if (_.random(1) === 0) {
+                gambleLoss(user.userId, 1, gambleAmount);
+                await interaction.editReply(
+                    `You lost ${gambleAmount} BiTcoins`,
+                );
+                return;
+            }
+            gambleWin(user.userId, 1, gambleAmount);
+            await interaction.editReply(`You won ${gambleAmount} BiTcoins`);
         }
     },
 });

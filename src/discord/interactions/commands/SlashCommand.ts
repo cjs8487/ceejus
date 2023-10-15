@@ -162,10 +162,10 @@ const createOptions = (
                 if (option.choices) {
                     optionBuilder.setChoices(...option.choices);
                 }
-                if (option.min) {
+                if (option.min !== undefined) {
                     optionBuilder.setMinValue(option.min);
                 }
-                if (option.max) {
+                if (option.max !== undefined) {
                     optionBuilder.setMaxValue(option.max);
                 }
                 builder.addNumberOption(optionBuilder);
@@ -182,10 +182,10 @@ const createOptions = (
                 if (option.choices) {
                     optionBuilder.setChoices(...option.choices);
                 }
-                if (option.min) {
+                if (option.min !== undefined) {
                     optionBuilder.setMinValue(option.min);
                 }
-                if (option.max) {
+                if (option.max !== undefined) {
                     optionBuilder.setMaxValue(option.max);
                 }
                 builder.addIntegerOption(optionBuilder);
