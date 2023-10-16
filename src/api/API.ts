@@ -17,6 +17,7 @@ export type SessionUser = {
 declare module 'express-session' {
     interface SessionData {
         user: SessionUser;
+        state?: string;
     }
 }
 

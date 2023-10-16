@@ -26,36 +26,13 @@ function App() {
                 setRewards(JSON.parse(await rewardResposne.text()));
             }
         };
-        const authorize = async (code: string) => {
-            await fetch('/api/auth/twitch/authorized', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    code,
-                }),
-            });
-            navigate('/', { replace: true });
-        };
-        const token = new URLSearchParams(location.search);
-        const code = token.get('code');
-        const scope = token.get('scope');
-        const state = token.get('state');
-        if (code) {
-            authorize(code);
-        } else {
-            checkStatus();
-        }
+        checkStatus();
     }, [location.search, navigate]);
     return (
         <div className="App">
             <header className="App-header">
                 {!username && (
-                    <a href="https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=sgfaaq3ny118n9rcw74jd54ig5qozf&redirect_uri=http://localhost:3000&scope=channel%3Amanage%3Apolls+channel%3Aread%3Apolls+channel:manage:redemptions">
-                        Authorize with Twitch
-                    </a>
+                    <a href="/api/auth/twitch/doauth">Authorize with Twitch</a>
                 )}
                 {username && <h1>Welcome, {username}</h1>}
                 {rewards && (
