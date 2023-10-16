@@ -1,56 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useContext, useEffect } from 'react';
 import './App.css';
+import { UserContext, UserContextProvider } from './contexts/UserContext';
+import Home from './routes/Home';
 
 function App() {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const [username, setUsername] = useState<string>();
-    const [rewards, setRewards] = useState<any[]>();
+    const { update } = useContext(UserContext);
+
     useEffect(() => {
         const checkStatus = async () => {
             const hasSession = await fetch('/api/me', {
                 credentials: 'same-origin',
             });
-            const { userId, username: sessionUsername } = JSON.parse(
-                await hasSession.text(),
-            );
-            if (userId && sessionUsername) {
-                setUsername(sessionUsername);
-                const rewardResposne = await fetch(
-                    `/api/rewards/all/${userId}`,
-                    {
-                        credentials: 'same-origin',
-                    },
-                );
-                setRewards(JSON.parse(await rewardResposne.text()));
+            if (hasSession.ok) {
+                const userData = await hasSession.json();
+                update({ loggedIn: true, user: userData });
+            } else {
+                update({ loggedIn: false, user: undefined });
             }
         };
         checkStatus();
-    }, [location.search, navigate]);
+    });
     return (
-        <div className="App">
-            <header className="App-header">
-                {!username && (
-                    <a href="/api/auth/twitch/doauth">Authorize with Twitch</a>
-                )}
-                {username && <h1>Welcome, {username}</h1>}
-                {rewards && (
-                    <>
-                        <h4>Registered Twitch Rewards</h4>
-                        <ul>
-                            {rewards.map((reward) => (
-                                <li>
-                                    Twitch ID: {reward.twitchRewardId} Amount:{' '}
-                                    {reward.amount}
-                                </li>
-                            ))}
-                        </ul>
-                    </>
-                )}
-            </header>
+        <div>
+            <Home />
         </div>
     );
 }
 
-export default App;
+const AppWrapper = () => (
+    <UserContextProvider>
+        <App />
+    </UserContextProvider>
+);
+
+export default AppWrapper;
