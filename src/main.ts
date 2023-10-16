@@ -30,7 +30,7 @@ app.use(
     }),
 );
 
-const port = 8001;
+const port = 8000;
 
 initTwitchBot();
 initDiscordBot();

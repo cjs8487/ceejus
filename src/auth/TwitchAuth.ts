@@ -1,12 +1,16 @@
 import { ApiClient } from '@twurple/api';
 import { AccessToken, RefreshingAuthProvider } from '@twurple/auth';
-import { twitchClientId, twitchClientSecret } from '../Environment';
+import {
+    twitchClientId,
+    twitchClientSecret,
+    twitchRedirect,
+} from '../Environment';
 import { updateTwitchAuth } from '../database/Users';
 
 const authProvider = new RefreshingAuthProvider({
     clientId: twitchClientId,
     clientSecret: twitchClientSecret,
-    redirectUri: 'http://localhost:3000',
+    redirectUri: twitchRedirect,
 });
 authProvider.onRefresh((userId, newToken) => {
     updateTwitchAuth(userId, newToken);
