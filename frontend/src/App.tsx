@@ -19,7 +19,7 @@ function App() {
             }
         };
         checkStatus();
-    });
+    }, [update]);
     return (
         <div>
             <Home />
