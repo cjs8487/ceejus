@@ -1,7 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import './App.css';
 import { UserContext, UserContextProvider } from './contexts/UserContext';
-import Home from './routes/Home';
 import AppShell from './components/app/AppShell';
 
 function App() {
@@ -22,7 +21,7 @@ function App() {
         checkStatus();
     }, [update]);
     return (
-        <div className="dark">
+        <div className="dark h-screen">
             <AppShell />
         </div>
     );
