@@ -3,13 +3,13 @@ type NavbarRowProps = {
 };
 
 const NavbarRow = ({ text }: NavbarRowProps) => (
-    <div className="p-2">{text}</div>
+    <div className="py-2 pl-2 pr-6">{text}</div>
 );
 
-const items = [{ text: 'Ceejus' }, { text: 'Text' }, { text: 'Text 2' }];
+const items = [{ text: 'Ceejus' }, { text: 'Home' }, { text: 'Configuration' }];
 
 const Navbar = () => (
-    <div className="flex h-full min-w-max flex-col bg-red-600 p-2">
+    <div className="flex h-full min-w-max flex-col bg-gray-700 p-2 text-white">
         {items.map((item) => (
             <NavbarRow text={item.text} />
         ))}
