@@ -2,8 +2,7 @@ import { Router } from 'express';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
-
-import { isAuthenticated } from './APICore';
+import { isAuthenticated, logout } from './APICore';
 import quotes from './QuotesAPI';
 import twitchAuth from './auth/TwitchAuth';
 import rewards from './twitch/Rewards';
@@ -61,5 +60,7 @@ router.get('/me', isAuthenticated, async (req, res) => {
         avatar: twitchUserData?.profilePictureUrl,
     });
 });
+
+router.get('/logout', isAuthenticated, logout);
 
 export default router;

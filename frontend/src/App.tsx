@@ -4,6 +4,7 @@ import { UserContext, UserContextProvider } from './contexts/UserContext';
 import AppShell from './components/app/AppShell';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Login from './routes/Login';
+import Logout from './routes/Logout';
 
 function App() {
     const {
@@ -42,6 +43,7 @@ function App() {
         <div className="dark h-screen">
             <Routes>
                 <Route path="/login" element={<Login />} />
+                <Route path="/logout" element={<Logout />} />
                 <Route path="/*" element={<AppShell />} />
             </Routes>
         </div>
