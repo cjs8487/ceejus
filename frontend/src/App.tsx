@@ -2,9 +2,16 @@ import React, { useContext, useEffect } from 'react';
 import './App.css';
 import { UserContext, UserContextProvider } from './contexts/UserContext';
 import AppShell from './components/app/AppShell';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import Login from './routes/Login';
 
 function App() {
-    const { update } = useContext(UserContext);
+    const {
+        update,
+        state: { loggedIn },
+    } = useContext(UserContext);
+    const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const checkStatus = async () => {
@@ -20,9 +27,23 @@ function App() {
         };
         checkStatus();
     }, [update]);
+
+    if (!loggedIn && location.pathname !== '/login') {
+        navigate('/login');
+        return null;
+    }
+
+    if (loggedIn && location.pathname === '/login') {
+        navigate('/');
+        return null;
+    }
+
     return (
         <div className="dark h-screen">
-            <AppShell />
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/*" element={<AppShell />} />
+            </Routes>
         </div>
     );
 }

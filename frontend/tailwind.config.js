@@ -2,7 +2,11 @@
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        'twitch-purple': '#9146ff'
+      }
+    },
   },
   plugins: [],
   darkMode: 'class'
