@@ -15,9 +15,9 @@ const Login = () => {
     return (
         <div className="p-1/2 flex h-full w-full grow items-center bg-slate-700">
             <div className="grow" />
-            <div className="flex grow flex-col items-center gap-y-8 rounded-2xl bg-white py-16">
-                <span className="border-b border-b-slate-200 px-2 pb-3 text-4xl text-gray-500">
-                    Sign in to Ceejus
+            <div className="flex grow flex-col items-center gap-y-8 rounded-2xl bg-white py-16 shadow-2xl">
+                <span className="border-b border-b-slate-300 px-2 pb-3 font-mono text-4xl font-semibold tracking-widest text-gray-500">
+                    Ceejus
                 </span>
                 <a
                     className="bg-twitch-purple flex items-center justify-center gap-x-2.5 rounded-lg px-4 py-2 text-lg text-white"
@@ -25,7 +25,7 @@ const Login = () => {
                     href="/api/auth/twitch/doAuth"
                 >
                     <FontAwesomeIcon icon={faTwitch} />
-                    Login with Twitch
+                    Sign in with Twitch
                 </a>
             </div>
             <div className="grow" />
