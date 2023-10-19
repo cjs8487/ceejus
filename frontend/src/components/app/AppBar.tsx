@@ -67,7 +67,7 @@ const AppBar = () => {
     });
 
     return (
-        <div className="flex grow border-b border-solid border-b-gray-200 bg-gray-50 p-2">
+        <div className="flex h-14 grow border-b border-solid border-b-gray-200 bg-gray-50 p-2">
             <div className="grow" />
             <div className="pr-3">
                 {user && (

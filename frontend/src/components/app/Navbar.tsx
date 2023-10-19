@@ -1,17 +1,42 @@
+import { Link, useLocation } from 'react-router-dom';
+
 type NavbarRowProps = {
     text: string;
+    to: string;
 };
 
-const NavbarRow = ({ text }: NavbarRowProps) => (
-    <div className="py-2 pl-2 pr-6">{text}</div>
-);
+const NavbarRow = ({ text, to }: NavbarRowProps) => {
+    const location = useLocation();
+    const prefix = location.pathname === to ? '' : 'hover:';
+    return (
+        <Link
+            role="button"
+            className={`py-2 pl-4 pr-6 ${prefix}bg-sky-300 ${prefix}bg-opacity-20`}
+            to={to}
+        >
+            {text}
+        </Link>
+    );
+};
 
-const items = [{ text: 'Ceejus' }, { text: 'Home' }, { text: 'Configuration' }];
+const items = [
+    // { text: 'Dashboard', to: '/dashboard' },
+    { text: 'Configuration', to: '/config' },
+];
 
 const Navbar = () => (
-    <div className="flex h-full min-w-max flex-col bg-gray-700 p-2 text-white">
+    <div className="flex h-full flex-col bg-gray-700 text-white">
+        <div
+            className={`h-14 bg-gray-900 px-8 py-2 font-mono text-3xl font-semibold tracking-widest`}
+        >
+            Ceejus
+        </div>
         {items.map((item) => (
-            <NavbarRow text={item.text} />
+            <NavbarRow
+                key={`${item.text}-${item.to}`}
+                text={item.text}
+                to={item.to}
+            />
         ))}
     </div>
 );
