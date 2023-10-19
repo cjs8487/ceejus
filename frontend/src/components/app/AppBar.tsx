@@ -9,33 +9,36 @@ import {
     useRole,
     useTransitionStyles,
 } from '@floating-ui/react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
 const userMenu = [
     {
         label: 'Logout',
         to: '/logout',
+        icon: faRightFromBracket,
     },
 ];
 
 type UserMenuItemProps = {
     label: string;
     to: string;
+    icon?: IconProp;
 };
 
-const UserMenuItem = ({ label, to }: UserMenuItemProps) => {
-    const navigate = useNavigate();
-    const onClick = () => {
-        navigate(to);
-    };
+const UserMenuItem = ({ label, to, icon }: UserMenuItemProps) => {
     return (
-        <div
+        <Link
             role="button"
-            className="w-full px-3 py-1 hover:bg-slate-500 hover:bg-opacity-10"
-            onClick={onClick}
+            className="flex w-full items-center gap-x-2 px-3 py-1 hover:bg-slate-500 hover:bg-opacity-10"
+            to={to}
         >
+            {icon && <FontAwesomeIcon icon={icon} className="w-1/6" />}
+            {!icon && <div className="w-1/6" />}
             {label}
-        </div>
+        </Link>
     );
 };
 
@@ -97,6 +100,7 @@ const AppBar = () => {
                                         key={item.label}
                                         label={item.label}
                                         to={item.to}
+                                        icon={item.icon}
                                     />
                                 ))}
                             </div>
