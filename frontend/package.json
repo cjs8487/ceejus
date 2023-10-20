@@ -3,13 +3,13 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "@testing-library/jest-dom": "^5.16.4",
-        "@testing-library/react": "^13.3.0",
-        "@testing-library/user-event": "^13.5.0",
-        "@types/jest": "^27.5.2",
-        "@types/node": "^16.11.43",
-        "@types/react": "^18.0.15",
-        "@types/react-dom": "^18.0.6",
+        "@floating-ui/react": "^0.26.1",
+        "@fortawesome/fontawesome-svg-core": "^6.4.2",
+        "@fortawesome/free-brands-svg-icons": "^6.4.2",
+        "@fortawesome/free-solid-svg-icons": "^6.4.2",
+        "@fortawesome/react-fontawesome": "^0.2.0",
+        "@headlessui/react": "^1.7.17",
+        "@heroicons/react": "^2.0.18",
         "http-proxy-middleware": "^2.0.6",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
@@ -17,6 +17,14 @@
         "react-scripts": "5.0.1",
         "typescript": "^4.7.4",
         "web-vitals": "^2.1.4"
+    },
+    "devDependencies": {
+        "@types/jest": "^27.5.2",
+        "@types/node": "^16.11.43",
+        "@types/react": "^18.0.15",
+        "@types/react-dom": "^18.0.6",
+        "prettier-plugin-tailwindcss": "^0.5.6",
+        "tailwindcss": "^3.3.3"
     },
     "scripts": {
         "start": "react-scripts start",
