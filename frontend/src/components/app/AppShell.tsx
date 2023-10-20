@@ -4,14 +4,13 @@ import { Footer } from './Footer';
 import MainContent from './MainContent';
 import Navbar from './Navbar';
 import { UserContext } from '../../contexts/UserContext';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const AppShell = () => {
     const { loggedIn } = useContext(UserContext).state;
-    const location = useLocation();
     const navigate = useNavigate();
 
-    if (!loggedIn && location.pathname !== '/s') {
+    if (!loggedIn) {
         navigate('/login');
         return null;
     }
