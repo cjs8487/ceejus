@@ -5,6 +5,7 @@ import AppShell from './components/app/AppShell';
 import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Login from './routes/Login';
 import Logout from './routes/Logout';
+import Error from './routes/Error';
 
 function App() {
     const {
@@ -29,13 +30,11 @@ function App() {
         checkStatus();
     }, [update]);
 
-    if (!loggedIn && location.pathname !== '/login') {
-        navigate('/login');
-        return null;
-    }
-
-    if (loggedIn && location.pathname === '/login') {
-        navigate('/');
+    if (
+        loggedIn &&
+        (location.pathname === '/login' || location.pathname === '/')
+    ) {
+        navigate('/s');
         return null;
     }
 
@@ -44,7 +43,14 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/logout" element={<Logout />} />
-                <Route path="/*" element={<AppShell />} />
+                <Route path="/error" element={<Error />} />
+                <Route path="/s/*" element={<AppShell />} />
+                <Route
+                    path="/*"
+                    element={
+                        <Error code={404} message={"That page doesn't exist"} />
+                    }
+                />
             </Routes>
         </div>
     );
