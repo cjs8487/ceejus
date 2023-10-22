@@ -27,7 +27,7 @@ const NavbarRow = ({ text, to, icon }: NavbarRowProps) => {
 
 const items = [
     // { text: 'Dashboard', to: '/dashboard' },
-    { text: 'Configuration', to: '/config', icon: faCog },
+    { text: 'Configuration', to: 'config', icon: faCog },
 ];
 
 const Navbar = () => (
