@@ -7,3 +7,6 @@ declare module 'ss-scene-flags' {
         verbose: boolean,
     ): string[];
 }
+
+// redclare session store to supress type errors
+declare module 'better-sqlite3-session-store';

@@ -1,5 +1,7 @@
 import Database, { Database as DB } from 'better-sqlite3';
+import SqliteStore from 'better-sqlite3-session-store';
 import fs from 'fs';
+import session from 'express-session';
 import { testing } from './Environment';
 import { logInfo, logVerbose } from './Logger';
 
@@ -17,7 +19,15 @@ if (testing) {
 const setupScript = fs.readFileSync('src/dbsetup.sql', 'utf-8');
 db.exec(setupScript);
 
+export const sessionDb: DB = new Database('sessions.db');
+
 // Ensure that the database connection is closed when the process terminates
 process.on('exit', () => db.close());
 
-export default {};
+export const sessionStore = new (SqliteStore(session))({
+    client: sessionDb,
+    expired: {
+        clear: true,
+        intervalMs: 90000,
+    },
+});
