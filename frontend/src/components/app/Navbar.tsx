@@ -31,10 +31,8 @@ const items = [
 ];
 
 const Navbar = () => (
-    <div className="flex h-full flex-col bg-gray-700 text-white">
-        <div
-            className={`h-14 bg-gray-900 px-8 py-2 font-mono text-3xl font-semibold tracking-widest`}
-        >
+    <div className="flex flex-col bg-gray-700 text-white">
+        <div className="h-14 bg-gray-900 px-8 py-2 font-mono text-3xl font-semibold tracking-widest">
             Ceejus
         </div>
         {items.map((item) => (
@@ -45,6 +43,7 @@ const Navbar = () => (
                 icon={item.icon}
             />
         ))}
+        <div className="grow" />
     </div>
 );
 

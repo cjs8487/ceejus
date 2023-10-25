@@ -15,10 +15,10 @@ const AppShell = () => {
         return null;
     }
     return (
-        <div className="flex h-full flex-col">
-            <div className="flex h-full">
+        <div className="flex h-full grow flex-col">
+            <div className="flex grow">
                 <Navbar />
-                <div className="flex h-full w-full flex-col">
+                <div className="flex grow flex-col">
                     <AppBar />
                     <MainContent />
                 </div>
