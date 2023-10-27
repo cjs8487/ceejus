@@ -1,0 +1,14 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "rewardId", "title", "cost", "amount", "image"],
+    "properties": {
+        "id": {"type": "number"},
+        "rewardId": {"type": "string"},
+        "title": {"type": "string"},
+        "cost": {"type": "number"},
+        "amount": {"type": "number"},
+        "image": {"type": "string"}
+    }
+}
