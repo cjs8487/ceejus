@@ -9,6 +9,8 @@ import {
 } from '../../database/EconomyRedemptions';
 import { createMetadata, deleteMetadata } from '../../database/Redemptions';
 import { subscribeToRedemptionAddEvent } from '../../lib/TwitchEventSub';
+import { getUser } from '../../database/Users';
+import { EconomyReward } from '../../types';
 
 const rewards = Router();
 
@@ -60,13 +62,41 @@ rewards.get('/:id', isAuthenticated, (req, res) => {
     res.status(200).send(meta);
 });
 
-rewards.get('/', isAuthenticated, (req, res) => {
+rewards.get('/', isAuthenticated, async (req, res) => {
     if (!req.session.user) {
         res.sendStatus(401);
         return;
     }
+    const user = getUser(req.session.user.userId);
+    if (!user) {
+        res.sendStatus(401);
+        return;
+    }
     const metas = getAllRedemptionsForUser(req.session.user.userId);
-    res.status(200).send(metas);
+    const responses: EconomyReward[] = [];
+    await Promise.all(
+        metas.map(async (meta) => {
+            const twitchReward =
+                await apiClient.channelPoints.getCustomRewardById(
+                    user?.twitchId,
+                    meta.twitchRewardId,
+                );
+            if (!twitchReward) {
+                console.log('no twitch reward');
+                return;
+            }
+            console.log(responses);
+            responses.push({
+                id: meta.redemptionId,
+                rewardId: twitchReward.id,
+                title: twitchReward.title,
+                cost: twitchReward.cost,
+                amount: meta.amount,
+                image: twitchReward.getImageUrl(4),
+            });
+        }),
+    );
+    res.status(200).send(responses);
 });
 
 rewards.delete('/:id', isAuthenticated, (req, res) => {

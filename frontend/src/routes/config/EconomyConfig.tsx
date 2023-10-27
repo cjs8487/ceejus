@@ -2,14 +2,11 @@ import { faAdd } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Dialog, Transition } from '@headlessui/react';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import * as yup from 'yup';
-
-type EconomyReward = {
-    title: string;
-    amount: number;
-    cost: number;
-};
+import { EconomyReward } from '../../types';
+import { useGetApi } from '../../controller/Hooks';
+import { useNavigate } from 'react-router-dom';
 
 type EconomyRewardProps = {
     title: string;
@@ -17,28 +14,6 @@ type EconomyRewardProps = {
     cost: number;
     onClick: () => void;
 };
-
-const rewards: EconomyReward[] = [
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-    { title: '500 BiTcoins', amount: 500, cost: 1000 },
-];
 
 const EconomyRewardCard = ({
     title,
@@ -84,6 +59,28 @@ const EconomyConfig = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editIndex, setEditIndex] = useState(-1);
     const [formError, setFormError] = useState('');
+    const {
+        data: rewards,
+        error,
+        isLoading,
+    } = useGetApi<EconomyReward[]>('/api/rewards');
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (error) {
+            navigate('/error?code=500');
+        }
+    }, [error, navigate]);
+
+    if (!rewards && !isLoading) {
+        return (
+            <div className="px-10 text-center">Unable to load reward data</div>
+        );
+    }
+
+    if (!rewards || isLoading) {
+        return <></>;
+    }
 
     const closeDialog = () => {
         setDialogOpen(false);
@@ -99,7 +96,7 @@ const EconomyConfig = () => {
     };
 
     return (
-        <>
+        <div>
             <div className="px-10 text-center">
                 <div className="pb-3 text-3xl">Economy</div>
                 <div className="text-xl">Rewards</div>
@@ -121,7 +118,7 @@ const EconomyConfig = () => {
                     icon={faAdd}
                     size="3x"
                     role="button"
-                    className="sticky bottom-2 float-right rounded-full border-slate-700 bg-gray-500 bg-opacity-70 px-2 py-1 shadow-xl transition-all duration-200 hover:scale-110 hover:bg-opacity-100"
+                    className="absolute bottom-14 right-2 rounded-full border-slate-700 bg-gray-500 bg-opacity-70 px-2 py-1 shadow-xl transition-all duration-200 hover:scale-110 hover:bg-opacity-100"
                     onClick={addClickHandler}
                 />
             </div>
@@ -289,7 +286,7 @@ const EconomyConfig = () => {
                     </div>
                 </Dialog>
             </Transition>
-        </>
+        </div>
     );
 };
 
