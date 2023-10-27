@@ -9,6 +9,7 @@ import {
 import { twitchClientId, twitchRedirect } from '../../Environment';
 import {
     addAuthToUser,
+    getRefreshTokenForService,
     getUserByName,
     registerUser,
     userExists,
@@ -67,9 +68,11 @@ twitchAuth.get('/redirect', async (req, res, next) => {
         let userId: number;
         if (!userExists(user.displayName)) {
             userId = registerUser(user.displayName, user.id);
-            addAuthToUser(userId, 'twitch', firstToken.refreshToken ?? '');
         } else {
             userId = getUserByName(user.displayName)!.userId;
+        }
+        if (!getRefreshTokenForService(userId, 'twitch')) {
+            addAuthToUser(userId, 'twitch', firstToken.refreshToken ?? '');
         }
         req.session.regenerate((genErr) => {
             if (genErr) {

@@ -26,6 +26,8 @@ type DBUser = {
     discord_id?: string;
 };
 
+type OAuthService = 'twitch' | 'discord';
+
 const toExternalForm = (user: DBUser): User => ({
     userId: user.user_id,
     username: user.username,
@@ -49,7 +51,7 @@ export const registerUser = (
 
 export const addAuthToUser = (
     userId: number,
-    service: string,
+    service: OAuthService,
     refreshToken: string,
 ) => {
     db.prepare(
@@ -133,6 +135,19 @@ export const updateAuth = (
     db.prepare(
         'update oauth set refresh_token=? where owner=? and service=?',
     ).run(refreshToken, userId, service);
+};
+
+export const getRefreshTokenForService = (
+    userId: number,
+    service: OAuthService,
+): string | undefined => {
+    const token = db
+        .prepare('select refresh_token from oauth where owner=? and service=?')
+        .get(userId, service);
+    if (!token) {
+        return undefined;
+    }
+    return token.refresh_token;
 };
 
 export const userExists = (username: string) => {

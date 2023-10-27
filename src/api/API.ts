@@ -7,7 +7,7 @@ import twitchAuth from './auth/TwitchAuth';
 import rewards from './twitch/Rewards';
 import { sessionSecret, testing } from '../Environment';
 import { getUser } from '../database/Users';
-import { apiClient } from '../auth/TwitchAuth';
+import { apiClient, isUserRegistered } from '../auth/TwitchAuth';
 import discordAuth from './auth/DiscordAuth';
 import { sessionStore } from '../System';
 
@@ -50,6 +50,10 @@ router.get('/me', isAuthenticated, async (req, res) => {
     const user = getUser(req.session.user.userId);
     if (!user) {
         res.sendStatus(403);
+        return;
+    }
+    if (!isUserRegistered(user.twitchId)) {
+        req.session.destroy(() => res.sendStatus(401));
         return;
     }
     const twitchUserData = await apiClient.users.getUserByName(user.username);

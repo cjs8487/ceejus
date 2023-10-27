@@ -1,11 +1,20 @@
 import { ApiClient } from '@twurple/api';
-import { AccessToken, RefreshingAuthProvider } from '@twurple/auth';
+import {
+    AccessToken,
+    RefreshingAuthProvider,
+    refreshUserToken,
+} from '@twurple/auth';
 import {
     twitchClientId,
     twitchClientSecret,
     twitchRedirect,
 } from '../Environment';
-import { getUserByTwitchId, updateAuth } from '../database/Users';
+import {
+    getAllUsers,
+    getRefreshTokenForService,
+    getUserByTwitchId,
+    updateAuth,
+} from '../database/Users';
 
 const authProvider = new RefreshingAuthProvider({
     clientId: twitchClientId,
@@ -30,6 +39,19 @@ export const registerUserAuth = (
         authProvider.addUserForToken(token);
     }
 };
+
+getAllUsers().forEach(async (user) => {
+    const refreshToken = getRefreshTokenForService(user.userId, 'twitch');
+    if (!refreshToken) return;
+    registerUserAuth(
+        await refreshUserToken(
+            twitchClientId,
+            twitchClientSecret,
+            refreshToken,
+        ),
+        user.twitchId,
+    );
+});
 
 export const getAuthToken = async (
     twitchId: string,

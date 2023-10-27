@@ -44,11 +44,12 @@ rewards.post('/create', async (req, res) => {
         } else {
             res.status(500);
         }
-        res.send(e.message);
+        res.send(JSON.parse(e.body).message);
+        console.log(e);
     }
 });
 
-rewards.get('/:id', (req, res) => {
+rewards.get('/:id', isAuthenticated, (req, res) => {
     const { id } = req.params;
     const realId = Number(id);
     if (Number.isNaN(realId)) {
@@ -59,14 +60,12 @@ rewards.get('/:id', (req, res) => {
     res.status(200).send(meta);
 });
 
-rewards.get('/all/:id', (req, res) => {
-    const { id } = req.params;
-    const realId = Number(id);
-    if (Number.isNaN(realId)) {
-        res.status(400).send('Bad request');
+rewards.get('/', isAuthenticated, (req, res) => {
+    if (!req.session.user) {
+        res.sendStatus(401);
         return;
     }
-    const metas = getAllRedemptionsForUser(realId);
+    const metas = getAllRedemptionsForUser(req.session.user.userId);
     res.status(200).send(metas);
 });
 
