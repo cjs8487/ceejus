@@ -89,12 +89,27 @@ const EconomyConfig = () => {
         setFormError('');
         mutate();
     };
+
     const addClickHandler = () => {
         setDialogOpen(true);
     };
+
     const itemClickHandler = (index: number) => {
         setEditIndex(index);
         setDialogOpen(true);
+    };
+
+    const deleteActiveRedemption = async () => {
+        if (editIndex === -1) {
+            return;
+        }
+        await fetch(`/api/rewards/${rewards[editIndex].id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        closeDialog();
     };
 
     return (
@@ -267,6 +282,9 @@ const EconomyConfig = () => {
                                                         <button
                                                             type="button"
                                                             className="mr-1 inline-flex justify-center rounded-md border border-transparent bg-red-300 px-4 py-2 text-sm font-medium text-black hover:bg-red-400"
+                                                            onClick={
+                                                                deleteActiveRedemption
+                                                            }
                                                         >
                                                             Delete
                                                         </button>

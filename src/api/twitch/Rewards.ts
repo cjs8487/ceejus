@@ -5,8 +5,8 @@ import {
     addRedemption,
     getRedemption,
     getAllRedemptionsForUser,
-    deleteRedemption,
     updateRedemptionAmount,
+    deleteRedemptionByRewardId,
 } from '../../database/EconomyRedemptions';
 import {
     createMetadata,
@@ -138,8 +138,18 @@ rewards.delete('/:id', isAuthenticated, (req, res) => {
         res.status(400).send('Bad request');
         return;
     }
-    deleteRedemption(realId);
+    const user = getUser(req.session.user!.userId);
+    if (!user) {
+        res.sendStatus(401);
+        return;
+    }
+    const meta = getMetadata(realId);
     deleteMetadata(realId);
+    deleteRedemptionByRewardId(meta.twitchRewardId);
+    apiClient.channelPoints.deleteCustomReward(
+        user.twitchId,
+        meta.twitchRewardId,
+    );
     res.sendStatus(200);
 });
 

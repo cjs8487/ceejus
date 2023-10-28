@@ -75,3 +75,9 @@ export const updateRedemptionAmount = (rewardId: string, amount: number) => {
 export const deleteRedemption = (id: number) => {
     db.prepare('delete from economy_redemptions where redemption_id=?').run(id);
 };
+
+export const deleteRedemptionByRewardId = (rewardId: string) => {
+    db.prepare('delete from economy_redemptions where twitch_reward_id=?').run(
+        rewardId,
+    );
+};
