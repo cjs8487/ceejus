@@ -131,6 +131,11 @@ const EconomyConfig = () => {
                             key={redemption.id}
                         />
                     ))}
+                    {rewards.length === 0 && (
+                        <div className="text-lg font-semibold">
+                            No economy rewards defined.
+                        </div>
+                    )}
                 </div>
                 <FontAwesomeIcon
                     icon={faAdd}
