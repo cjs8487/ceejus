@@ -63,6 +63,7 @@ const EconomyConfig = () => {
         data: rewards,
         error,
         isLoading,
+        mutate,
     } = useGetApi<EconomyReward[]>('/api/rewards');
     const navigate = useNavigate();
 
@@ -79,13 +80,14 @@ const EconomyConfig = () => {
     }
 
     if (!rewards || isLoading) {
-        return <></>;
+        return null;
     }
 
     const closeDialog = () => {
         setDialogOpen(false);
         setEditIndex(-1);
         setFormError('');
+        mutate();
     };
     const addClickHandler = () => {
         setDialogOpen(true);
@@ -111,6 +113,7 @@ const EconomyConfig = () => {
                             amount={redemption.amount}
                             cost={redemption.cost}
                             onClick={() => itemClickHandler(index)}
+                            key={redemption.id}
                         />
                     ))}
                 </div>
@@ -118,7 +121,7 @@ const EconomyConfig = () => {
                     icon={faAdd}
                     size="3x"
                     role="button"
-                    className="absolute bottom-14 right-2 rounded-full border-slate-700 bg-gray-500 bg-opacity-70 px-2 py-1 shadow-xl transition-all duration-200 hover:scale-110 hover:bg-opacity-100"
+                    className="fixed bottom-14 right-2 rounded-full border-slate-700 bg-gray-500 bg-opacity-70 px-2 py-1 shadow-xl transition-all duration-200 hover:scale-110 hover:bg-opacity-100"
                     onClick={addClickHandler}
                 />
             </div>
@@ -186,7 +189,9 @@ const EconomyConfig = () => {
                                         ) => {
                                             setFormError('');
                                             const res = await fetch(
-                                                '/api/rewards/create',
+                                                editIndex === -1
+                                                    ? '/api/rewards/create'
+                                                    : `/api/rewards/${rewards[editIndex].id}`,
                                                 {
                                                     method: 'POST',
                                                     headers: {

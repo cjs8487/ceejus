@@ -6,8 +6,13 @@ import {
     getRedemption,
     getAllRedemptionsForUser,
     deleteRedemption,
+    updateRedemptionAmount,
 } from '../../database/EconomyRedemptions';
-import { createMetadata, deleteMetadata } from '../../database/Redemptions';
+import {
+    createMetadata,
+    deleteMetadata,
+    getMetadata,
+} from '../../database/Redemptions';
 import { subscribeToRedemptionAddEvent } from '../../lib/TwitchEventSub';
 import { getUser } from '../../database/Users';
 import { EconomyReward } from '../../types';
@@ -47,7 +52,6 @@ rewards.post('/create', async (req, res) => {
             res.status(500);
         }
         res.send(JSON.parse(e.body).message);
-        console.log(e);
     }
 });
 
@@ -60,6 +64,36 @@ rewards.get('/:id', isAuthenticated, (req, res) => {
     }
     const meta = getRedemption(realId);
     res.status(200).send(meta);
+});
+
+rewards.post('/:id', isAuthenticated, (req, res) => {
+    const { id } = req.params;
+    const { title, cost, amount } = req.body;
+    const realId = Number(id);
+    if (Number.isNaN(realId)) {
+        res.sendStatus(400);
+    }
+    if (!req.session.user) {
+        res.sendStatus(401);
+        return;
+    }
+    const user = getUser(req.session.user.userId);
+    if (!user) {
+        res.sendStatus(401);
+        return;
+    }
+
+    const meta = getMetadata(realId);
+    apiClient.channelPoints.updateCustomReward(
+        user.twitchId,
+        meta.twitchRewardId,
+        {
+            title,
+            cost,
+        },
+    );
+    updateRedemptionAmount(meta.twitchRewardId, amount);
+    res.sendStatus(200);
 });
 
 rewards.get('/', isAuthenticated, async (req, res) => {
@@ -82,10 +116,8 @@ rewards.get('/', isAuthenticated, async (req, res) => {
                     meta.twitchRewardId,
                 );
             if (!twitchReward) {
-                console.log('no twitch reward');
                 return;
             }
-            console.log(responses);
             responses.push({
                 id: meta.redemptionId,
                 rewardId: twitchReward.id,
