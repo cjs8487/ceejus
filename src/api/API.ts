@@ -4,12 +4,12 @@ import session from 'express-session';
 import { isAuthenticated, logout } from './APICore';
 import quotes from './QuotesAPI';
 import twitchAuth from './auth/TwitchAuth';
-import rewards from './twitch/Rewards';
 import { sessionSecret, testing } from '../Environment';
 import { getUser } from '../database/Users';
 import { apiClient, isUserRegistered } from '../auth/TwitchAuth';
 import discordAuth from './auth/DiscordAuth';
 import { sessionStore } from '../System';
+import economy from './economy/Economy';
 
 export type SessionUser = {
     userId: number;
@@ -41,7 +41,7 @@ router.use(
 router.use('/quotes', quotes);
 router.use('/auth/twitch', twitchAuth);
 router.use('/auth/discord', discordAuth);
-router.use('/rewards', rewards);
+router.use('/economy', economy);
 router.get('/me', isAuthenticated, async (req, res) => {
     if (!req.session.user) {
         res.sendStatus(401);

@@ -64,7 +64,7 @@ const EconomyConfig = () => {
         error,
         isLoading,
         mutate,
-    } = useGetApi<EconomyReward[]>('/api/rewards');
+    } = useGetApi<EconomyReward[]>('/api/economy/rewards');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -103,7 +103,7 @@ const EconomyConfig = () => {
         if (editIndex === -1) {
             return;
         }
-        await fetch(`/api/rewards/${rewards[editIndex].id}`, {
+        await fetch(`/api/economy/rewards/${rewards[editIndex].id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -210,8 +210,8 @@ const EconomyConfig = () => {
                                             setFormError('');
                                             const res = await fetch(
                                                 editIndex === -1
-                                                    ? '/api/rewards/create'
-                                                    : `/api/rewards/${rewards[editIndex].id}`,
+                                                    ? '/api/economy/rewards/create'
+                                                    : `/api/economy/rewards/${rewards[editIndex].id}`,
                                                 {
                                                     method: 'POST',
                                                     headers: {

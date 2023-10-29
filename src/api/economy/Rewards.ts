@@ -17,9 +17,9 @@ import { subscribeToRedemptionAddEvent } from '../../lib/TwitchEventSub';
 import { getUser } from '../../database/Users';
 import { EconomyReward } from '../../types';
 
-const rewards = Router();
+const economyRewards = Router();
 
-rewards.post('/create', async (req, res) => {
+economyRewards.post('/create', async (req, res) => {
     const { cost, title, amount } = req.body;
     try {
         if (apiClient === undefined) {
@@ -55,7 +55,7 @@ rewards.post('/create', async (req, res) => {
     }
 });
 
-rewards.get('/:id', isAuthenticated, (req, res) => {
+economyRewards.get('/:id', isAuthenticated, (req, res) => {
     const { id } = req.params;
     const realId = Number(id);
     if (Number.isNaN(realId)) {
@@ -66,7 +66,7 @@ rewards.get('/:id', isAuthenticated, (req, res) => {
     res.status(200).send(meta);
 });
 
-rewards.post('/:id', isAuthenticated, (req, res) => {
+economyRewards.post('/:id', isAuthenticated, (req, res) => {
     const { id } = req.params;
     const { title, cost, amount } = req.body;
     const realId = Number(id);
@@ -96,7 +96,7 @@ rewards.post('/:id', isAuthenticated, (req, res) => {
     res.sendStatus(200);
 });
 
-rewards.get('/', isAuthenticated, async (req, res) => {
+economyRewards.get('/', isAuthenticated, async (req, res) => {
     if (!req.session.user) {
         res.sendStatus(401);
         return;
@@ -131,7 +131,7 @@ rewards.get('/', isAuthenticated, async (req, res) => {
     res.status(200).send(responses);
 });
 
-rewards.delete('/:id', isAuthenticated, (req, res) => {
+economyRewards.delete('/:id', isAuthenticated, (req, res) => {
     const { id } = req.params;
     const realId = Number(id);
     if (Number.isNaN(realId)) {
@@ -153,4 +153,4 @@ rewards.delete('/:id', isAuthenticated, (req, res) => {
     res.sendStatus(200);
 });
 
-export default rewards;
+export default economyRewards;
