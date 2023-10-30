@@ -1,7 +1,7 @@
 import { request } from 'https';
 import { logError } from '../Logger';
 import { getAppToken } from '../auth/TwitchAuth';
-import { ngrokUrl, twitchClientId, twitchClientSecret } from '../Environment';
+import { eventSubSecret, ngrokUrl, twitchClientId } from '../Environment';
 
 type WebhookTransport = {
     method: 'webhook';
@@ -41,7 +41,7 @@ export type CreateSubscriptionResponse =
 const transport = {
     method: 'webhook',
     callback: `${ngrokUrl}/notification`,
-    secret: twitchClientSecret,
+    secret: eventSubSecret,
 };
 
 const doRequest = <T>(params: any, body: any): Promise<T> => {

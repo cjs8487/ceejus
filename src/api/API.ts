@@ -10,6 +10,7 @@ import { apiClient, isUserRegistered } from '../auth/TwitchAuth';
 import discordAuth from './auth/DiscordAuth';
 import { sessionStore } from '../System';
 import economy from './economy/Economy';
+import twitch from './twitch/Twitch';
 
 export type SessionUser = {
     userId: number;
@@ -42,6 +43,7 @@ router.use('/quotes', quotes);
 router.use('/auth/twitch', twitchAuth);
 router.use('/auth/discord', discordAuth);
 router.use('/economy', economy);
+router.use('/twitch', twitch);
 router.get('/me', isAuthenticated, async (req, res) => {
     if (!req.session.user) {
         res.sendStatus(401);
