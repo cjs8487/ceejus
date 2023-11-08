@@ -1,3 +1,4 @@
+import { logError } from '../Logger';
 import { apiClient } from '../auth/TwitchAuth';
 import { getUserByTwitchId, registerUser } from '../database/Users';
 
@@ -14,11 +15,18 @@ export const getOrCreateUserId = async (twitchId: string): Promise<number> => {
 export const getOrCreateUserName = async (
     username: string,
 ): Promise<number> => {
-    const twitchId = (await apiClient.users.getUserByName(username))?.id;
-    if (twitchId === undefined) return -1;
-    const user = getUserByTwitchId(twitchId);
-    if (!user) {
-        return registerUser(username, twitchId);
+    try {
+        const twitchId = (await apiClient.users.getUserByName(username))?.id;
+        if (twitchId === undefined) return -1;
+        const user = getUserByTwitchId(twitchId);
+        if (!user) {
+            return registerUser(username, twitchId);
+        }
+        return user.userId;
+    } catch (e) {
+        logError(
+            `Unable to find or create user with Twitch username ${username}`,
+        );
+        return -1;
     }
-    return user.userId;
 };
