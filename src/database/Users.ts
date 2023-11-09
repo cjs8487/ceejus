@@ -129,7 +129,7 @@ export const getUserByDiscordId = (discordId: string): User | undefined => {
 
 export const updateAuth = (
     userId: number,
-    service: string,
+    service: OAuthService,
     refreshToken: string,
 ) => {
     db.prepare(

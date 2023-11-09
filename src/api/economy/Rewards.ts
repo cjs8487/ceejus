@@ -36,10 +36,8 @@ economyRewards.post('/create', async (req, res) => {
             cost,
             title,
         });
-        console.log(reward);
         addRedemption(1, reward.id, amount);
         const sub = await subscribeToRedemptionAddEvent(user.id, reward.id);
-        console.log(sub);
         if ('error' in sub) {
             await apiClient.channelPoints.deleteCustomReward(user, reward.id);
             res.status(sub.status);

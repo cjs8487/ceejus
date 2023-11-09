@@ -12,6 +12,7 @@ import {
     getRefreshTokenForService,
     getUserByName,
     registerUser,
+    updateAuth,
     userExists,
 } from '../../database/Users';
 
@@ -23,6 +24,7 @@ const scopeList = [
     'channel:manage:polls',
     'channel:read:polls',
     'channel:manage:redemptions',
+    'moderator:read:chatters',
 ];
 const scopes = `scope=${encodeURIComponent(scopeList.join(' '))}`;
 const authUrl = `${authRoot}?client_id=${twitchClientId}&redirect_uri=${redirectUrl}&${scopes}&response_type=code`;
@@ -73,6 +75,8 @@ twitchAuth.get('/redirect', async (req, res, next) => {
         }
         if (!getRefreshTokenForService(userId, 'twitch')) {
             addAuthToUser(userId, 'twitch', firstToken.refreshToken ?? '');
+        } else {
+            updateAuth(userId, 'twitch', firstToken.refreshToken ?? '');
         }
         req.session.regenerate((genErr) => {
             if (genErr) {
