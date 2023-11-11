@@ -9,10 +9,7 @@ import {
 import { getUserByName } from '../../database/Users';
 import { HandlerDelegate } from '../../modules/Modules';
 import { getOrCreateUserName } from '../../util/UserUtils';
-
-// TODO: PULL DATA FROFM ECONOMY CONFIGURATION IN DATABASE AT COMMAND EXECUTION
-const currencyName = 'BiTcoins';
-const gambleMinimum = 10;
+import { getEconomyConfig } from '../../database/EconomyConfig';
 
 const handleMoney: HandlerDelegate = async (
     commandParts,
@@ -23,6 +20,9 @@ const handleMoney: HandlerDelegate = async (
     const [channelName] = metadata;
     const owner = getUserByName(channelName);
     if (!owner) return 'economy is not configured';
+    const economyConfig = getEconomyConfig(owner.userId);
+    if (!economyConfig) return 'economy is not configured';
+    const currencyName = economyConfig.currencyName;
 
     let target: string;
     if (commandParts.length > 0) {
@@ -45,6 +45,9 @@ const handleGamble: HandlerDelegate = async (
     const user = await getOrCreateUserName(sender);
     const owner = getUserByName(channelName);
     if (!owner) return 'economy is not configured';
+    const economyConfig = getEconomyConfig(owner.userId);
+    if (!economyConfig) return 'economy is not configured';
+    const { currencyName, minimumGamble } = economyConfig;
 
     const [amount] = commandParts;
     const total = getCurrency(user, owner.userId);
@@ -63,8 +66,8 @@ const handleGamble: HandlerDelegate = async (
             return "Can't gamble more than you have";
         }
     }
-    if (gambleAmount < gambleMinimum) {
-        return `Cannot gamble less than ${gambleMinimum} ${currencyName}`;
+    if (gambleAmount < minimumGamble) {
+        return `Cannot gamble less than ${minimumGamble} ${currencyName}`;
     }
     if (_.random(1) === 0) {
         gambleLoss(user, owner.userId, gambleAmount);
@@ -83,6 +86,9 @@ const handleGive: HandlerDelegate = async (
     const [channelName] = metadata;
     const owner = getUserByName(channelName);
     if (!owner) return 'economy is not configured';
+    const economyConfig = getEconomyConfig(owner.userId);
+    if (!economyConfig) return 'economy is not configured';
+    const currencyName = economyConfig.currencyName;
 
     const [receiver, amount] = commandParts;
     addCurrency(
@@ -102,6 +108,9 @@ const handleNet: HandlerDelegate = async (
     const [channelName] = metadata;
     const owner = getUserByName(channelName);
     if (!owner) return 'economy is not configured';
+    const economyConfig = getEconomyConfig(owner.userId);
+    if (!economyConfig) return 'economy is not configured';
+    const currencyName = economyConfig.currencyName;
 
     let target: string;
     if (commandParts.length > 0) {
