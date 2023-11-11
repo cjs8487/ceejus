@@ -58,11 +58,12 @@ create table if not exists economy(
 );
 create index if not exists economy_gamble_net_index on economy(gamble_net);
 
-create table if not exists economy_info(
+create table if not exists economy_config(
     info_id integer primary key autoincrement,
     owner number not null,
     currency_name string not null,
     earn_rate number not null,
+    require_active number not null,
     minimum_gamble number not null,
     foreign key(owner) references users(user_id)
 );

@@ -52,7 +52,7 @@ economyRewards.post('/create', async (req, res) => {
         } else {
             res.status(500);
         }
-        res.send(JSON.parse(e.body).message);
+        res.send(e);
     }
 });
 

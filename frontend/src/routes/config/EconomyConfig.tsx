@@ -1,12 +1,14 @@
-import { faAdd } from '@fortawesome/free-solid-svg-icons';
+import { faAdd, faInfo } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Dialog, Transition } from '@headlessui/react';
 import { ErrorMessage, Field, Form, Formik } from 'formik';
 import { Fragment, useEffect, useState } from 'react';
 import * as yup from 'yup';
-import { EconomyReward } from '../../types';
+import { EconomyConfiguration, EconomyReward } from '../../types';
 import { useGetApi } from '../../controller/Hooks';
 import { useNavigate } from 'react-router-dom';
+import { useFloating, useHover, useInteractions } from '@floating-ui/react';
+import Toggle from 'react-toggle';
 
 type EconomyRewardProps = {
     title: string;
@@ -43,6 +45,26 @@ interface RewardForm {
     cost: number;
 }
 
+const configFormSchema = yup.object({
+    currencyName: yup.string().required('Currency name is required'),
+    passiveRate: yup
+        .number()
+        .min(0, 'Passive earn Rate must be a positive number')
+        .max(10, 'Passive earn rate cannot be larger than 10')
+        .required('Earn rate is required'),
+    minimumGamble: yup
+        .number()
+        .required('A minimum gamble amount is required')
+        .min(10, 'The minimum gamble amount must be at least 10')
+        .max(1000, 'The minimum gamble amount cannot exceed 1000')
+        .test(
+            'is-mult-10',
+            'The minimum gamble amount must be a multiple of 10',
+            (val) => val % 10 === 0,
+        ),
+    requireActive: yup.bool().required(''),
+});
+
 const rewardFormValidationScheme = yup.object({
     title: yup.string().required('Reward title is required'),
     cost: yup
@@ -59,27 +81,48 @@ const EconomyConfig = () => {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editIndex, setEditIndex] = useState(-1);
     const [formError, setFormError] = useState('');
+    const [rateHelp, setRateHelp] = useState(false);
+
+    const { refs, floatingStyles, context } = useFloating({
+        open: rateHelp,
+        onOpenChange: setRateHelp,
+    });
+    const hover = useHover(context);
+    const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
+
     const {
         data: rewards,
-        error,
-        isLoading,
-        mutate,
+        error: rewardsError,
+        isLoading: rewardsLoading,
+        mutate: mutateRewards,
     } = useGetApi<EconomyReward[]>('/api/economy/rewards');
+
+    const {
+        data: config,
+        error: configError,
+        isLoading: configLoading,
+        mutate: mutateConfig,
+    } = useGetApi<EconomyConfiguration>('/api/economy/config');
+
     const navigate = useNavigate();
 
     useEffect(() => {
-        if (error) {
+        if (rewardsError || configError) {
             navigate('/error?code=500');
         }
-    }, [error, navigate]);
+    }, [rewardsError, configError, navigate]);
 
-    if (!rewards && !isLoading) {
+    if (rewardsError || configError) {
+        return null;
+    }
+
+    if ((!rewards && !rewardsLoading) || (!config && !configLoading)) {
         return (
             <div className="px-10 text-center">Unable to load reward data</div>
         );
     }
 
-    if (!rewards || isLoading) {
+    if (!rewards || rewardsLoading || !config || configLoading) {
         return null;
     }
 
@@ -87,7 +130,7 @@ const EconomyConfig = () => {
         setDialogOpen(false);
         setEditIndex(-1);
         setFormError('');
-        mutate();
+        mutateRewards();
     };
 
     const addClickHandler = () => {
@@ -114,28 +157,155 @@ const EconomyConfig = () => {
 
     return (
         <div>
-            <div className="px-10 text-center">
-                <div className="pb-3 text-3xl">Economy</div>
-                <div className="text-xl">Rewards</div>
-                <div className="pb-4 text-sm">
-                    Viewers can redeem channel points for currency using the
-                    rewards you configure
+            <div className="pb-3 text-center text-3xl">Economy</div>
+            <div className="flex flex-col gap-12 px-10 text-center">
+                <div className="rounded-lg border border-gray-200 p-4 shadow-lg">
+                    <div className="pb-2 text-xl">Core Configuration</div>
+                    <Formik
+                        initialValues={config}
+                        validationSchema={configFormSchema}
+                        onSubmit={async (values: EconomyConfiguration) => {
+                            console.log(values);
+                            const res = await fetch('/api/economy/config', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(values),
+                            });
+                            if (!res.ok) {
+                                navigate(`/error?code=${res.status}`);
+                            }
+                            mutateConfig();
+                        }}
+                    >
+                        {({ isValidating, isSubmitting }) => (
+                            <Form>
+                                <div className="flex gap-4 pb-4">
+                                    <label className="block flex-grow text-left">
+                                        <div>Currency Name</div>
+                                        <Field
+                                            id="currencyName"
+                                            type="text"
+                                            name="currencyName"
+                                            placeholder="Currency Name"
+                                            className="form-input w-full rounded-md border border-slate-400 px-4 py-3 placeholder-gray-400 shadow-lg"
+                                        />
+                                        <ErrorMessage
+                                            name="currencyName"
+                                            component="div"
+                                            className="text-xs text-red-400"
+                                        />
+                                    </label>
+                                    <label className="block flex-grow text-left">
+                                        <div>
+                                            Passive Earn Rate
+                                            <FontAwesomeIcon
+                                                icon={faInfo}
+                                                className="ml-1 px-1 pb-0.5 text-sm"
+                                                ref={refs.setReference}
+                                                {...getReferenceProps()}
+                                            />
+                                            {rateHelp && (
+                                                <div
+                                                    ref={refs.setFloating}
+                                                    style={floatingStyles}
+                                                    {...getFloatingProps()}
+                                                    className=" z-10 max-w-md rounded-lg border border-gray-300 bg-slate-100 p-2 text-sm shadow-md"
+                                                >
+                                                    Passive earn rate dictates
+                                                    how much currency viewers
+                                                    passively earn by watching
+                                                    the stream. Every 5 minutes,
+                                                    the bot will automatically
+                                                    add 100*rate currency to the
+                                                    balance of all viewers in
+                                                    chat. You may optionally
+                                                    require that viewers be
+                                                    "active" in chat, requiring
+                                                    that they have sent at least
+                                                    one message since the last
+                                                    deposit. Commands do not
+                                                    count towards the activity
+                                                    requirement
+                                                </div>
+                                            )}
+                                        </div>
+                                        <Field
+                                            type="number"
+                                            min="0"
+                                            max="10"
+                                            name="passiveRate"
+                                            placeholder="Earn Rate"
+                                            className="form-input w-full rounded-md border border-slate-400 px-4 py-3 placeholder-gray-400 shadow-lg"
+                                        />
+                                        <ErrorMessage
+                                            name="passiveRate"
+                                            component="div"
+                                            className="text-xs text-red-400"
+                                        />
+                                        <div className="flex items-center gap-2 pt-2 text-sm">
+                                            <Field
+                                                as={Toggle}
+                                                name="requireActive"
+                                            />
+                                            Require Activity
+                                        </div>
+                                    </label>
+                                    <label className="block flex-grow text-left">
+                                        <div>Minimum Gamble Amount</div>
+                                        <Field
+                                            type="number"
+                                            step="10"
+                                            min="0"
+                                            max="1000"
+                                            name="minimumGamble"
+                                            placeholder="Minimum Gamble"
+                                            className="form-input w-full rounded-md border border-slate-400 px-4 py-3 placeholder-gray-400 shadow-lg"
+                                        />
+                                        <ErrorMessage
+                                            name="minimumGamble"
+                                            component="div"
+                                            className="text-xs text-red-400"
+                                        />
+                                    </label>
+                                </div>
+                                <div className="flex">
+                                    <div className="flex-grow" />
+                                    <button
+                                        className="inline-flex justify-center rounded-md border border-transparent bg-green-300 px-4 py-2 text-sm font-medium text-black hover:bg-green-400 disabled:bg-gray-300"
+                                        type="submit"
+                                        disabled={isSubmitting || isValidating}
+                                    >
+                                        Save
+                                    </button>
+                                </div>
+                            </Form>
+                        )}
+                    </Formik>
                 </div>
-                <div className="flex flex-wrap justify-center gap-x-16 gap-y-10">
-                    {rewards.map((redemption, index) => (
-                        <EconomyRewardCard
-                            title={redemption.title}
-                            amount={redemption.amount}
-                            cost={redemption.cost}
-                            onClick={() => itemClickHandler(index)}
-                            key={redemption.id}
-                        />
-                    ))}
-                    {rewards.length === 0 && (
-                        <div className="text-lg font-semibold">
-                            No economy rewards defined.
-                        </div>
-                    )}
+                <div className="rounded-lg border border-gray-200 p-4 shadow-lg">
+                    <div className="text-xl">Rewards</div>
+                    <div className="pb-4 text-sm">
+                        Viewers can redeem channel points for currency using the
+                        rewards you configure
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-x-16 gap-y-10">
+                        {rewards.map((redemption, index) => (
+                            <EconomyRewardCard
+                                title={redemption.title}
+                                amount={redemption.amount}
+                                cost={redemption.cost}
+                                onClick={() => itemClickHandler(index)}
+                                key={redemption.id}
+                            />
+                        ))}
+                        {rewards.length === 0 && (
+                            <div className="text-lg font-semibold">
+                                No economy rewards defined.
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <FontAwesomeIcon
                     icon={faAdd}

@@ -93,7 +93,7 @@ export const gambleLoss = (
     owner: number,
     amount: number,
 ): void => {
-    if (removeCurrency(user, owner, amount) === '') {
+    if (removeCurrency(user, owner, amount) !== '') {
         return;
     }
     const currNet = getGambleNet(user, owner);
@@ -110,7 +110,7 @@ export const gambleWin = (
     owner: number,
     amount: number,
 ): void => {
-    if (addCurrency(user, owner, amount) === '') {
+    if (addCurrency(user, owner, amount) !== '') {
         return;
     }
     const currNet = getGambleNet(user, owner);
