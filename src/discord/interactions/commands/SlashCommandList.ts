@@ -5,6 +5,7 @@ import quoteCommand from './Quote';
 import gdqCommand from './GDQ';
 import moneyCommand from './economy/Money';
 import gambleCommand from './economy/Gamble';
+import economyCommand from './economy/Economy';
 
 export const commandList: SlashCommand[] = [];
 const commandMap: Map<string, SlashCommand> = new Map();
@@ -44,3 +45,4 @@ registerCommand(quoteCommand);
 registerCommand(gdqCommand);
 registerCommand(moneyCommand);
 registerCommand(gambleCommand);
+registerCommand(economyCommand);

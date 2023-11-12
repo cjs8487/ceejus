@@ -51,3 +51,24 @@ export const createEconomyConfig = (userId: number) => {
         'insert into economy_config (owner, currency_name, earn_rate, require_active, minimum_gamble) values (?, ?, 5, 0, 10)',
     ).run(userId, '');
 };
+
+export const connectDiscordServer = (userId: number, discordServer: string) => {
+    db.prepare(
+        'insert into discord_economy_connection (owner, discord_server) values (?, ?)',
+    ).run(userId, discordServer);
+};
+
+export const disconnectDiscordServer = (discordServer: string) => {
+    db.prepare(
+        'delete from discord_economy_connection where discord_server=?',
+    ).run(discordServer);
+};
+
+export const getEconomyOwnerForDiscordServer = (discordServer: string) => {
+    const connection = db
+        .prepare(
+            'select owner from discord_economy_connection where discord_server=?',
+        )
+        .get(discordServer);
+    return connection?.owner;
+};

@@ -78,3 +78,9 @@ create TABLE if not exists COMMANDS (
     primary key(id, owner),
     foreign key(owner) references users(user_id)
 );
+
+create table if not exists discord_economy_connection (
+    id integer primary key autoincrement,
+    owner number not null,
+    discord_server text not null
+);
