@@ -1,7 +1,7 @@
 import { logError } from '../../../../Logger';
 import { getCurrency } from '../../../../database/Economy';
 import { getUserByDiscordId } from '../../../../database/Users';
-import { authCheck } from '../../../DiscordUtils';
+import { authCheck, economyIsConnected } from '../../../DiscordUtils';
 import { createSlashCommand } from '../SlashCommand';
 
 const moneyCommand = createSlashCommand({
@@ -17,6 +17,8 @@ const moneyCommand = createSlashCommand({
     ],
     async run(interaction) {
         await interaction.deferReply();
+        const economyConfig = await economyIsConnected(interaction);
+        if (!economyConfig) return;
         const authorized = await authCheck(interaction);
         if (authorized) {
             const user = getUserByDiscordId(interaction.user.id);
@@ -30,7 +32,7 @@ const moneyCommand = createSlashCommand({
                 return;
             }
             await interaction.editReply(
-                `${getCurrency(user.userId, 1)} BiTcoins`,
+                `${getCurrency(user.userId, 1)} ${economyConfig.currencyName}`,
             );
         }
     },

@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import { createSlashCommand } from '../SlashCommand';
-import { authCheck } from '../../../DiscordUtils';
+import { authCheck, economyIsConnected } from '../../../DiscordUtils';
 import {
     gambleLoss,
     gambleWin,
@@ -27,6 +27,8 @@ const gambleCommand = createSlashCommand({
     ],
     async run(interaction) {
         await interaction.deferReply();
+        const economyConfig = await economyIsConnected(interaction);
+        if (!economyConfig) return;
         const authorized = await authCheck(interaction);
         if (authorized) {
             const amount = interaction.options.getInteger('amount');
@@ -55,7 +57,7 @@ const gambleCommand = createSlashCommand({
             if (amount) {
                 if (amount > total) {
                     await interaction.editReply(
-                        'Cannot gamble more currency than you have',
+                        `Cannot gamble more ${economyConfig.currencyName} than you have`,
                     );
                     return;
                 }
@@ -64,12 +66,14 @@ const gambleCommand = createSlashCommand({
             if (_.random(1) === 0) {
                 gambleLoss(user.userId, 1, gambleAmount);
                 await interaction.editReply(
-                    `You lost ${gambleAmount} BiTcoins`,
+                    `You lost ${gambleAmount} ${economyConfig.currencyName}`,
                 );
                 return;
             }
             gambleWin(user.userId, 1, gambleAmount);
-            await interaction.editReply(`You won ${gambleAmount} BiTcoins`);
+            await interaction.editReply(
+                `You won ${gambleAmount} ${economyConfig.currencyName}`,
+            );
         }
     },
 });

@@ -64,8 +64,10 @@ export const disconnectDiscordServer = (discordServer: string) => {
     ).run(discordServer);
 };
 
-export const getEconomyOwnerForDiscordServer = (discordServer: string) => {
-    const connection = db
+export const getEconomyOwnerForDiscordServer = (
+    discordServer: string,
+): number | undefined => {
+    const connection: { owner: number } = db
         .prepare(
             'select owner from discord_economy_connection where discord_server=?',
         )
