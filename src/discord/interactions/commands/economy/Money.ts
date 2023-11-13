@@ -19,10 +19,14 @@ const moneyCommand = createSlashCommand({
         await interaction.deferReply();
         const economyConfig = await economyIsConnected(interaction);
         if (!economyConfig) return;
-        const authorized = await authCheck(interaction);
-        if (authorized) {
+
+        const commandTarget = interaction.options.getUser('user');
+        let target;
+        if (!commandTarget) {
             const user = getUserByDiscordId(interaction.user.id);
             if (!user) {
+                const authorized = await authCheck(interaction);
+                if (!authorized) return;
                 logError(
                     'Unable to retrieve user data despite a valid auth check',
                 );
@@ -31,10 +35,18 @@ const moneyCommand = createSlashCommand({
                 );
                 return;
             }
-            await interaction.editReply(
-                `${getCurrency(user.userId, 1)} ${economyConfig.currencyName}`,
-            );
+            target = user;
+        } else {
+            const user = getUserByDiscordId(commandTarget.id);
+            if (!user) {
+                await interaction.editReply("Sorry, I don't know who that is.");
+                return;
+            }
+            target = user;
         }
+        await interaction.editReply(
+            `${getCurrency(target.userId, 1)} ${economyConfig.currencyName}`,
+        );
     },
 });
 
