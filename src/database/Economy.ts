@@ -121,3 +121,57 @@ export const gambleWin = (
         owner,
     );
 };
+
+export const getGiven = (user: number, owner: number): number => {
+    safeties(user, owner);
+    const data = db
+        .prepare('select amount_given from economy where user=? and owner=?')
+        .get(user, owner);
+    return data.amount_given;
+};
+
+export const currencyGiven = (user: number, owner: number, amount: number) => {
+    safeties(user, owner);
+    const curr = getGiven(user, owner);
+    db.prepare(
+        'update economy set amount_given=? where user=? and owner=?',
+    ).run(curr + amount, user, owner);
+};
+
+export const getReceived = (user: number, owner: number): number => {
+    safeties(user, owner);
+    const data = db
+        .prepare('select amount_received from economy where user=? and owner=?')
+        .get(user, owner);
+    return data.amount_received;
+};
+
+export const currencyReceived = (
+    user: number,
+    owner: number,
+    amount: number,
+) => {
+    safeties(user, owner);
+    const curr = getReceived(user, owner);
+    db.prepare(
+        'update economy set amount_received=? where user=? and owner=?',
+    ).run(curr + amount, user, owner);
+};
+
+export const giveMoney = (
+    user: number,
+    to: number,
+    owner: number,
+    amount: number,
+) => {
+    safeties(user, owner);
+    safeties(to, owner);
+    if (addCurrency(to, owner, amount) !== '') {
+        return;
+    }
+    if (removeCurrency(user, owner, amount) !== '') {
+        return;
+    }
+    currencyGiven(user, owner, amount);
+    currencyReceived(to, owner, amount);
+};

@@ -1,9 +1,5 @@
 import { logError } from '../../../../Logger';
-import {
-    addCurrency,
-    getCurrency,
-    removeCurrency,
-} from '../../../../database/Economy';
+import { getCurrency, giveMoney } from '../../../../database/Economy';
 import { getUserByDiscordId } from '../../../../database/Users';
 import { authCheck, economyIsConnected } from '../../../DiscordUtils';
 import { createSlashCommand } from '../SlashCommand';
@@ -56,8 +52,7 @@ const giveCommand = createSlashCommand({
             );
             return;
         }
-        addCurrency(targetUser.userId, economyOwner, amount);
-        removeCurrency(user.userId, economyOwner, amount);
+        giveMoney(user.userId, targetUser.userId, economyOwner, amount);
     },
 });
 

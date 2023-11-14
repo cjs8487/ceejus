@@ -1,10 +1,10 @@
 import _ from 'lodash';
 import {
-    addCurrency,
     gambleLoss,
     gambleWin,
     getCurrency,
     getGambleNet,
+    giveMoney,
 } from '../../database/Economy';
 import { getUserByName } from '../../database/Users';
 import { HandlerDelegate } from '../../modules/Modules';
@@ -89,14 +89,22 @@ const handleGive: HandlerDelegate = async (
     const economyConfig = getEconomyConfig(owner.userId);
     if (!economyConfig) return 'economy is not configured';
     const currencyName = economyConfig.currencyName;
-
-    const [receiver, amount] = commandParts;
-    addCurrency(
-        await getOrCreateUserName(receiver),
-        owner.userId,
-        Number(amount),
-    );
-    return `gave ${receiver} ${amount} ${currencyName}`;
+    const user = await getOrCreateUserName(sender);
+    const total = getCurrency(user, owner.userId);
+    const [receiverName, amountStr] = commandParts;
+    const amount = Number(amountStr);
+    const receiver = await getOrCreateUserName(receiverName);
+    if (Number.isNaN(amount)) {
+        return `${amount} is not a number`;
+    }
+    if (amount <= 0) {
+        return `must give away at least 1 ${currencyName}`;
+    }
+    if (amount > total) {
+        return `cannot give away more ${currencyName} than you have`;
+    }
+    giveMoney(user, receiver, owner.userId, amount);
+    return `gave ${receiverName} ${amount} ${currencyName}`;
 };
 
 const handleNet: HandlerDelegate = async (
