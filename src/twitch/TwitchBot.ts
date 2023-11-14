@@ -50,7 +50,6 @@ const onMessageHandler = async (
     commandName = commandParts[0].toLowerCase();
 
     const mod = isUserMod(message.userInfo);
-    let handled = false;
     const modulesResponse = await handleCommand(
         commandParts,
         user,
@@ -59,65 +58,28 @@ const onMessageHandler = async (
     );
     if (modulesResponse) {
         client.say(channel, modulesResponse);
-        handled = true;
     }
-    if (handled) return;
-    if (commandName === 'addcomm') {
-        if (!isUserMod(message.userInfo)) return;
-        const newCommand = commandParts[1].toLowerCase();
-        const output = commandParts.slice(2).join(' ');
-        db.prepare(
-            'insert into commands (command_string, output) values (?, ?)',
-        ).run(newCommand, output);
-        client.say(
-            channel,
-            `@${user} command !${newCommand} successfully created`,
-        );
-    } else if (commandName === 'editcomm') {
-        if (!isUserMod(message.userInfo)) return;
-        const editCommand = commandParts[1].toLowerCase();
-        const output = commandParts.slice(2).join(' ');
-        db.prepare('update commands set output=? where command_string=?').run(
-            output,
-            editCommand,
-        );
-        client.say(
-            channel,
-            `@${user} command !${editCommand} editted successfully`,
-        );
-    } else if (commandName === 'deletecomm') {
-        if (!isUserMod(message.userInfo)) return;
-        const deleteCommand = commandParts[1].toLowerCase();
-        db.prepare('delete from commands where command_string=?').run(
-            deleteCommand,
-        );
-        client.say(
-            channel,
-            `@${user} command !${deleteCommand} deleted sucessfully`,
-        );
-
-        // client.say(channel, `${multiResponse}`);
-        // } else if (commandName === 'floha') {
-        //     let quote;
-        //     if (commandParts.length > 1) {
-        //         const quoteNumber = parseInt(commandParts[1], 10);
-        //         if (Number.isNaN(quoteNumber)) {
-        //             quote = await (
-        //                 await fetch(
-        // eslint-disable-next-line max-len
-        //                   `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
-        //                 )
-        //             ).json();
-        //         } else {
-        //             quote = await (
-        //                 await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
-        //             ).json();
-        //         }
-        //     } else {
-        //         quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
-        //     }
-        //     client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
-    }
+    // client.say(channel, `${multiResponse}`);
+    // } else if (commandName === 'floha') {
+    //     let quote;
+    //     if (commandParts.length > 1) {
+    //         const quoteNumber = parseInt(commandParts[1], 10);
+    //         if (Number.isNaN(quoteNumber)) {
+    //             quote = await (
+    //                 await fetch(
+    // eslint-disable-next-line max-len
+    //                   `https://flohabot.bingothon.com/api/quotes/quote?alias=${commandParts.slice(1).join(' ')}`,
+    //                 )
+    //             ).json();
+    //         } else {
+    //             quote = await (
+    //                 await fetch(`https://flohabot.bingothon.com/api/quotes/quote?quoteNumber=${quoteNumber}`)
+    //             ).json();
+    //         }
+    //     } else {
+    //         quote = await (await fetch('https://flohabot.bingothon.com/api/quotes/quote')).json();
+    //     }
+    //     client.say(channel, `@${user} #${quote.id}: ${quote.quote_text}`);
 };
 
 /**
