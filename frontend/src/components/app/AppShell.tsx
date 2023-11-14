@@ -4,22 +4,21 @@ import { Footer } from './Footer';
 import MainContent from './MainContent';
 import Navbar from './Navbar';
 import { UserContext } from '../../contexts/UserContext';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const AppShell = () => {
     const { loggedIn } = useContext(UserContext).state;
-    const location = useLocation();
     const navigate = useNavigate();
 
-    if (!loggedIn && location.pathname !== '/s') {
+    if (!loggedIn) {
         navigate('/login');
         return null;
     }
     return (
-        <div className="flex h-full flex-col">
-            <div className="flex h-full">
+        <div className="flex h-full grow flex-col">
+            <div className="flex grow">
                 <Navbar />
-                <div className="flex h-full w-full flex-col">
+                <div className="flex grow flex-col">
                     <AppBar />
                     <MainContent />
                 </div>

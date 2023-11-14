@@ -1,7 +1,7 @@
 import bodyParser from 'body-parser';
 import express from 'express';
 import 'http';
-import { apiEnabled } from './Environment';
+import { apiEnabled, port } from './Environment';
 import { notification } from './lib/EventSubHandlers';
 import { logInfo } from './Logger';
 import { initDiscordBot } from './discord/DiscordBot';
@@ -29,8 +29,6 @@ app.use(
         },
     }),
 );
-
-const port = 8000;
 
 initTwitchBot();
 initDiscordBot();

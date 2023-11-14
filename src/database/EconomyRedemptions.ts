@@ -66,6 +66,18 @@ export const getAllRedemptionsForUser = (id: number): EconomyRedemption[] => {
     }));
 };
 
+export const updateRedemptionAmount = (rewardId: string, amount: number) => {
+    db.prepare(
+        'update economy_redemptions set amount=? where twitch_reward_id=?',
+    ).run(amount, rewardId);
+};
+
 export const deleteRedemption = (id: number) => {
     db.prepare('delete from economy_redemptions where redemption_id=?').run(id);
+};
+
+export const deleteRedemptionByRewardId = (rewardId: string) => {
+    db.prepare('delete from economy_redemptions where twitch_reward_id=?').run(
+        rewardId,
+    );
 };

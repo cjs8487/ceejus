@@ -11,19 +11,18 @@ create table if not exists users (
     user_id integer primary key autoincrement,
     username text not null,
     twitch_id text not null,
+    discord_id text,
     active integer not null
 );
 create unique index if not exists user_username_index on users(username);
 create unique index if not exists user_twitchid_index on users(twitch_id);
+create unique index if not exists user_discordid_index on users(discord_id);
 
 create table if not exists oauth (
     auth_id integer primary key autoincrement,
     owner integer not null,
-    access_token text not null,
+    service text not null,
     refresh_token text not null,
-    scopes text not null,
-    expires_in integer,
-    obtained date,
     foreign key(owner) references users(user_id)
 );
 
@@ -59,11 +58,12 @@ create table if not exists economy(
 );
 create index if not exists economy_gamble_net_index on economy(gamble_net);
 
-create table if not exists economy_info(
+create table if not exists economy_config(
     info_id integer primary key autoincrement,
     owner number not null,
     currency_name string not null,
     earn_rate number not null,
+    require_active number not null,
     minimum_gamble number not null,
     foreign key(owner) references users(user_id)
 );
@@ -75,5 +75,12 @@ create TABLE if not exists COMMANDS (
     output text not null,
     active integer not null default 1,
     permission integer not null default 0,
-    primary key(id, owner)
+    primary key(id, owner),
+    foreign key(owner) references users(user_id)
+);
+
+create table if not exists discord_economy_connection (
+    id integer primary key autoincrement,
+    owner number not null,
+    discord_server text not null
 );

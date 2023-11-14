@@ -112,6 +112,8 @@ type SlashCommandData = {
     subcommands?: SlashCommandSubcommand[];
     subcommandGroups?: SlashCommandSubcommandGroup[];
     run?: SlashCommandRun;
+    allowDm?: boolean;
+    permission?: string;
 };
 
 const createOptions = (
@@ -162,10 +164,10 @@ const createOptions = (
                 if (option.choices) {
                     optionBuilder.setChoices(...option.choices);
                 }
-                if (option.min) {
+                if (option.min !== undefined) {
                     optionBuilder.setMinValue(option.min);
                 }
-                if (option.max) {
+                if (option.max !== undefined) {
                     optionBuilder.setMaxValue(option.max);
                 }
                 builder.addNumberOption(optionBuilder);
@@ -182,10 +184,10 @@ const createOptions = (
                 if (option.choices) {
                     optionBuilder.setChoices(...option.choices);
                 }
-                if (option.min) {
+                if (option.min !== undefined) {
                     optionBuilder.setMinValue(option.min);
                 }
-                if (option.max) {
+                if (option.max !== undefined) {
                     optionBuilder.setMaxValue(option.max);
                 }
                 builder.addIntegerOption(optionBuilder);
@@ -258,7 +260,11 @@ const createSubcommand = (
 
 export const createSlashCommand = (command: SlashCommandData): SlashCommand => {
     const builder = new SlashCommandBuilder();
-    builder.setName(command.name).setDescription(command.description);
+    builder
+        .setName(command.name)
+        .setDescription(command.description)
+        .setDMPermission(command.allowDm)
+        .setDefaultMemberPermissions(command.permission);
 
     if (command.options) {
         createOptions(builder, command.options);

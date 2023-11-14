@@ -1,12 +1,13 @@
 import { createHmac } from 'crypto';
 import { Request, Response } from 'express';
-import { secret } from '../Environment';
+import { eventSubSecret } from '../Environment';
 import { getOrCreateUserId } from '../util/UserUtils';
 import { logError, logInfo, logWarn } from '../Logger';
 import { apiClient, isUserRegistered } from '../auth/TwitchAuth';
 import { getRedemption } from '../database/EconomyRedemptions';
 import { addCurrency } from '../database/Economy';
 import { deleteMetadata, getMetadata } from '../database/Redemptions';
+import { getUserByTwitchId } from '../database/Users';
 
 const verifySignature = (
     messageSignature: string,
@@ -15,7 +16,7 @@ const verifySignature = (
     body: string,
 ) => {
     const message = messageID + messageTimestamp + body;
-    const signature = createHmac('sha256', secret).update(message);
+    const signature = createHmac('sha256', eventSubSecret).update(message);
     const expectedSignature = `sha256=${signature.digest('hex')}`;
     return expectedSignature === messageSignature;
 };
@@ -28,14 +29,26 @@ export const handleEconomyRedemption = async (data: any) => {
         const { amount } = getRedemption(data.reward.id);
         const twitchId = data.user_id;
         const user = await getOrCreateUserId(twitchId);
-        addCurrency(user, owner, amount);
-        apiClient.asUser(owner, (ctx) =>
-            ctx.channelPoints.updateRedemptionStatusByIds(
-                data.broadcaster_user_id,
+        const ownerUserId = getUserByTwitchId(owner);
+        if (!ownerUserId) {
+            logError(
+                'Unabled to process economy notification - channel owner does not exist',
+            );
+            // auto cancel the reddemption to refund the points
+            apiClient.channelPoints.updateRedemptionStatusByIds(
+                owner,
                 data.reward.id,
                 [data.id],
-                'FULFILLED',
-            ),
+                'CANCELED',
+            );
+            return;
+        }
+        addCurrency(user, ownerUserId.userId, amount);
+        apiClient.channelPoints.updateRedemptionStatusByIds(
+            owner,
+            data.reward.id,
+            [data.id],
+            'FULFILLED',
         );
     }
 };

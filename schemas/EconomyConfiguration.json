@@ -1,0 +1,12 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["currencyName", "passiveRate", "requireActive", "minimumGamble"],
+    "properties": {
+        "currencyName": {"type": "string"},
+        "passiveRate": {"type": "number"},
+        "requireActive": {"type": "boolean"},
+        "minimumGamble": {"type": "number"}
+    }
+}

@@ -3,7 +3,11 @@ import { ChatClient, ChatMessage } from '@twurple/chat';
 import fs from 'fs';
 import { db } from '../System';
 import { User, getAllUsers } from '../database/Users';
-import { botOAuthToken, botUsername, twitchClientId } from '../Environment';
+import {
+    twitchBotToken,
+    twitchBotUsername,
+    twitchClientId,
+} from '../Environment';
 // import { MultiTwitch } from './modules/MultiTwitch';
 import { isUserMod } from './TwitchUtils';
 import { handleCommand, registerAllModules } from './modules/TwitchModules';
@@ -12,7 +16,7 @@ import { handleCommand, registerAllModules } from './modules/TwitchModules';
 
 const channels: string[] = getAllUsers(true).map((user: User) => user.username);
 const client = new ChatClient({
-    authProvider: new StaticAuthProvider(twitchClientId, botOAuthToken),
+    authProvider: new StaticAuthProvider(twitchClientId, twitchBotToken),
     channels,
 });
 
@@ -28,7 +32,7 @@ const onMessageHandler = async (
     messageText: string,
     message: ChatMessage,
 ) => {
-    if (user === botUsername) {
+    if (user === twitchBotUsername) {
         return;
     }
 

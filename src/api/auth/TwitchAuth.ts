@@ -6,8 +6,15 @@ import {
     doCodeExchange,
     registerUserAuth,
 } from '../../auth/TwitchAuth';
-import { getUserByName, registerUser, userExists } from '../../database/Users';
 import { twitchClientId, twitchRedirect } from '../../Environment';
+import {
+    addAuthToUser,
+    getRefreshTokenForService,
+    getUserByName,
+    registerUser,
+    updateAuth,
+    userExists,
+} from '../../database/Users';
 
 const twitchAuth = Router();
 
@@ -17,6 +24,7 @@ const scopeList = [
     'channel:manage:polls',
     'channel:read:polls',
     'channel:manage:redemptions',
+    'moderator:read:chatters',
 ];
 const scopes = `scope=${encodeURIComponent(scopeList.join(' '))}`;
 const authUrl = `${authRoot}?client_id=${twitchClientId}&redirect_uri=${redirectUrl}&${scopes}&response_type=code`;
@@ -61,13 +69,18 @@ twitchAuth.get('/redirect', async (req, res, next) => {
 
         let userId: number;
         if (!userExists(user.displayName)) {
-            userId = registerUser(user.displayName, user.id, firstToken);
+            userId = registerUser(user.displayName, user.id);
         } else {
             userId = getUserByName(user.displayName)!.userId;
         }
-        req.session.regenerate((err) => {
-            if (err) {
-                next(err);
+        if (!getRefreshTokenForService(userId, 'twitch')) {
+            addAuthToUser(userId, 'twitch', firstToken.refreshToken ?? '');
+        } else {
+            updateAuth(userId, 'twitch', firstToken.refreshToken ?? '');
+        }
+        req.session.regenerate((genErr) => {
+            if (genErr) {
+                next(genErr);
                 return;
             }
             req.session.user = { userId, username: user.displayName };

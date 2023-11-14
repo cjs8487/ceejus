@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../Types.d.ts" />
 import {
     APIApplicationCommand,
     REST,
@@ -39,4 +41,5 @@ commandList.forEach((command) => {
     } catch (error) {
         console.error(error);
     }
+    process.exit();
 })();
