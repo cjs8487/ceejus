@@ -83,10 +83,12 @@ export const removeCurrency = (
     return '';
 };
 
-export const getGambleNet = (user: number, owner: number): number =>
-    db
+export const getGambleNet = (user: number, owner: number): number => {
+    safeties(user, owner);
+    return db
         .prepare('select gamble_net from economy where user=? and owner=?')
         .get(user, owner).gamble_net;
+};
 
 export const gambleLoss = (
     user: number,
