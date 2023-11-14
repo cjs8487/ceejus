@@ -2,7 +2,12 @@ import { StaticAuthProvider } from '@twurple/auth';
 import { ChatClient, ChatMessage } from '@twurple/chat';
 import fs from 'fs';
 import { db } from '../System';
-import { User, getAllUsers } from '../database/Users';
+import {
+    User,
+    activateUser,
+    getAllUsers,
+    getUserByName,
+} from '../database/Users';
 import {
     twitchBotToken,
     twitchBotUsername,
@@ -101,4 +106,12 @@ export const initTwitchBot = () => {
 
     client.onMessage(onMessageHandler);
     client.connect();
+};
+
+export const joinChat = (channel: string) => {
+    client.join(channel);
+};
+
+export const leaveChat = (channel: string) => {
+    client.part(channel);
 };

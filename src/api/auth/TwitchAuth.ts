@@ -15,6 +15,7 @@ import {
     updateAuth,
     userExists,
 } from '../../database/Users';
+import { joinChat } from '../../twitch/TwitchBot';
 
 const twitchAuth = Router();
 
@@ -78,6 +79,7 @@ twitchAuth.get('/redirect', async (req, res, next) => {
         } else {
             updateAuth(userId, 'twitch', firstToken.refreshToken ?? '');
         }
+        joinChat(user.name);
         req.session.regenerate((genErr) => {
             if (genErr) {
                 next(genErr);
