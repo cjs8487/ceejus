@@ -113,6 +113,7 @@ type SlashCommandData = {
     subcommandGroups?: SlashCommandSubcommandGroup[];
     run?: SlashCommandRun;
     allowDm?: boolean;
+    permission?: string;
 };
 
 const createOptions = (
@@ -262,7 +263,8 @@ export const createSlashCommand = (command: SlashCommandData): SlashCommand => {
     builder
         .setName(command.name)
         .setDescription(command.description)
-        .setDMPermission(command.allowDm);
+        .setDMPermission(command.allowDm)
+        .setDefaultMemberPermissions(command.permission);
 
     if (command.options) {
         createOptions(builder, command.options);

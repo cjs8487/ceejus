@@ -10,6 +10,7 @@ import {
     getEconomyOwnerForDiscordServer,
 } from '../database/EconomyConfig';
 import { logError } from '../Logger';
+import { EconomyConfiguration } from '../types';
 
 export const authCheck = async (interaction: CommandInteraction) => {
     const user = getUserByDiscordId(interaction.user.id);
@@ -31,7 +32,7 @@ const economyNotConnectedMessage =
 
 export const economyIsConnected = async (
     interaction: ChatInputCommandInteraction,
-) => {
+): Promise<[EconomyConfiguration | undefined, number | undefined]> => {
     const economyOwner = getEconomyOwnerForDiscordServer(interaction.guildId!);
     if (economyOwner) {
         const economyConfig = getEconomyConfig(economyOwner);
@@ -40,16 +41,16 @@ export const economyIsConnected = async (
                 `Economy is connected but unable to load configuration for user ${economyOwner}`,
             );
             await interaction.editReply('An error occurred. Try again later');
-            return undefined;
+            return [undefined, undefined];
         }
-        return economyConfig;
+        return [economyConfig, economyOwner];
     }
     if (interaction.replied) {
         await interaction.editReply(economyNotConnectedMessage);
     } else {
         await interaction.reply(economyNotConnectedMessage);
     }
-    return undefined;
+    return [undefined, undefined];
 };
 
 export default {};

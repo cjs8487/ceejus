@@ -11,13 +11,13 @@ const moneyCommand = createSlashCommand({
         {
             name: 'user',
             description:
-                'The user to see the balance for. If omitted, will showyour balance',
+                'The user to see the balance for. If omitted, will show your balance',
             type: 'user',
         },
     ],
     async run(interaction) {
         await interaction.deferReply();
-        const economyConfig = await economyIsConnected(interaction);
+        const [economyConfig] = await economyIsConnected(interaction);
         if (!economyConfig) return;
 
         const commandTarget = interaction.options.getUser('user');

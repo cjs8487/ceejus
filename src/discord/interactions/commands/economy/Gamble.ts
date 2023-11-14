@@ -27,8 +27,9 @@ const gambleCommand = createSlashCommand({
     ],
     async run(interaction) {
         await interaction.deferReply();
-        const economyConfig = await economyIsConnected(interaction);
-        if (!economyConfig) return;
+        const [economyConfig, economyOwner] =
+            await economyIsConnected(interaction);
+        if (!economyConfig || !economyOwner) return;
         const authorized = await authCheck(interaction);
         if (authorized) {
             const amount = interaction.options.getInteger('amount');
@@ -49,7 +50,7 @@ const gambleCommand = createSlashCommand({
                 );
                 return;
             }
-            const total = getCurrency(user.userId, 1);
+            const total = getCurrency(user.userId, economyOwner);
             let gambleAmount: number = 0;
             if (all) {
                 gambleAmount = total;

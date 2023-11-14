@@ -6,6 +6,7 @@ import gdqCommand from './GDQ';
 import moneyCommand from './economy/Money';
 import gambleCommand from './economy/Gamble';
 import economyCommand from './economy/Economy';
+import giveCommand from './economy/Give';
 
 export const commandList: SlashCommand[] = [];
 const commandMap: Map<string, SlashCommand> = new Map();
@@ -46,3 +47,4 @@ registerCommand(gdqCommand);
 registerCommand(moneyCommand);
 registerCommand(gambleCommand);
 registerCommand(economyCommand);
+registerCommand(giveCommand);

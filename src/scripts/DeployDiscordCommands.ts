@@ -41,4 +41,5 @@ commandList.forEach((command) => {
     } catch (error) {
         console.error(error);
     }
+    process.exit();
 })();
