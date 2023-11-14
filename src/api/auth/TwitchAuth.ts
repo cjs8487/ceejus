@@ -71,6 +71,7 @@ twitchAuth.get('/redirect', async (req, res, next) => {
         let userId: number;
         if (!userExists(user.displayName)) {
             userId = registerUser(user.displayName, user.id);
+            joinChat(user.name);
         } else {
             userId = getUserByName(user.displayName)!.userId;
         }
@@ -79,7 +80,6 @@ twitchAuth.get('/redirect', async (req, res, next) => {
         } else {
             updateAuth(userId, 'twitch', firstToken.refreshToken ?? '');
         }
-        joinChat(user.name);
         req.session.regenerate((genErr) => {
             if (genErr) {
                 next(genErr);
