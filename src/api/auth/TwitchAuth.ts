@@ -8,6 +8,7 @@ import {
 } from '../../auth/TwitchAuth';
 import { twitchClientId, twitchRedirect } from '../../Environment';
 import {
+    activateUser,
     addAuthToUser,
     getRefreshTokenForService,
     getUserByName,
@@ -74,6 +75,7 @@ twitchAuth.get('/redirect', async (req, res, next) => {
         } else {
             userId = getUserByName(user.displayName)!.userId;
         }
+        activateUser(userId);
         joinChat(user.name);
         if (!getRefreshTokenForService(userId, 'twitch')) {
             addAuthToUser(userId, 'twitch', firstToken.refreshToken ?? '');
