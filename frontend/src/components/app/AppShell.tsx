@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import AppBar from './AppBar';
 import { Footer } from './Footer';
 import MainContent from './MainContent';
@@ -10,10 +10,15 @@ const AppShell = () => {
     const { loggedIn } = useContext(UserContext).state;
     const navigate = useNavigate();
 
+    useEffect(() => {
+        if (!loggedIn) {
+            navigate('/login');
+        }
+    }, [loggedIn, navigate]);
     if (!loggedIn) {
-        navigate('/login');
         return null;
     }
+
     return (
         <div className="flex h-full grow flex-col">
             <div className="flex grow">
