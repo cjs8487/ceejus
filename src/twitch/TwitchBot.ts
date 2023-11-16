@@ -2,12 +2,7 @@ import { StaticAuthProvider } from '@twurple/auth';
 import { ChatClient, ChatMessage } from '@twurple/chat';
 import fs from 'fs';
 import { db } from '../System';
-import {
-    User,
-    activateUser,
-    getAllUsers,
-    getUserByName,
-} from '../database/Users';
+import { User, getAllUsers } from '../database/Users';
 import {
     twitchBotToken,
     twitchBotUsername,

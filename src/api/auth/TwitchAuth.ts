@@ -71,10 +71,10 @@ twitchAuth.get('/redirect', async (req, res, next) => {
         let userId: number;
         if (!userExists(user.displayName)) {
             userId = registerUser(user.displayName, user.id);
-            joinChat(user.name);
         } else {
             userId = getUserByName(user.displayName)!.userId;
         }
+        joinChat(user.name);
         if (!getRefreshTokenForService(userId, 'twitch')) {
             addAuthToUser(userId, 'twitch', firstToken.refreshToken ?? '');
         } else {
