@@ -2,6 +2,7 @@ import { useContext, useState } from 'react';
 import { UserContext } from '../../contexts/UserContext';
 import {
     autoUpdate,
+    shift,
     useClick,
     useDismiss,
     useFloating,
@@ -16,6 +17,17 @@ import { IconProp } from '@fortawesome/fontawesome-svg-core';
 
 const userMenu = [
     {
+        label: 'Part Channel',
+        to: '/api/twitch/part',
+        icon: faRightFromBracket,
+        isAction: true,
+    },
+    {
+        label: '',
+        to: '',
+        isDivider: true,
+    },
+    {
         label: 'Logout',
         to: '/logout',
         icon: faRightFromBracket,
@@ -26,9 +38,35 @@ type UserMenuItemProps = {
     label: string;
     to: string;
     icon?: IconProp;
+    isAction?: boolean;
+    isDivider?: boolean;
 };
 
-const UserMenuItem = ({ label, to, icon }: UserMenuItemProps) => {
+const UserMenuItem = ({
+    label,
+    to,
+    icon,
+    isAction,
+    isDivider,
+}: UserMenuItemProps) => {
+    if (isDivider) {
+        return <div className="mx-1 border-b border-gray-500" />;
+    }
+    if (isAction) {
+        return (
+            <div
+                role="button"
+                className="flex w-full items-center gap-x-2 px-3 py-1 hover:bg-slate-500 hover:bg-opacity-10"
+                onClick={() => {
+                    fetch(to, { method: 'POST' });
+                }}
+            >
+                {icon && <FontAwesomeIcon icon={icon} className="w-1/6" />}
+                {!icon && <div className="w-1/6" />}
+                {label}
+            </div>
+        );
+    }
     return (
         <Link
             role="button"
@@ -47,10 +85,11 @@ const AppBar = () => {
 
     const [menuOpen, setMenuOpen] = useState(false);
 
-    const { refs, context } = useFloating({
+    const { refs, context, floatingStyles } = useFloating({
         whileElementsMounted: autoUpdate,
         open: menuOpen,
         onOpenChange: setMenuOpen,
+        middleware: [shift({ padding: 5 })],
     });
 
     const click = useClick(context);
@@ -91,18 +130,22 @@ const AppBar = () => {
                         {isMounted && (
                             <div
                                 ref={refs.setFloating}
-                                style={styles}
-                                className="absolute flex w-max flex-col rounded-lg border border-slate-200 bg-white py-2 shadow-xl"
+                                className="absolute flex flex-col rounded-lg border border-slate-200 bg-white py-2 shadow-xl"
+                                style={floatingStyles}
                                 {...getFloatingProps}
                             >
-                                {userMenu.map((item) => (
-                                    <UserMenuItem
-                                        key={item.label}
-                                        label={item.label}
-                                        to={item.to}
-                                        icon={item.icon}
-                                    />
-                                ))}
+                                <div style={styles}>
+                                    {userMenu.map((item) => (
+                                        <UserMenuItem
+                                            key={item.label}
+                                            label={item.label}
+                                            to={item.to}
+                                            icon={item.icon}
+                                            isAction={item.isAction}
+                                            isDivider={item.isDivider}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </>

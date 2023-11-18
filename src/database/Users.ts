@@ -43,7 +43,7 @@ export const registerUser = (
 ): number => {
     const addData: RunResult = db
         .prepare(
-            'insert into users (username, twitch_id, active, discord_id) values (?, ?, 1, ?)',
+            'insert into users (username, twitch_id, active, discord_id) values (?, ?, 0, ?)',
         )
         .run(username, twitchId, discordId);
     return addData.lastInsertRowid as number;
