@@ -45,7 +45,7 @@ export const economyIsConnected = async (
         }
         return [economyConfig, economyOwner];
     }
-    if (interaction.replied) {
+    if (interaction.replied || interaction.deferred) {
         await interaction.editReply(economyNotConnectedMessage);
     } else {
         await interaction.reply(economyNotConnectedMessage);
