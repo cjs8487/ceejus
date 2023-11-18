@@ -5,6 +5,8 @@ import { Disclosure, Transition } from '@headlessui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import { useGetApi } from '../../controller/Hooks';
+import { ModuleDetails, UserConfig } from '../../types';
 
 type ModuleProps = {
     name: string;
@@ -21,8 +23,8 @@ const modules: ModuleProps[] = [
         description: 'Have Ceejus respond to custom commands in your chat',
         isEnabled: true,
         commands: [],
-        hasAdditionalConfig: true,
-        configPath: './economy',
+        // hasAdditionalConfig: true,
+        // configPath: './economy',
     },
     {
         name: 'Quotes',
@@ -125,18 +127,30 @@ const ModuleConfig = ({
 };
 
 const Config = () => {
+    const {
+        data: userConfig,
+        error,
+        isLoading,
+    } = useGetApi<UserConfig>('/api/config');
+
+    if (isLoading) return null;
+    if (error || !userConfig)
+        return <div>Error loading configuration data</div>;
+
+    console.log(userConfig);
+
     return (
         <div className="flex flex-col items-center justify-center gap-y-4">
             <div className="text-3xl">Modules</div>
-            {modules.map((module) => (
+            {userConfig.config.map((configEntry) => (
                 <ModuleConfig
-                    key={module.name}
-                    name={module.name}
-                    description={module.description}
-                    isEnabled={module.isEnabled}
-                    commands={module.commands}
-                    hasAdditionalConfig={module.hasAdditionalConfig}
-                    configPath={module.configPath}
+                    key={configEntry.module.name}
+                    name={configEntry.module.name}
+                    description={configEntry.module.description}
+                    isEnabled={configEntry.module.isEnabled}
+                    commands={configEntry.module.commands}
+                    hasAdditionalConfig={configEntry.module.hasAdditionalConfig}
+                    configPath={`./${configEntry.module.name.toLowerCase()}`}
                 />
             ))}
         </div>

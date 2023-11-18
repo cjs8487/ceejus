@@ -11,6 +11,7 @@ import discordAuth from './auth/DiscordAuth';
 import { sessionStore } from '../System';
 import economy from './economy/Economy';
 import twitch from './twitch/Twitch';
+import config from './Config';
 
 export type SessionUser = {
     userId: number;
@@ -44,6 +45,8 @@ router.use('/auth/twitch', twitchAuth);
 router.use('/auth/discord', discordAuth);
 router.use('/economy', economy);
 router.use('/twitch', twitch);
+router.use('/config', config);
+
 router.get('/me', isAuthenticated, async (req, res) => {
     if (!req.session.user) {
         res.sendStatus(401);
