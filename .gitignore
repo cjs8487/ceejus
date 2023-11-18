@@ -105,3 +105,5 @@ dist
 
 # Databases
 *.db
+
+static/*

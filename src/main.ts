@@ -1,6 +1,7 @@
 import bodyParser from 'body-parser';
 import express from 'express';
 import 'http';
+import path from 'path';
 import { apiEnabled, port } from './Environment';
 import { notification } from './lib/EventSubHandlers';
 import { logInfo } from './Logger';
@@ -36,6 +37,13 @@ initDiscordBot();
 if (apiEnabled) {
     app.use('/api', api);
     app.post('/notification', notification);
+
+    app.use(express.static('static'));
+
+    app.get('/*', (req, res) => {
+        logInfo(`Client Request ${req.path}`);
+        res.sendFile(path.join(__dirname, '../static', 'index.html'));
+    });
 
     app.listen(port, async () => {
         logInfo(`Twitch Eventsub Webhook listening on port ${port}`);
