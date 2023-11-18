@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { UserContext } from '../contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,8 +7,13 @@ import { faTwitch } from '@fortawesome/free-brands-svg-icons';
 const Login = () => {
     const { loggedIn } = useContext(UserContext).state;
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (loggedIn) {
+            navigate('/s');
+        }
+    }, [loggedIn, navigate]);
     if (loggedIn) {
-        navigate('/home');
         return null;
     }
 
@@ -20,7 +25,7 @@ const Login = () => {
                     Ceejus
                 </span>
                 <a
-                    className="bg-twitch-purple flex items-center justify-center gap-x-2.5 rounded-lg px-4 py-2 text-lg text-white"
+                    className="flex items-center justify-center gap-x-2.5 rounded-lg bg-twitch-purple px-4 py-2 text-lg text-white"
                     role="button"
                     href="/api/auth/twitch/doAuth"
                 >

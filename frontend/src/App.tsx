@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import './App.css';
 import { UserContext, UserContextProvider } from './contexts/UserContext';
 import AppShell from './components/app/AppShell';
@@ -14,6 +14,7 @@ function App() {
     } = useContext(UserContext);
     const navigate = useNavigate();
     const location = useLocation();
+    const [loginChecked, setLoginChecked] = useState(false);
 
     useEffect(() => {
         const checkStatus = async () => {
@@ -26,15 +27,40 @@ function App() {
             } else {
                 update({ loggedIn: false, user: undefined });
             }
+            setLoginChecked(true);
         };
         checkStatus();
     }, [update]);
 
+    useEffect(() => {
+        if (!loginChecked) {
+            return;
+        }
+        if (loggedIn && location.pathname === '/') {
+            navigate('/s');
+            return;
+        }
+        if (
+            !loggedIn &&
+            (location.pathname === '/' || location.pathname.startsWith('/s'))
+        ) {
+            navigate('/login');
+            return;
+        }
+    }, [loginChecked, loggedIn, navigate, location]);
+
+    if (!loginChecked) {
+        return null;
+    }
+
+    if (loggedIn && location.pathname === '/') {
+        return null;
+    }
+
     if (
-        loggedIn &&
-        (location.pathname === '/login' || location.pathname === '/')
+        !loggedIn &&
+        (location.pathname === '/' || location.pathname.startsWith('/s'))
     ) {
-        navigate('/s');
         return null;
     }
 
