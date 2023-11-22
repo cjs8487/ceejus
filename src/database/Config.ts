@@ -10,15 +10,28 @@ const additionalModuleInfo = new Map([
     [
         Module.Quotes,
         {
-            description: 'quotes',
+            description:
+                'Let viewers quote memorable things said on stream or in chat, into a shared community database',
             commands: ['quote'],
             // hasAdditionalConfig: true,
         },
     ],
-    [Module.Commands, { description: 'commands', commands: [] }],
+    [
+        Module.Commands,
+        {
+            description: 'Have Ceejus respond to custom commands in your chat',
+            commands: [],
+        },
+    ],
     [
         Module.Economy,
-        { description: 'economy', commands: [], hasAdditionalConfig: true },
+        {
+            description:
+                'Run an economy in your chat and Discord server with Ceejus. Viewers can exchange channel points ' +
+                'for currency, gamble their currency, and more!',
+            commands: ['money', 'gamble'],
+            hasAdditionalConfig: true,
+        },
     ],
 ]);
 
