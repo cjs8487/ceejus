@@ -13,7 +13,7 @@ try {
             filesProcessed.push(fileName);
             compileFromFile(`./schemas/${fileName}.json`, {
                 cwd: './schemas',
-                declareExternallyReferenced: false,
+                // declareExternallyReferenced: false,
                 additionalProperties: false,
             }).then((ts) => {
                 writeFileSync(`./src/types/${fileName}.d.ts`, ts);

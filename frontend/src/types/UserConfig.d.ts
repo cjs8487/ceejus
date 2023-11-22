@@ -12,3 +12,10 @@ export interface UserConfig {
     enabled: boolean;
   }[];
 }
+export interface ModuleDetails {
+  id: number;
+  name: string;
+  description: string;
+  commands: string[];
+  hasAdditionalConfig?: boolean;
+}

@@ -1,61 +1,39 @@
 import Toggle from 'react-toggle';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent } from 'react';
 import 'react-toggle/style.css';
 import { Disclosure, Transition } from '@headlessui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
 import { useGetApi } from '../../controller/Hooks';
-import { ModuleDetails, UserConfig } from '../../types';
+import { UserConfig } from '../../types';
+import { mutate } from 'swr';
 
 type ModuleProps = {
+    id: number;
     name: string;
     description: string;
-    isEnabled: boolean;
+    enabled: boolean;
     commands: string[];
     hasAdditionalConfig?: boolean;
     configPath?: string;
 };
 
-const modules: ModuleProps[] = [
-    {
-        name: 'Commands',
-        description: 'Have Ceejus respond to custom commands in your chat',
-        isEnabled: true,
-        commands: [],
-        // hasAdditionalConfig: true,
-        // configPath: './economy',
-    },
-    {
-        name: 'Quotes',
-        description:
-            'Let viewers quote memorable things said on stream or in chat, into a shared community database',
-        isEnabled: true,
-        commands: ['quote'],
-    },
-    {
-        name: 'Economy',
-        description:
-            'Run an economy in your chat and Discord server with Ceejus. Viewers can exchange channel points for currency, gamble their currency, and more!',
-        isEnabled: false,
-        commands: ['money', 'gamble'],
-        hasAdditionalConfig: true,
-        configPath: './economy',
-    },
-];
-
 const ModuleConfig = ({
+    id,
     name,
     description,
-    isEnabled,
+    enabled,
     commands,
     hasAdditionalConfig,
     configPath,
 }: ModuleProps) => {
-    const [enabled, setEnabled] = useState(isEnabled);
-
     const updateEnabled = (event: ChangeEvent<HTMLInputElement>) => {
-        setEnabled(event.target.checked);
+        fetch(
+            `/api/config/${id}/${event.target.checked ? 'enable' : 'disable'}`,
+            { method: 'POST' },
+        );
+        mutate('/api/config');
     };
     return (
         <Disclosure>
@@ -144,10 +122,11 @@ const Config = () => {
             <div className="text-3xl">Modules</div>
             {userConfig.config.map((configEntry) => (
                 <ModuleConfig
-                    key={configEntry.module.name}
+                    key={configEntry.module.id}
+                    id={configEntry.module.id}
                     name={configEntry.module.name}
                     description={configEntry.module.description}
-                    isEnabled={configEntry.module.isEnabled}
+                    enabled={configEntry.enabled}
                     commands={configEntry.module.commands}
                     hasAdditionalConfig={configEntry.module.hasAdditionalConfig}
                     configPath={`./${configEntry.module.name.toLowerCase()}`}
