@@ -10,6 +10,7 @@ import { getUserByName } from '../../database/Users';
 import { HandlerDelegate } from '../../modules/Modules';
 import { getOrCreateUserName } from '../../util/UserUtils';
 import { getEconomyConfig } from '../../database/EconomyConfig';
+import { Module, isModuleEnabled } from '../../database/Config';
 
 const handleMoney: HandlerDelegate = async (
     commandParts,
@@ -20,6 +21,7 @@ const handleMoney: HandlerDelegate = async (
     const [channelName] = metadata;
     const owner = getUserByName(channelName);
     if (!owner) return 'economy is not configured';
+    if (!isModuleEnabled(owner.userId, Module.Economy)) return '';
     const economyConfig = getEconomyConfig(owner.userId);
     if (!economyConfig) return 'economy is not configured';
     const currencyName = economyConfig.currencyName;
@@ -45,6 +47,7 @@ const handleGamble: HandlerDelegate = async (
     const user = await getOrCreateUserName(sender);
     const owner = getUserByName(channelName);
     if (!owner) return 'economy is not configured';
+    if (!isModuleEnabled(owner.userId, Module.Economy)) return '';
     const economyConfig = getEconomyConfig(owner.userId);
     if (!economyConfig) return 'economy is not configured';
     const { currencyName, minimumGamble } = economyConfig;
@@ -86,6 +89,7 @@ const handleGive: HandlerDelegate = async (
     const [channelName] = metadata;
     const owner = getUserByName(channelName);
     if (!owner) return 'economy is not configured';
+    if (!isModuleEnabled(owner.userId, Module.Economy)) return '';
     const economyConfig = getEconomyConfig(owner.userId);
     if (!economyConfig) return 'economy is not configured';
     const currencyName = economyConfig.currencyName;
@@ -116,6 +120,7 @@ const handleNet: HandlerDelegate = async (
     const [channelName] = metadata;
     const owner = getUserByName(channelName);
     if (!owner) return 'economy is not configured';
+    if (!isModuleEnabled(owner.userId, Module.Economy)) return '';
     const economyConfig = getEconomyConfig(owner.userId);
     if (!economyConfig) return 'economy is not configured';
     const currencyName = economyConfig.currencyName;

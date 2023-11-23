@@ -121,3 +121,11 @@ export const getAvailableModules = (): ModuleDetails[] =>
             hasAdditionalConfig: details!.hasAdditionalConfig,
         };
     });
+
+export const isModuleEnabled = (user: number, module: Module) => {
+    const configEntry = db
+        .prepare('select enabled from config where owner=? and module=?')
+        .get(user, module);
+    if (!configEntry) return false;
+    return !!configEntry.enabled;
+};
