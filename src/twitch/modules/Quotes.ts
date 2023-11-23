@@ -1,3 +1,5 @@
+import { Module, isModuleEnabled } from '../../database/Config';
+import { getUserByName } from '../../database/Users';
 import {
     addQuote,
     deleteQuote,
@@ -20,7 +22,13 @@ const permissionDenied = "You don't have permission to do that";
 const handleQuote: HandlerDelegate = async (
     commandParts: string[],
     sender: string,
+    mod,
+    metadata,
 ) => {
+    const channelName = metadata;
+    const owner = getUserByName(channelName);
+    if (!owner) return '';
+    if (!isModuleEnabled(owner.userId, Module.Quotes)) return '';
     const quoteCommand = commandParts[0];
     const isQuoteMod = false;
     if (quoteCommand === 'add') {

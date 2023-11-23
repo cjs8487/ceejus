@@ -4,6 +4,7 @@ import { HandlerDelegate } from '../../modules/Modules';
 import { TwitchModule } from './TwitchModule';
 import { replyTo } from '../TwitchUtils';
 import { getUserByName } from '../../database/Users';
+import { Module, isModuleEnabled } from '../../database/Config';
 
 const paramRegex = /(?:\$param(?<index>\d*))/g;
 
@@ -20,6 +21,7 @@ const handleCommand: HandlerDelegate = async (
     if (!owner) {
         return 'Data for this channel could not be found. The channel owner may need to reauthenticate.';
     }
+    if (!isModuleEnabled(owner, Module.Quotes)) return undefined;
     const response = db
         .prepare('select * from commands where command_string=? and owner=?')
         .get(commandName, owner);

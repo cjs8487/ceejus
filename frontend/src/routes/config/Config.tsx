@@ -1,59 +1,39 @@
 import Toggle from 'react-toggle';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent } from 'react';
 import 'react-toggle/style.css';
 import { Disclosure, Transition } from '@headlessui/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import { faChevronUp, faInfo } from '@fortawesome/free-solid-svg-icons';
 import { Link } from 'react-router-dom';
+import { useGetApi } from '../../controller/Hooks';
+import { UserConfig } from '../../types';
+import { mutate } from 'swr';
 
 type ModuleProps = {
+    id: number;
     name: string;
     description: string;
-    isEnabled: boolean;
+    enabled: boolean;
     commands: string[];
     hasAdditionalConfig?: boolean;
     configPath?: string;
 };
 
-const modules: ModuleProps[] = [
-    {
-        name: 'Commands',
-        description: 'Have Ceejus respond to custom commands in your chat',
-        isEnabled: true,
-        commands: [],
-        hasAdditionalConfig: true,
-        configPath: './economy',
-    },
-    {
-        name: 'Quotes',
-        description:
-            'Let viewers quote memorable things said on stream or in chat, into a shared community database',
-        isEnabled: true,
-        commands: ['quote'],
-    },
-    {
-        name: 'Economy',
-        description:
-            'Run an economy in your chat and Discord server with Ceejus. Viewers can exchange channel points for currency, gamble their currency, and more!',
-        isEnabled: false,
-        commands: ['money', 'gamble'],
-        hasAdditionalConfig: true,
-        configPath: './economy',
-    },
-];
-
 const ModuleConfig = ({
+    id,
     name,
     description,
-    isEnabled,
+    enabled,
     commands,
     hasAdditionalConfig,
     configPath,
 }: ModuleProps) => {
-    const [enabled, setEnabled] = useState(isEnabled);
-
     const updateEnabled = (event: ChangeEvent<HTMLInputElement>) => {
-        setEnabled(event.target.checked);
+        fetch(
+            `/api/config/${id}/${event.target.checked ? 'enable' : 'disable'}`,
+            { method: 'POST' },
+        );
+        mutate('/api/config');
     };
     return (
         <Disclosure>
@@ -125,18 +105,39 @@ const ModuleConfig = ({
 };
 
 const Config = () => {
+    const {
+        data: userConfig,
+        error,
+        isLoading,
+    } = useGetApi<UserConfig>('/api/config');
+
+    if (isLoading) return null;
+    if (error || !userConfig)
+        return <div>Error loading configuration data</div>;
+
+    console.log(userConfig);
+
     return (
         <div className="flex flex-col items-center justify-center gap-y-4">
             <div className="text-3xl">Modules</div>
-            {modules.map((module) => (
+            <div className="mx-8 mb-4 flex items-center justify-center gap-x-6 bg-gray-300 px-4 py-2">
+                <FontAwesomeIcon icon={faInfo} size="lg" />
+                Configuration options currently only impact your Twitch channel.
+                If Ceejus is in your Discord server, all commands will always be
+                enabled, regardless of your configuration here. You can manually
+                disable commands from the integration menu in your Discord
+                server if you need them to be disabled.
+            </div>
+            {userConfig.config.map((configEntry) => (
                 <ModuleConfig
-                    key={module.name}
-                    name={module.name}
-                    description={module.description}
-                    isEnabled={module.isEnabled}
-                    commands={module.commands}
-                    hasAdditionalConfig={module.hasAdditionalConfig}
-                    configPath={module.configPath}
+                    key={configEntry.module.id}
+                    id={configEntry.module.id}
+                    name={configEntry.module.name}
+                    description={configEntry.module.description}
+                    enabled={configEntry.enabled}
+                    commands={configEntry.module.commands}
+                    hasAdditionalConfig={configEntry.module.hasAdditionalConfig}
+                    configPath={`./${configEntry.module.name.toLowerCase()}`}
                 />
             ))}
         </div>

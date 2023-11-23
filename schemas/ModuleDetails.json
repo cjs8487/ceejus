@@ -1,0 +1,13 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["id", "name", "description", "commands"],
+    "properties": {
+        "id": {"type": "number"},
+        "name": {"type": "string"},
+        "description": {"type": "string"},
+        "commands": {"type": "array", "items": {"type": "string"}},
+        "hasAdditionalConfig": {"type": "boolean"}
+    }
+}

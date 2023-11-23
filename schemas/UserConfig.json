@@ -1,0 +1,27 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["userId", "config"],
+    "properties": {
+        "userId": {"type": "number"},
+        "config": {"type": "array", "items": {
+            "required": ["module", "enabled"],
+            "properties": {
+                "module": { "$ref": "./ModuleDetails.json" },
+                "enabled": { "type": "boolean" }
+            
+        }}}
+    },
+    "$defs": {
+        "ConfigEntry": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["module", "enabled"],
+            "properties": {
+                "module": { "$ref": "./ModuleDetails.json" },
+                "enabled": { "type": "boolean" }
+            }
+        }
+    }
+}
