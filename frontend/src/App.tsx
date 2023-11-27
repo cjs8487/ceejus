@@ -6,6 +6,7 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import Login from './routes/Login';
 import Logout from './routes/Logout';
 import Error from './routes/Error';
+import StoreShell from './components/store/StoreShell';
 
 function App() {
     const {
@@ -71,6 +72,7 @@ function App() {
                 <Route path="/logout" element={<Logout />} />
                 <Route path="/error" element={<Error />} />
                 <Route path="/s/*" element={<AppShell />} />
+                <Route path="/store/*" element={<StoreShell />} />
                 <Route
                     path="/*"
                     element={
